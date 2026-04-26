@@ -1,0 +1,213 @@
+import fs from "node:fs";
+import path from "node:path";
+import { watch } from "chokidar";
+import { loadEnvFile } from "./lib/env-writer.js";
+import type { ToolRegistry } from "./server.js";
+import { loadSingleConfig } from "./loader.js";
+import { connectorRegistry } from "./connectors/registry.js";
+import type { GraphqlConnector } from "./connectors/graphql.js";
+import type { GrpcConnector } from "./connectors/grpc.js";
+import type { GraphqlConnectorConfig, GrpcConnectorConfig } from "./types.js";
+
+// ── Constants ──────────────────────────────────────────────────────
+
+/** Wait for file writes to settle before reloading (handles editors that
+ *  write via temp-file rename, e.g. vim, VS Code). */
+const DEBOUNCE_MS = 300;
+
+// ── Internal helpers ───────────────────────────────────────────────
+
+/** Returns true if the path looks like a mcp.*.json config file. */
+function isMcpConfigFile(filePath: string): boolean {
+  const base = path.basename(filePath);
+  return base.startsWith("mcp.") && base.endsWith(".json");
+}
+
+function makeDebouncer() {
+  const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  return function debounce(key: string, fn: () => void | Promise<void>): void {
+    const existing = timers.get(key);
+    if (existing) clearTimeout(existing);
+    timers.set(
+      key,
+      setTimeout(() => {
+        timers.delete(key);
+        const result = fn();
+        if (result instanceof Promise) {
+          result.catch((err: unknown) => {
+            console.error("[watcher] async handler error:", err);
+          });
+        }
+      }, DEBOUNCE_MS),
+    );
+  };
+}
+
+// ── startWatcher ───────────────────────────────────────────────────
+
+/**
+ * Watch `configDir` for `mcp.*.json` files.
+ * On add / change / unlink → update the ToolRegistry and call
+ * `notifyToolsChanged()` so all connected transports (stdio + HTTP)
+ * see fresh tools without a restart.
+ *
+ * Note: chokidar v4+ dropped glob support — we watch the directory and
+ * filter events by filename pattern ourselves.
+ *
+ * @param configDir          Directory to watch (same one passed to loadConfigs)
+ * @param registry           Live ToolRegistry from startServer()
+ * @param notifyToolsChanged Broadcasts tool-list-changed to all active transports
+ */
+export function startWatcher(
+  configDir: string,
+  registry: ToolRegistry,
+  notifyToolsChanged: () => Promise<void>,
+): void {
+  // Track which file owns which configId so we can unregister on unlink
+  // without being able to read the deleted file.
+  const fileToConfigId = new Map<string, string>();
+
+  const debounce = makeDebouncer();
+
+  // Watch the directory (not a glob — chokidar v4+ removed glob support).
+  // We filter events to mcp.*.json ourselves via isMcpConfigFile().
+  const watcher = watch(configDir, {
+    ignoreInitial: true, // initial configs already loaded by cli.ts
+    awaitWriteFinish: { stabilityThreshold: 200, pollInterval: 50 },
+  });
+
+  // ── add ────────────────────────────────────────────────────────
+  watcher.on("add", (filePath) => {
+    if (!isMcpConfigFile(filePath)) return;
+    debounce(filePath, async () => {
+      console.error(`[watcher] + ${path.basename(filePath)}`);
+
+      const config = loadSingleConfig(filePath);
+      if (!config) return;
+
+      // If we somehow already have an entry for this path, clean it up first
+      const prevId = fileToConfigId.get(filePath);
+      if (prevId) registry.unregisterConfig(prevId);
+
+      // Re-introspect GraphQL configs with empty tools
+      if (config.connector.type === "graphql" && config.tools.length === 0) {
+        const gql = connectorRegistry.get("graphql") as GraphqlConnector;
+        await gql.reinitConfig(
+          config.id,
+          config.connector as GraphqlConnectorConfig,
+          config.overlays,
+        );
+        config.tools = gql.getDiscoveredTools(config.id);
+      }
+
+      // Re-discover gRPC configs with empty tools
+      if (config.connector.type === "grpc" && config.tools.length === 0) {
+        const grpc = connectorRegistry.get("grpc") as GrpcConnector;
+        await grpc.reinitConfig(
+          config.id,
+          config.connector as GrpcConnectorConfig,
+          config.overlays,
+        );
+        config.tools = grpc.getDiscoveredTools(config.id);
+      }
+
+      fileToConfigId.set(filePath, config.id);
+      registry.registerConfig(config);
+      await notifyToolsChanged();
+      console.error(
+        `[watcher]   ✓ Added "${config.id}" — ${config.tools.length} tools (${registry.size()} total)`,
+      );
+    });
+  });
+
+  // ── change ─────────────────────────────────────────────────────
+  watcher.on("change", (filePath) => {
+    if (!isMcpConfigFile(filePath)) return;
+    debounce(filePath, async () => {
+      console.error(`[watcher] ~ ${path.basename(filePath)}`);
+
+      // Remove previous version of this config
+      const oldId = fileToConfigId.get(filePath);
+      if (oldId) registry.unregisterConfig(oldId);
+
+      const config = loadSingleConfig(filePath);
+      if (!config) {
+        // File is now invalid — remove it from tracking and notify
+        if (oldId) {
+          fileToConfigId.delete(filePath);
+          await notifyToolsChanged();
+          console.error(
+            `[watcher]   ✗ "${oldId}" removed (invalid config) — ${registry.size()} total tools`,
+          );
+        }
+        return;
+      }
+
+      // Re-introspect GraphQL configs with empty tools
+      if (config.connector.type === "graphql" && config.tools.length === 0) {
+        const gql = connectorRegistry.get("graphql") as GraphqlConnector;
+        await gql.reinitConfig(
+          config.id,
+          config.connector as GraphqlConnectorConfig,
+          config.overlays,
+        );
+        config.tools = gql.getDiscoveredTools(config.id);
+      }
+
+      // Re-discover gRPC configs with empty tools
+      if (config.connector.type === "grpc" && config.tools.length === 0) {
+        const grpc = connectorRegistry.get("grpc") as GrpcConnector;
+        await grpc.reinitConfig(
+          config.id,
+          config.connector as GrpcConnectorConfig,
+          config.overlays,
+        );
+        config.tools = grpc.getDiscoveredTools(config.id);
+      }
+
+      fileToConfigId.set(filePath, config.id);
+      registry.registerConfig(config);
+      await notifyToolsChanged();
+      console.error(
+        `[watcher]   ↺ Reloaded "${config.id}" — ${config.tools.length} tools (${registry.size()} total)`,
+      );
+    });
+  });
+
+  // ── unlink ─────────────────────────────────────────────────────
+  watcher.on("unlink", (filePath) => {
+    if (!isMcpConfigFile(filePath)) return;
+    debounce(filePath, async () => {
+      const configId = fileToConfigId.get(filePath);
+      if (!configId) return;
+
+      registry.unregisterConfig(configId);
+      fileToConfigId.delete(filePath);
+      await notifyToolsChanged();
+      console.error(
+        `[watcher]   - Removed "${configId}" — ${registry.size()} total tools`,
+      );
+    });
+  });
+
+  // ── errors ─────────────────────────────────────────────────────
+  watcher.on("error", (err) => {
+    console.error("[watcher] FS error:", err);
+  });
+
+  console.error(`[mcp-one] Watching ${configDir} for config changes`);
+
+  // ── .env hot-reload ────────────────────────────────────────────
+  // Watch the .env file with fs.watchFile (poll-based — handles non-existent
+  // files gracefully, no extra chokidar watcher needed for a single file).
+  const envPath = path.join(process.cwd(), ".env");
+  const envDebounce = makeDebouncer();
+
+  fs.watchFile(envPath, { interval: 2000 }, (curr, prev) => {
+    if (curr.mtimeMs === prev.mtimeMs) return; // no actual change (initial poll)
+    envDebounce(".env", () => {
+      const count = loadEnvFile(true); // override = true: .env wins over shell env
+      console.error(`[env] Reloaded .env (${count} var(s) loaded)`);
+    });
+  });
+}

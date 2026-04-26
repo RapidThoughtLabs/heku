@@ -1,0 +1,55 @@
+{
+  "name": "mcp-one",
+  "version": "0.1.0",
+  "description": "A single dynamic MCP server that turns JSON configs into working API tools",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "mcp-one": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "concurrently --names \"client,server\" --prefix-colors \"cyan,yellow\" \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "npm run dev --prefix client",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:mcp": "tsx src/cli.ts start",
+    "start": "node dist/cli.js start",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "client:build": "npm run build --prefix client",
+    "seed": "tsx scripts/seed-registry.ts",
+    "seed:dry": "tsx scripts/seed-registry.ts --dry-run"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "api",
+    "tools",
+    "llm"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.3",
+    "@grpc/proto-loader": "^0.8.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "chokidar": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonpath-plus": "^10.4.0",
+    "protobufjs": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

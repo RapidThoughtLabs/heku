@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════════════════
+   RTL:// v3 THEME SYSTEM — mcp.one client
+   Based on KnotLess v3 design system
+══════════════════════════════════════════════════ */
+
+/* ── Dark mode defaults ── */
+:root {
+  --accent-h: 270;
+  --accent-s: 70%;
+  --accent-l: 68%;
+  --accent:     hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+  --accent-dim: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
+  --accent-txt: #0a0a0a;
+
+  --bg:       #0a0a0a;
+  --surface:  #141414;
+  --surface2: #1c1c1c;
+  --surface3: #222222;
+  --border:   #242424;
+  --border2:  #303030;
+  --cell-bg:  #111111;
+
+  --text:     #e8e8e0;
+  --text-mid: #aaa8a0;
+  --text-dim: #787870;
+
+  --red:    #ff5f57;
+  --yellow: #febc2e;
+  --green:  #28c840;
+  --blue:   #60a8f0;
+
+  /* 3-layer halogen glow */
+  --glow:
+    0 0 2px 1px  hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.70),
+    0 0 10px 3px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.35),
+    0 0 28px 6px hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.15);
+
+  /* Red cancel glow */
+  --cancel-glow:
+    0 0 2px 1px  hsla(0, 75%, 55%, 0.65),
+    0 0 10px 3px hsla(0, 75%, 55%, 0.30),
+    0 0 24px 5px hsla(0, 75%, 55%, 0.12);
+}
+
+/* ── Accent presets ── */
+[data-accent="lime"]   { --accent-h: 86;  --accent-s: 84%; --accent-l: 62%; }
+[data-accent="purple"] { --accent-h: 270; --accent-s: 70%; --accent-l: 68%; }
+[data-accent="blue"]   { --accent-h: 210; --accent-s: 80%; --accent-l: 62%; }
+[data-accent="cyan"]   { --accent-h: 186; --accent-s: 80%; --accent-l: 52%; }
+[data-accent="pink"]   { --accent-h: 330; --accent-s: 80%; --accent-l: 68%; }
+
+/* ── Light mode ── */
+[data-mode="light"] {
+  --bg:       #f0ede8;
+  --surface:  #e8e4de;
+  --surface2: #dedad4;
+  --surface3: #d4d0ca;
+  --border:   #b4b0a8;
+  --border2:  #a4a09a;
+  --cell-bg:  #ebe8e2;
+  --text:     #121210;
+  --text-mid: #484840;
+  --text-dim: #6e6c66;
+  --accent-txt: #ffffff;
+}
+[data-mode="light"][data-accent="purple"] { --accent-l: 42%; }
+[data-mode="light"][data-accent="lime"]   { --accent-l: 34%; }
+[data-mode="light"][data-accent="blue"]   { --accent-l: 42%; }
+[data-mode="light"][data-accent="cyan"]   { --accent-l: 34%; }
+[data-mode="light"][data-accent="pink"]   { --accent-l: 46%; }
+
+/* ══════════ RESET ══════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { font-family: 'JetBrains Mono', monospace; }
+html, body, #root { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-size: var(--font-size, 13px);
+  line-height: 1;
+  overflow: hidden;
+  transition: background 0.25s, color 0.25s;
+}
+
+/* Make placeholders obviously distinct from real input */
+::placeholder {
+  color: var(--text-dim) !important;
+  opacity: 0.45 !important;
+  font-style: italic;
+}
+
+/* ══════════ SCROLLBAR ══════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ══════════ ANIMATIONS ══════════ */
+@keyframes breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes toolPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0; }
+}
