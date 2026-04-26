@@ -233,4 +233,4 @@ TypeScript · Node.js (ESM) · `@modelcontextprotocol/sdk` · Express · React 1
 
 ## License
 
-MIT
+Apache License 2.0 — see [LICENSE](LICENSE).
