@@ -282,6 +282,16 @@ export function createRegistryRouter(): Router {
     res.status(201).json(result);
   }));
 
+  // ── GET /api/registry/payload/:namespace/:slug ────────────────────
+  // Fetch the latest published payload — used by RegistryDetail to display tools.
+  router.get("/payload/:namespace/:slug", wrap(async (req, res) => {
+    const { namespace, slug } = req.params as { namespace: string; slug: string };
+    const registry       = (req.query["registry"] as string | undefined) ?? "default";
+    const connector_type = (req.query["connector_type"] as string | undefined);
+    const { payload }    = await fetchVersionPayload(namespace, slug, connector_type, undefined, registry);
+    res.json(payload);
+  }));
+
   // ── DELETE /api/registry/uninstall/:id ───────────────────────────
   // :id is the compound config id, e.g. "github-http"
   router.delete("/uninstall/:id", wrap(async (req, res) => {
