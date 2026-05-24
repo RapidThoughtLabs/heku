@@ -7,6 +7,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { api } from '@/lib/api'
 import type { ConfigSummary, ConfigDetail, McpTool } from '@/types/server'
+import { isExperimental } from '@/lib/connector-meta'
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
@@ -197,6 +198,15 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
           <span style={{ color: 'var(--text)' }}>{cfg.id}</span>
         </span>
         <div style={{ flex: 1 }} />
+        {isExperimental(cfg.connector.type) && (
+          <span style={{
+            fontSize: 9, padding: '2px 8px', borderRadius: 99, letterSpacing: '0.06em',
+            background: 'rgba(255,200,0,0.12)', color: 'rgba(255,200,0,0.85)',
+            border: '1px solid rgba(255,200,0,0.2)',
+          }}>
+            experimental
+          </span>
+        )}
         <Badge label={connectorLabel(cfg.connector.type)} />
       </div>
 

@@ -1,10 +1,13 @@
 import { create } from 'zustand'
 import type { ConfigSummary, McpTool } from '@/types/server'
+import type { RegistryConfigMeta, RegistryFilters, RegistryUpdateInfo, ManifestEntry, RegistrySource } from '@/types/registry'
 
-export type Page = 'demo' | 'configs' | 'registry' | 'logs' | 'prompts'
+export type Page = 'demo' | 'configs' | 'registry' | 'experimental' | 'logs' | 'prompts'
 export type AccentColor = 'purple' | 'lime' | 'blue' | 'cyan' | 'pink' | 'yellow'
 export type ThemeMode = 'dark' | 'light'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+
+const DEFAULT_REGISTRY_FILTERS: RegistryFilters = { sort_by: 'popular' }
 
 interface AppState {
   // Navigation
@@ -47,6 +50,37 @@ interface AppState {
   // Registry update badge count
   registryUpdateCount: number
   setRegistryUpdateCount: (count: number) => void
+
+  // Monotonic counter — increment after any registry install/uninstall so
+  // useConfigs knows to re-fetch the config list from disk.
+  configsRevision: number
+  bumpConfigsRevision: () => void
+
+  // ── Registry page cache ──────────────────────────────────────────
+  // All registry state lives here so it survives navigation away and back.
+  registrySource: string
+  registryResults: RegistryConfigMeta[]
+  registryFeatured: RegistryConfigMeta[]
+  registryTotal: number
+  registryFilters: RegistryFilters
+  registryManifest: ManifestEntry[]
+  registryUpdates: Map<string, RegistryUpdateInfo>
+  registryBootstrapped: boolean   // true once first load for registrySource completes
+  registryAvailableSources: RegistrySource[]
+  registrySubPage: 'browse' | 'detail'
+  registrySelectedConfig: RegistryConfigMeta | null
+
+  setRegistrySource: (source: string) => void
+  setRegistryAvailableSources: (sources: RegistrySource[]) => void
+  setRegistryResults: (results: RegistryConfigMeta[], total: number) => void
+  setRegistryFeatured: (featured: RegistryConfigMeta[]) => void
+  patchRegistryFilters: (patch: Partial<RegistryFilters>) => void
+  clearRegistryFilters: () => void
+  setRegistryManifest: (manifest: ManifestEntry[]) => void
+  setRegistryUpdates: (updates: Map<string, RegistryUpdateInfo>) => void
+  setRegistryBootstrapped: () => void
+  setRegistrySubPage: (subPage: 'browse' | 'detail') => void
+  setRegistrySelectedConfig: (config: RegistryConfigMeta | null) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -83,4 +117,42 @@ export const useAppStore = create<AppState>((set) => ({
 
   registryUpdateCount: 0,
   setRegistryUpdateCount: (registryUpdateCount) => set({ registryUpdateCount }),
+
+  configsRevision: 0,
+  bumpConfigsRevision: () => set((s) => ({ configsRevision: s.configsRevision + 1 })),
+
+  // ── Registry page cache ──────────────────────────────────────────
+  registrySource:         localStorage.getItem('mcp-one:registry:selectedSource') ?? 'default',
+  registryResults:        [],
+  registryFeatured:       [],
+  registryTotal:          0,
+  registryFilters:        DEFAULT_REGISTRY_FILTERS,
+  registryManifest:       [],
+  registryUpdates:        new Map(),
+  registryBootstrapped:     false,
+  registryAvailableSources: [],
+  registrySubPage:          'browse',
+  registrySelectedConfig:   null,
+
+  setRegistryAvailableSources: (registryAvailableSources) => set({ registryAvailableSources }),
+  setRegistrySource: (source) => set({
+    registrySource:       source,
+    registryResults:      [],
+    registryFeatured:     [],
+    registryTotal:        0,
+    registryFilters:      DEFAULT_REGISTRY_FILTERS,
+    registryUpdates:      new Map(),
+    registryBootstrapped: false,
+    registrySubPage:      'browse',
+    registrySelectedConfig: null,
+  }),
+  setRegistryResults:  (registryResults, registryTotal) => set({ registryResults, registryTotal }),
+  setRegistryFeatured: (registryFeatured) => set({ registryFeatured }),
+  patchRegistryFilters: (patch) => set((s) => ({ registryFilters: { ...s.registryFilters, ...patch } })),
+  clearRegistryFilters: () => set({ registryFilters: DEFAULT_REGISTRY_FILTERS }),
+  setRegistryManifest:  (registryManifest) => set({ registryManifest }),
+  setRegistryUpdates:   (registryUpdates) => set({ registryUpdates }),
+  setRegistryBootstrapped: () => set({ registryBootstrapped: true }),
+  setRegistrySubPage:   (registrySubPage) => set({ registrySubPage }),
+  setRegistrySelectedConfig: (registrySelectedConfig) => set({ registrySelectedConfig }),
 }))

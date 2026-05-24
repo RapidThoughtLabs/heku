@@ -18,6 +18,7 @@ export function useConfigs(): UseConfigsResult {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const toolCount = useAppStore((s) => s.toolCount)
+  const configsRevision = useAppStore((s) => s.configsRevision)
   const prevToolCountRef = useRef<number | null>(null)
 
   const fetchConfigs = useCallback(async () => {
@@ -45,6 +46,15 @@ export function useConfigs(): UseConfigsResult {
     }
     prevToolCountRef.current = toolCount
   }, [toolCount, fetchConfigs])
+
+  // Re-fetch after any registry install/uninstall so the configs tab stays in sync.
+  const prevRevisionRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (prevRevisionRef.current !== null && prevRevisionRef.current !== configsRevision) {
+      void fetchConfigs()
+    }
+    prevRevisionRef.current = configsRevision
+  }, [configsRevision, fetchConfigs])
 
   const createConfig = useCallback(
     async (data: unknown) => {

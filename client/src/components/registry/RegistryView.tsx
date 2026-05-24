@@ -1,36 +1,37 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { api } from '@/lib/api'
 import { useRegistry } from '@/hooks/useRegistry'
+import { useAppStore } from '@/stores/app-store'
 import { RegistryBrowse } from './RegistryBrowse'
 import { RegistryDetail } from './RegistryDetail'
 import type { RegistryConfigMeta, RegistrySource } from '@/types/registry'
 
-type SubPage = 'browse' | 'detail'
-
 const LS_KEY = 'mcp-one:registry:selectedSource'
 
 export function RegistryView() {
-  const [subPage, setSubPage] = useState<SubPage>('browse')
-  const [selectedConfig, setSelectedConfig] = useState<RegistryConfigMeta | null>(null)
-  const [selectedRegistry, setSelectedRegistry] = useState<string>(
-    () => localStorage.getItem(LS_KEY) ?? 'default'
-  )
-  const [availableSources, setAvailableSources] = useState<RegistrySource[]>([])
+  const selectedRegistry  = useAppStore((s) => s.registrySource)
+  const subPage           = useAppStore((s) => s.registrySubPage)
+  const selectedConfig    = useAppStore((s) => s.registrySelectedConfig)
+  const setRegistrySource = useAppStore((s) => s.setRegistrySource)
+  const setSubPage        = useAppStore((s) => s.setRegistrySubPage)
+  const setSelectedConfig = useAppStore((s) => s.setRegistrySelectedConfig)
+  const availableSources  = useAppStore((s) => s.registryAvailableSources)
+  const setAvailableSources = useAppStore((s) => s.setRegistryAvailableSources)
 
   useEffect(() => {
     api.get<RegistrySource[]>('/registry/sources').then((sources) => {
       setAvailableSources(sources)
       const stored = localStorage.getItem(LS_KEY)
       if (stored && !sources.find((s) => s.name === stored)) {
-        setSelectedRegistry('default')
-        localStorage.setItem(LS_KEY, 'default')
+        handleSelectRegistry('default')
       }
     }).catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSelectRegistry = (name: string) => {
-    setSelectedRegistry(name)
     localStorage.setItem(LS_KEY, name)
+    setRegistrySource(name)
   }
 
   const {
@@ -63,8 +64,9 @@ export function RegistryView() {
     return (
       <RegistryDetail
         config={selectedConfig}
-        isInstalled={isInstalled(selectedConfig.slug)}
-        updateInfo={getUpdateInfo(selectedConfig.slug)}
+        registry={selectedRegistry}
+        isInstalled={isInstalled(selectedConfig.qualified_slug)}
+        updateInfo={getUpdateInfo(selectedConfig.qualified_slug)}
         onInstall={install}
         onUninstall={uninstall}
         onBack={handleBack}

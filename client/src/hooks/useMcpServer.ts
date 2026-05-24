@@ -7,8 +7,10 @@ const POLL_INTERVAL_MS = 5_000
 
 export function useMcpServer() {
   const { setServerStatus, setToolCount, setTools, setConfigs } = useAppStore()
+  const configsRevision = useAppStore((s) => s.configsRevision)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mountedRef = useRef(true)
+  const prevRevisionRef = useRef<number | null>(null)
 
   const fetchHealth = useCallback(async () => {
     try {
@@ -69,4 +71,13 @@ export function useMcpServer() {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
   }, [poll])
+
+  // Immediately refresh tools after any install/uninstall so McpPanel
+  // reflects the change without waiting for the next 5-second poll cycle.
+  useEffect(() => {
+    if (prevRevisionRef.current !== null && prevRevisionRef.current !== configsRevision) {
+      void Promise.allSettled([fetchTools(), fetchHealth(), fetchConfigs()])
+    }
+    prevRevisionRef.current = configsRevision
+  }, [configsRevision, fetchTools, fetchHealth, fetchConfigs])
 }

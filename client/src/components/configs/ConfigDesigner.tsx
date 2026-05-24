@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import {
   ArrowLeft, ArrowRight, Check, X, Loader2,
-  Globe, Terminal, FileText, Cpu, GitBranch, Plug, Info, Database,
+  Globe, Cpu, GitBranch, Plug, Info,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { AuthFormSection, type AuthFields, DEFAULT_AUTH_FIELDS } from './AuthFormSection'
@@ -259,11 +259,8 @@ function validateStep2(s: DesignerState): Errors {
 
 const CONNECTOR_TYPES: { value: ConnectorType; label: string; desc: string; Icon: React.FC<{ size?: number; style?: React.CSSProperties }> }[] = [
   { value: 'http',    label: 'HTTP',    desc: 'REST API over HTTP/S',       Icon: Globe },
-  { value: 'cli',     label: 'CLI',     desc: 'Shell commands',             Icon: Terminal },
-  { value: 'file',    label: 'File',    desc: 'Local filesystem access',    Icon: FileText },
   { value: 'grpc',    label: 'gRPC',    desc: 'gRPC service via .proto',    Icon: Cpu },
   { value: 'graphql', label: 'GraphQL', desc: 'GraphQL endpoint',           Icon: GitBranch },
-  { value: 'sql',     label: 'SQL',     desc: 'PostgreSQL / MySQL / SQLite', Icon: Database },
   { value: 'mcp',     label: 'MCP',     desc: 'MCP server (auto-discover)', Icon: Plug },
 ]
 
@@ -273,7 +270,7 @@ const STEP_LABELS = ['Service Basics', 'Auth Setup', 'Tool Builder', 'Review & S
 
 function stepApplies(step: number, connectorType: ConnectorType): boolean {
   if (step === 0 || step === 3) return true
-  if (step === 1) return connectorType === 'http' || connectorType === 'graphql' || connectorType === 'sql'
+  if (step === 1) return connectorType === 'http' || connectorType === 'graphql'
   if (step === 2) return connectorType !== 'mcp'
   return true
 }

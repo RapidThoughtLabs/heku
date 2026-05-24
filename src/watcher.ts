@@ -250,7 +250,12 @@ export function startWatcher(
     if (!isMcpConfigFile(filePath)) return;
     debounce(filePath, async () => {
       if (paused) return;
-      const configId = fileToConfigId.get(filePath);
+      // Fall back to filename-derived id for files that existed before the
+      // watcher started (ignoreInitial:true suppresses their "add" events,
+      // so fileToConfigId was never populated for them).
+      const base = path.basename(filePath); // "mcp.open-meteo-http.json"
+      const derived = base.slice(4, -5);    // "open-meteo-http"
+      const configId = fileToConfigId.get(filePath) ?? (derived || null);
       if (!configId) return;
 
       registry.unregisterConfig(configId);

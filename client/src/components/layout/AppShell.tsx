@@ -8,11 +8,13 @@ import { SettingsModal } from '@/components/settings/SettingsModal'
 import { Toaster } from '@/components/ui/Toast'
 import { useAppStore } from '@/stores/app-store'
 import { PromptsView } from '@/components/prompts/PromptsView'
+import { ExperimentalView } from '@/components/experimental/ExperimentalView'
 
 const PAGE_COMPONENTS = {
   demo: ChatView,
   configs: ConfigsView,
   registry: RegistryView,
+  experimental: ExperimentalView,
   logs: LogsView,
   prompts: PromptsView,
 }

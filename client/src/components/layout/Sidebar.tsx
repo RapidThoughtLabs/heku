@@ -1,4 +1,4 @@
-import { MessageSquare, Settings2, ScrollText, Sparkles, Settings, Package } from 'lucide-react'
+import { MessageSquare, Settings2, ScrollText, Sparkles, Settings, Package, FlaskConical } from 'lucide-react'
 import { useAppStore, type Page } from '@/stores/app-store'
 import { Badge } from '@/components/ui/Badge'
 
@@ -6,6 +6,7 @@ const NAV_ITEMS: { page: Page; icon: typeof MessageSquare; label: string; soon?:
   { page: 'demo', icon: MessageSquare, label: 'Demo' },
   { page: 'configs', icon: Settings2, label: 'Configs' },
   { page: 'registry', icon: Package, label: 'Registry' },
+  { page: 'experimental', icon: FlaskConical, label: 'Experimental' },
   { page: 'logs', icon: ScrollText, label: 'Logs' },
   { page: 'prompts', icon: Sparkles, label: 'Prompts' },
 ]

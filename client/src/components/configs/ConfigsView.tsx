@@ -7,6 +7,7 @@ import { ConfigEditor } from './ConfigEditor'
 import { ConfigDetailView } from './ConfigDetailView'
 import { PublishModal } from './PublishModal'
 import { api } from '@/lib/api'
+import { isExperimental } from '@/lib/connector-meta'
 import type { ConfigSummary } from '@/types/server'
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -184,6 +185,15 @@ function ConfigCard({ cfg, onEdit, onOpen, onRefetch }: { cfg: ConfigSummary; on
           }}>
             {connectorLabel(cfg.connector.type)}
           </span>
+          {isExperimental(cfg.connector.type) && (
+            <span style={{
+              fontSize: 9, padding: '2px 8px', borderRadius: 99, letterSpacing: '0.06em',
+              background: 'rgba(255,200,0,0.12)', color: 'rgba(255,200,0,0.85)',
+              border: '1px solid rgba(255,200,0,0.2)',
+            }}>
+              experimental
+            </span>
+          )}
           {hasAuth && (
             <span style={{
               fontSize: 9, padding: '2px 8px', borderRadius: 99, letterSpacing: '0.06em',

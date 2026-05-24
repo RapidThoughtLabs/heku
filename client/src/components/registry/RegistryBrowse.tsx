@@ -264,8 +264,8 @@ export function RegistryBrowse({
                     <RegistryCard
                       key={cfg.id ?? `${cfg.namespace}/${cfg.slug}`}
                       config={cfg}
-                      isInstalled={isInstalled(cfg.slug)}
-                      updateInfo={getUpdateInfo(cfg.slug)}
+                      isInstalled={isInstalled(cfg.qualified_slug)}
+                      updateInfo={getUpdateInfo(cfg.qualified_slug)}
                       onClick={() => onSelect(cfg)}
                     />
                   ))}
@@ -300,8 +300,8 @@ export function RegistryBrowse({
                   <RegistryCard
                     key={cfg.id ?? `${cfg.namespace}/${cfg.slug}`}
                     config={cfg}
-                    isInstalled={isInstalled(cfg.slug)}
-                    updateInfo={getUpdateInfo(cfg.slug)}
+                    isInstalled={isInstalled(cfg.qualified_slug)}
+                    updateInfo={getUpdateInfo(cfg.qualified_slug)}
                     onClick={() => onSelect(cfg)}
                   />
                 ))}

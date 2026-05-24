@@ -4,17 +4,21 @@ export interface RegistryConfigMeta {
   id: string
   namespace: string
   slug: string
+  qualified_slug: string
+  forked_from?: string | null
   name: string
   description: string
   category: string
   connector_type: string
   visibility: string
   verified: boolean
-  star_count: number
-  install_count: number
+  stars: number
+  installs: number
+  forks?: number
+  watches?: number
   deprecated: boolean
   archived: boolean
-  tags: string[]
+  tags?: string[]
   latest_version?: {
     version: string
     status: string
@@ -101,4 +105,30 @@ export interface RegistryUser {
 export interface RegistryAuthStatus {
   loggedIn: boolean
   user?: RegistryUser
+}
+
+export interface ConfigPayloadParam {
+  name: string
+  description?: string
+  type?: string
+  required?: boolean
+}
+
+export interface ConfigPayloadTool {
+  name: string
+  description?: string
+  params?: ConfigPayloadParam[]
+}
+
+export interface ConfigPayloadOverlay {
+  description?: string
+  active?: boolean
+  params?: Record<string, { description?: string }>
+}
+
+export interface ConfigPayload {
+  id?: string
+  name?: string
+  tools?: ConfigPayloadTool[]
+  registry_overlays?: Record<string, ConfigPayloadOverlay>
 }

@@ -450,51 +450,38 @@ export async function checkUpdates(
 
 // ── Publishing ───────────────────────────────────────────────────
 
-export interface PublishNewPayload {
-  namespace: string;
-  slug: string;
-  name: string;
-  description: string;
-  category: string;
-  connector_type: string;
-  visibility: "public" | "private";
-  tags: string[];
+export interface PublishPayload {
+  target?: string;          // "@namespace/slug" — omit for new configs
+  slug?: string;            // required when target absent
+  name?: string;            // required on first create
+  description?: string;
+  category?: string;
+  tags?: string[];
+  visibility?: "public" | "private";
+  license?: string;
+  connector_type?: string;
   payload: unknown;
-  message: string;
+  message?: string;
 }
 
-export interface PublishNewResponse {
+export interface PublishVersionInfo {
+  version: string;
+  diff_type: string;
+  severity: string;
+}
+
+export interface PublishResponse {
+  action: "created" | "versioned" | "forked";
   config: ConfigMeta;
-  version: VersionMeta;
+  version: PublishVersionInfo;
+  warnings: string[];
 }
 
-export async function publishNew(
-  data: PublishNewPayload,
+export async function publish(
+  data: PublishPayload,
   registryName = "default",
-): Promise<PublishNewResponse> {
-  // Server stores namespace as-is — strip leading @ so "@ruchit" → "ruchit"
-  const normalized = { ...data, namespace: data.namespace.replace(/^@/, "") };
-  return jsonFetch<PublishNewResponse>("/configs/", {
-    method: "POST",
-    body: JSON.stringify(normalized),
-    requireAuth: true,
-    registryName,
-  });
-}
-
-export interface PublishVersionPayload {
-  version?: string;   // ignored by the registry — kept optional for CLI compat
-  payload: unknown;
-  message: string;
-}
-
-export async function publishVersion(
-  namespace: string,
-  slug: string,
-  data: PublishVersionPayload,
-  registryName = "default",
-): Promise<VersionMeta> {
-  return jsonFetch<VersionMeta>(`/configs/${namespace}/${slug}/versions`, {
+): Promise<PublishResponse> {
+  return jsonFetch<PublishResponse>("/publish", {
     method: "POST",
     body: JSON.stringify(data),
     requireAuth: true,
@@ -504,41 +491,28 @@ export async function publishVersion(
 
 // ── Submissions ──────────────────────────────────────────────────
 
-export interface SubmissionPayload {
-  base_version: string;
-  proposed_version: string;
+export interface SubmitPayload {
+  target: string;           // "@namespace/slug" — must be a different namespace
   payload: unknown;
   message: string;
+  base_version?: string;    // 409 stale_base if provided and doesn't match latest
 }
 
-export async function submitChange(
-  namespace: string,
-  slug: string,
-  data: SubmissionPayload,
+export interface SubmitResponse {
+  action: "published_directly" | "submission_pending" | "submission_auto_merged";
+  submission: SubmissionMeta | null;
+  version: { version: string; severity: string } | null;
+  approvals_needed: number;
+  voters_notified: string[];
+}
+
+export async function submit(
+  data: SubmitPayload,
   registryName = "default",
-): Promise<unknown> {
-  return jsonFetch(`/configs/${namespace}/${slug}/submissions`, {
+): Promise<SubmitResponse> {
+  return jsonFetch<SubmitResponse>("/submit", {
     method: "POST",
     body: JSON.stringify(data),
-    requireAuth: true,
-    registryName,
-  });
-}
-
-// ── Forking ──────────────────────────────────────────────────────
-
-/**
- * Fork a published config into the authenticated user's namespace.
- * Server sets forked_from, copies the latest payload as v1.0.0, and notifies the original author.
- * Returns 409 if userUsername/slug already exists, or if source has no published versions.
- */
-export async function forkConfig(
-  namespace: string,
-  slug: string,
-  registryName = "default",
-): Promise<ConfigMeta> {
-  return jsonFetch<ConfigMeta>(`/configs/${namespace}/${slug}/fork`, {
-    method: "POST",
     requireAuth: true,
     registryName,
   });

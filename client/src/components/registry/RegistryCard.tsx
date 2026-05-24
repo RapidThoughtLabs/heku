@@ -105,18 +105,18 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
 
           <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--text-dim)', fontSize: 10 }}>
             <Star size={10} />
-            {config.star_count.toLocaleString()}
+            {(config.stars ?? 0).toLocaleString()}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--text-dim)', fontSize: 10 }}>
             <Download size={10} />
-            {config.install_count.toLocaleString()}
+            {(config.installs ?? 0).toLocaleString()}
           </span>
         </div>
 
         {/* Tags */}
-        {config.tags.length > 0 && (
+        {(config.tags?.length ?? 0) > 0 && (
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
-            {config.tags.slice(0, 3).map((tag) => (
+            {config.tags!.slice(0, 3).map((tag) => (
               <span key={tag} style={{
                 fontSize: 8, padding: '1px 6px', borderRadius: 99,
                 background: 'var(--accent-dim)', color: 'var(--accent)',
@@ -125,9 +125,9 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
                 {tag}
               </span>
             ))}
-            {config.tags.length > 3 && (
+            {config.tags!.length > 3 && (
               <span style={{ fontSize: 8, color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
-                +{config.tags.length - 3} more
+                +{config.tags!.length - 3} more
               </span>
             )}
           </div>
