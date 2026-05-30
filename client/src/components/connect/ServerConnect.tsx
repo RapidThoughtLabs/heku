@@ -23,6 +23,11 @@ function saveRecent(endpoint: string): void {
 
 // ── Component ─────────────────────────────────────────────────────
 
+// True when the console is served from a non-local origin (e.g. the hosted VPS).
+// In that case the Vite proxy isn't available, so the user's local bridge URL
+// must be used explicitly. On localhost the proxy handles routing transparently.
+const IS_REMOTE = !['localhost', '127.0.0.1'].includes(window.location.hostname)
+
 export function ServerConnect() {
   const { setConnectedEndpoint } = useAppStore()
   const [endpoint, setEndpoint]   = useState('http://localhost:3333')
@@ -54,8 +59,7 @@ export function ServerConnect() {
     setError(null)
 
     try {
-      // Point api.ts at the local bridge before making the connect call.
-      setApiBase(bridge)
+      if (IS_REMOTE) setApiBase(bridge)
       await api.post<ConnectResponse>('/connect', { endpoint: url })
       saveRecent(url)
       setConnectedEndpoint(url)
@@ -156,8 +160,8 @@ export function ServerConnect() {
             </datalist>
           </div>
 
-          {/* API bridge URL */}
-          <div style={{ marginBottom: 12 }}>
+          {/* API bridge URL — only needed when the console is served remotely */}
+          {IS_REMOTE && <div style={{ marginBottom: 12 }}>
             <label style={{
               display: 'block',
               fontSize: 10,
@@ -195,7 +199,7 @@ export function ServerConnect() {
             <span style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4, display: 'block' }}>
               Express bridge (port 3456) — auto-derived from server endpoint
             </span>
-          </div>
+          </div>}
 
           {/* Error */}
           {error && (
