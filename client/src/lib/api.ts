@@ -14,6 +14,42 @@ export class ApiRequestError extends Error {
   }
 }
 
+// ── Base URL ───────────────────────────────────────────────────────
+// In dev, the Vite proxy rewrites /api → localhost:3456 so apiBase stays ''.
+// In production (hosted console), the user's local bridge must be targeted
+// explicitly. We persist the URL in localStorage so it survives page reloads.
+
+const STORAGE_KEY = 'mcp_one_bridge_url'
+
+let apiBase: string = (() => {
+  try {
+    return localStorage.getItem(STORAGE_KEY)?.replace(/\/$/, '') ?? ''
+  } catch {
+    return ''
+  }
+})()
+
+export function setApiBase(url: string): void {
+  apiBase = url.replace(/\/$/, '')
+  try { localStorage.setItem(STORAGE_KEY, apiBase) } catch { /* ignore */ }
+}
+
+export function getApiBase(): string {
+  return apiBase
+}
+
+/** Derive bridge URL (port 3456) from MCP endpoint URL (port 3333). */
+export function deriveBridgeUrl(mcpUrl: string): string {
+  try {
+    const u = new URL(mcpUrl)
+    u.port = '3456'
+    u.pathname = ''
+    return u.origin
+  } catch {
+    return 'http://localhost:3456'
+  }
+}
+
 // ── Core Fetch Wrapper ─────────────────────────────────────────────
 
 async function request<T>(
@@ -21,7 +57,7 @@ async function request<T>(
   path: string,
   body?: unknown,
 ): Promise<T> {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${apiBase}/api${path}`, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : {},
     body: body !== undefined ? JSON.stringify(body) : undefined,

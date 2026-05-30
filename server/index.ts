@@ -15,8 +15,14 @@ const mcp = createMcpClient();
 
 const app = express();
 
-// Allow requests from the Vite dev server (localhost:5173) and same-origin
-app.use(cors({ origin: ["http://localhost:5173", "http://127.0.0.1:5173"] }));
+// Allow the Vite dev server and the hosted console (which talks to the local bridge)
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://console.rapidthoughtlabs.space",
+  ],
+}));
 app.use(express.json());
 
 // Mount all /api routes

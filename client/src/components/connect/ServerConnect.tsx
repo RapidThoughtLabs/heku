@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { api } from '@/lib/api'
+import { api, setApiBase, deriveBridgeUrl, getApiBase } from '@/lib/api'
 import { useAppStore } from '@/stores/app-store'
 import type { ConnectResponse } from '@/types/server'
 
@@ -25,10 +25,12 @@ function saveRecent(endpoint: string): void {
 
 export function ServerConnect() {
   const { setConnectedEndpoint } = useAppStore()
-  const [endpoint, setEndpoint] = useState('http://localhost:3333')
-  const [recents, setRecents] = useState<string[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [endpoint, setEndpoint]   = useState('http://localhost:3333')
+  const [bridgeUrl, setBridgeUrl] = useState(() => getApiBase() || deriveBridgeUrl('http://localhost:3333'))
+  const [bridgeEdited, setBridgeEdited] = useState(false)
+  const [recents, setRecents]     = useState<string[]>([])
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -36,15 +38,24 @@ export function ServerConnect() {
     inputRef.current?.focus()
   }, [])
 
+  // Auto-derive bridge URL from MCP endpoint whenever endpoint changes,
+  // unless the user has manually edited the bridge URL.
+  useEffect(() => {
+    if (!bridgeEdited) setBridgeUrl(deriveBridgeUrl(endpoint))
+  }, [endpoint, bridgeEdited])
+
   async function handleConnect(e: React.FormEvent) {
     e.preventDefault()
-    const url = endpoint.trim()
+    const url    = endpoint.trim()
+    const bridge = bridgeUrl.trim()
     if (!url) return
 
     setLoading(true)
     setError(null)
 
     try {
+      // Point api.ts at the local bridge before making the connect call.
+      setApiBase(bridge)
       await api.post<ConnectResponse>('/connect', { endpoint: url })
       saveRecent(url)
       setConnectedEndpoint(url)
@@ -143,6 +154,47 @@ export function ServerConnect() {
                 <option key={r} value={r} />
               ))}
             </datalist>
+          </div>
+
+          {/* API bridge URL */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{
+              display: 'block',
+              fontSize: 10,
+              letterSpacing: '0.1em',
+              color: 'var(--text-dim)',
+              marginBottom: 6,
+              textTransform: 'uppercase',
+            }}>
+              API bridge URL
+            </label>
+            <input
+              type="url"
+              value={bridgeUrl}
+              onChange={(e) => { setBridgeUrl(e.target.value); setBridgeEdited(true); setError(null) }}
+              placeholder="http://localhost:3456"
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                background: 'var(--surface)',
+                border: `1px solid ${error ? 'var(--red)' : 'var(--border2)'}`,
+                borderRadius: 6,
+                color: 'var(--text)',
+                fontSize: 13,
+                outline: 'none',
+                transition: 'border-color 0.15s',
+              }}
+              onFocus={(e) => {
+                if (!error) e.currentTarget.style.borderColor = 'var(--accent)'
+              }}
+              onBlur={(e) => {
+                if (!error) e.currentTarget.style.borderColor = 'var(--border2)'
+              }}
+            />
+            <span style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4, display: 'block' }}>
+              Express bridge (port 3456) — auto-derived from server endpoint
+            </span>
           </div>
 
           {/* Error */}
