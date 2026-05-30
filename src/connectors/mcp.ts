@@ -3,6 +3,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import type { McpConnectorConfig, ToolOverlay, RegisteredTool, ToolDef, ParamDef } from "../types.js";
+import { schemaToParam } from "../lib/schema.js";
 import type { IConnector, ConnectorResult } from "./base.js";
 import { runInstall } from "../lib/install-runner.js";
 import { fingerprintInstall, readSentinel, writeSentinel } from "../lib/install-state.js";
@@ -137,7 +138,7 @@ export class McpConnector implements IConnector {
     const rawTools: ToolDef[] = toolsResult.tools.map((t) => ({
       name: t.name,
       description: t.description ?? "",
-      params: this.schemaToParams(t.inputSchema),
+      params: this.schemaToParams(t.inputSchema, configId),
     }));
 
     // Read existing overlays from disk so user edits survive reconnects
@@ -244,32 +245,17 @@ export class McpConnector implements IConnector {
     console.error(`[mcp-install:${configId}] install complete (${result.durationMs}ms)`);
   }
 
-  private schemaToParams(schema: unknown): ParamDef[] {
+  private schemaToParams(schema: unknown, configId: string = ""): ParamDef[] {
     if (!schema || typeof schema !== "object") return [];
     const s = schema as Record<string, unknown>;
     const properties = s.properties as Record<string, unknown> | undefined;
     if (!properties) return [];
 
     const required = new Set(Array.isArray(s.required) ? (s.required as string[]) : []);
-    const params: ParamDef[] = [];
-
-    for (const [name, prop] of Object.entries(properties)) {
-      if (!prop || typeof prop !== "object") continue;
-      const p = prop as Record<string, unknown>;
-      params.push({
-        name,
-        type: (
-          typeof p.type === "string" &&
-          ["string", "number", "boolean", "object", "array"].includes(p.type)
-        )
-          ? (p.type as ParamDef["type"])
-          : "string",
-        required: required.has(name),
-        description: typeof p.description === "string" ? p.description : name,
-        location: "body",
-      });
-    }
-
-    return params;
+    return Object.entries(properties)
+      .filter(([, v]) => v && typeof v === "object" && !Array.isArray(v))
+      .map(([name, v]) =>
+        schemaToParam(name, v as Record<string, unknown>, required.has(name), 0, configId, name),
+      );
   }
 }

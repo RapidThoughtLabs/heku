@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { api } from '@/lib/api'
 import { useAppStore } from '@/stores/app-store'
 import type { ConfigSummary } from '@/types/server'
+import type { Manifest } from '@/types/registry'
 
 export interface UseConfigsResult {
   configs: ConfigSummary[]
@@ -19,6 +20,7 @@ export function useConfigs(): UseConfigsResult {
   const [error, setError] = useState<string | null>(null)
   const toolCount = useAppStore((s) => s.toolCount)
   const configsRevision = useAppStore((s) => s.configsRevision)
+  const setRegistryManifest = useAppStore((s) => s.setRegistryManifest)
   const prevToolCountRef = useRef<number | null>(null)
 
   const fetchConfigs = useCallback(async () => {
@@ -76,8 +78,12 @@ export function useConfigs(): UseConfigsResult {
     async (id: string) => {
       await api.delete(`/configs/${id}`)
       await fetchConfigs()
+      // Sync the registry manifest so isInstalled reflects the deletion immediately.
+      api.get<Manifest>('/registry/manifest')
+        .then((data) => setRegistryManifest(data.installed))
+        .catch(() => { /* non-critical */ })
     },
-    [fetchConfigs],
+    [fetchConfigs, setRegistryManifest],
   )
 
   return {

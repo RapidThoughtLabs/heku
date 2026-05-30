@@ -178,6 +178,12 @@ export interface ParamDef {
   default?: unknown;
   location?: "body" | "path" | "query" | "header"; // required for HTTP, optional for others
   description: string;
+
+  // nested shape — only meaningful when type === "object" or "array"
+  properties?: Record<string, ParamDef>; // when type === "object"
+  items?: ParamDef;                       // when type === "array"
+  enum?: unknown[];
+  format?: string;
 }
 
 export interface ToolDef {
@@ -216,6 +222,9 @@ export interface ToolDef {
   // ── GraphQL-specific ───────────────────────────────────────────
   query?: string;             // GraphQL query/mutation string
   variables_template?: Record<string, unknown>;
+
+  // ── validation ─────────────────────────────────────────────────
+  validate_input?: boolean; // default true; set false to skip pre-flight validation
 
   // ── MCP — no per-tool fields (tools are auto-discovered) ───────
 

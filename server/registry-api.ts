@@ -161,6 +161,45 @@ export function createRegistryRouter(): Router {
     res.json(loadManifest());
   });
 
+  // ── GET /api/registry/config-meta ────────────────────────────────
+  // Returns category + tags for an installed config by its compound id.
+  // Used by the publish modal to pre-fill those fields.
+  // ?config_id=linear-graphql&registry=default
+  router.get("/config-meta", wrap(async (req, res) => {
+    const configId = req.query["config_id"] as string | undefined;
+    const registry = (req.query["registry"] as string | undefined) ?? "default";
+
+    if (!configId) {
+      res.status(400).json({ error: '"config_id" is required' });
+      return;
+    }
+
+    const manifest = loadManifest();
+    const entry = manifest.installed.find((e) => {
+      const withoutNs = e.slug.replace(/^@[^/]+\//, "");
+      const colonIdx  = withoutNs.indexOf(":");
+      if (colonIdx === -1) return false;
+      return `${withoutNs.slice(0, colonIdx)}-${withoutNs.slice(colonIdx + 1)}` === configId
+        && e.registry === registry;
+    });
+
+    if (!entry) {
+      res.status(404).json({ error: "Not found in manifest" });
+      return;
+    }
+
+    // Parse "@ruchit/linear:graphql" → namespace="ruchit", slug="linear", connectorType="graphql"
+    const slashIdx = entry.slug.indexOf("/");
+    const namespace = entry.slug.slice(1, slashIdx);
+    const rest = entry.slug.slice(slashIdx + 1);
+    const colonIdx = rest.indexOf(":");
+    const slug = colonIdx !== -1 ? rest.slice(0, colonIdx) : rest;
+    const connectorType = colonIdx !== -1 ? rest.slice(colonIdx + 1) : undefined;
+
+    const meta = await getConfigMeta(namespace, slug, connectorType, registry);
+    res.json({ category: meta.category, tags: meta.tags });
+  }));
+
   // ── POST /api/registry/check-updates ─────────────────────────────
   router.post("/check-updates", wrap(async (req, res) => {
     const { installed, registry = "default" } = req.body as {

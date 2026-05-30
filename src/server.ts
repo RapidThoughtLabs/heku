@@ -7,45 +7,11 @@ import {
   CallToolRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import express from "express";
-import type { McpConfig, RegisteredTool, ParamDef, CallerContext } from "./types.js";
+import type { McpConfig, RegisteredTool, CallerContext } from "./types.js";
+import { buildInputSchema } from "./lib/schema.js";
 import { execute } from "./executor.js";
 import { createAdminRouter } from "./admin-api.js";
-
-// ── JSON Schema Generation ────────────────────────────────────────
-
-const PARAM_TYPE_MAP: Record<ParamDef["type"], string> = {
-  string: "string",
-  number: "number",
-  boolean: "boolean",
-  object: "object",
-  array: "array",
-};
-
-function buildInputSchema(params: ParamDef[]): Record<string, unknown> {
-  const properties: Record<string, unknown> = {};
-  const required: string[] = [];
-
-  for (const p of params) {
-    const prop: Record<string, unknown> = {
-      type: PARAM_TYPE_MAP[p.type],
-      description: p.description,
-    };
-    if (p.default !== undefined) {
-      prop.default = p.default;
-    }
-    properties[p.name] = prop;
-
-    if (p.required) {
-      required.push(p.name);
-    }
-  }
-
-  return {
-    type: "object",
-    properties,
-    ...(required.length > 0 ? { required } : {}),
-  };
-}
+import { invalidate as invalidateValidationCache } from "./connectors/validation.js";
 
 // ── Tool Registry ─────────────────────────────────────────────────
 
@@ -53,6 +19,7 @@ export class ToolRegistry {
   private tools = new Map<string, RegisteredTool>();
 
   registerConfig(config: McpConfig): void {
+    invalidateValidationCache(config.id);
     for (const tool of config.tools) {
       const qualifiedName = `${config.id}.${tool.name}`;
       const existing = this.tools.get(qualifiedName);
@@ -70,6 +37,7 @@ export class ToolRegistry {
   }
 
   unregisterConfig(configId: string): void {
+    invalidateValidationCache(configId);
     for (const [name, tool] of this.tools) {
       if (tool.configId === configId) {
         this.tools.delete(name);

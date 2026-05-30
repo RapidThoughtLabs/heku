@@ -1,6 +1,7 @@
 import { getRateLimiter } from "./rate-limiter.js";
 import { AuthNotConfiguredError } from "./auth/errors.js";
 import { connectorRegistry } from "./connectors/registry.js";
+import { validateArgs } from "./connectors/validation.js";
 import { log } from "./lib/logger.js";
 import type { RegisteredTool, CallerContext } from "./types.js";
 import type { ConnectorResult } from "./connectors/base.js";
@@ -25,6 +26,27 @@ export async function execute(
   });
 
   try {
+    if (tool.tool.validate_input !== false) {
+      const v = validateArgs(tool, args);
+      if (!v.valid) {
+        log.toolCallEnd({
+          tool: toolName,
+          configId: tool.configId,
+          requestId: caller?.requestId,
+          caller: formatCaller(caller),
+          callerCtx: caller,
+          duration_ms: Date.now() - start,
+          success: false,
+          error: `validation_failed: ${v.errors.map((e) => `${e.path} ${e.issue}`).join(", ")}`,
+        });
+        return {
+          success: false,
+          status: 0,
+          data: { error: "Invalid arguments", validation_errors: v.errors },
+        };
+      }
+    }
+
     const connector = connectorRegistry.get(tool.connectorConfig.type);
     const result = await connector.execute(tool, args);
 

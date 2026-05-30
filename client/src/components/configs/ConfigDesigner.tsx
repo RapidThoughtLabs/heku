@@ -6,6 +6,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { AuthFormSection, type AuthFields, DEFAULT_AUTH_FIELDS } from './AuthFormSection'
 import { ToolBuilder, type ToolRow } from './ToolBuilder'
+import { paramRowToConfig } from './ParamBuilder'
 import { JsonPreview } from './JsonPreview'
 import { ApiRequestError } from '@/lib/api'
 import { toast } from '@/components/ui/Toast'
@@ -166,15 +167,7 @@ function buildTool(t: ToolRow): Record<string, unknown> {
   const tool: Record<string, unknown> = {
     name: t.name,
     description: t.description,
-    params: t.params
-      .filter((p) => p.name)
-      .map((p) => {
-        const param: Record<string, unknown> = {
-          name: p.name, type: p.type, required: p.required, description: p.description,
-        }
-        if (p.location) param.location = p.location
-        return param
-      }),
+    params: t.params.filter((p) => p.name).map(paramRowToConfig),
   }
   if (t.method) tool.method = t.method
   if (t.path) tool.path = t.path
@@ -806,6 +799,11 @@ export function ConfigDesigner({ createConfig, onClose }: ConfigDesignerProps) {
   }
 
   const handleSave = async () => {
+    const paramErrors = state.tools.flatMap((t) => t.params).filter((p) => p.advancedError)
+    if (paramErrors.length > 0) {
+      toast.error('Fix JSON errors in advanced param fields before saving')
+      return
+    }
     setSaving(true)
     try {
       await createConfig(buildConfig(state))

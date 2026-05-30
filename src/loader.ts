@@ -93,7 +93,9 @@ function validateAuth(auth: unknown, file: string): AuthConfig {
 
 // ── Param Validation ───────────────────────────────────────────────
 
-function validateParam(param: unknown, toolName: string, file: string, requireLocation = false): ParamDef {
+const MAX_PARAM_DEPTH = 10;
+
+function validateParam(param: unknown, toolName: string, file: string, requireLocation = false, depth = 0): ParamDef {
   if (!param || typeof param !== "object") {
     throw new Error(`[${file}] tool "${toolName}" has an invalid param — must be an object`);
   }
@@ -106,21 +108,62 @@ function validateParam(param: unknown, toolName: string, file: string, requireLo
     throw new Error(`[${file}] param "${p.name}" (tool: ${toolName}) — type must be one of: ${VALID_PARAM_TYPES.join(", ")}. Got: ${JSON.stringify(p.type)}`);
   }
 
-  // location: required for HTTP params, optional for others
+  // location: required for HTTP top-level params, ignored on nested nodes
   if (requireLocation || p.location !== undefined) {
     if (!VALID_PARAM_LOCATIONS.includes(p.location as typeof VALID_PARAM_LOCATIONS[number])) {
       throw new Error(`[${file}] param "${p.name}" (tool: ${toolName}) — location must be one of: ${VALID_PARAM_LOCATIONS.join(", ")}. Got: ${JSON.stringify(p.location)}`);
     }
   }
 
-  return {
-    name: p.name,
+  const result: ParamDef = {
+    name: p.name as string,
     type: p.type as ParamDef["type"],
     required: p.required === true,
     default: p.default,
     location: p.location as ParamDef["location"] | undefined,
-    description: p.description,
+    description: p.description as string,
   };
+
+  if (p.enum !== undefined) {
+    if (!Array.isArray(p.enum)) {
+      throw new Error(`[${file}] param "${p.name as string}" (tool: ${toolName}) — enum must be an array`);
+    }
+    result.enum = p.enum as unknown[];
+  }
+
+  if (p.format !== undefined) {
+    if (typeof p.format !== "string") {
+      throw new Error(`[${file}] param "${p.name as string}" (tool: ${toolName}) — format must be a string`);
+    }
+    result.format = p.format;
+  }
+
+  if (p.type === "object" && p.properties !== undefined) {
+    if (typeof p.properties !== "object" || Array.isArray(p.properties) || p.properties === null) {
+      throw new Error(`[${file}] param "${p.name as string}" (tool: ${toolName}) — properties must be an object`);
+    }
+    if (depth >= MAX_PARAM_DEPTH) {
+      throw new Error(`[${file}] param "${p.name as string}" (tool: ${toolName}) — nested param depth exceeds maximum (${MAX_PARAM_DEPTH})`);
+    }
+    const props: Record<string, ParamDef> = {};
+    for (const [k, v] of Object.entries(p.properties as Record<string, unknown>)) {
+      // auto-inject name from key if omitted — avoids requiring authors to repeat it
+      const child = (typeof (v as Record<string, unknown>)?.name === "string")
+        ? v
+        : { ...(v as object), name: k };
+      props[k] = validateParam(child, toolName, file, false, depth + 1);
+    }
+    result.properties = props;
+  }
+
+  if (p.type === "array" && p.items !== undefined) {
+    if (depth >= MAX_PARAM_DEPTH) {
+      throw new Error(`[${file}] param "${p.name as string}" (tool: ${toolName}) — nested param depth exceeds maximum (${MAX_PARAM_DEPTH})`);
+    }
+    result.items = validateParam(p.items, toolName, file, false, depth + 1);
+  }
+
+  return result;
 }
 
 // ── Tool Validation (per connector type) ──────────────────────────
@@ -171,10 +214,17 @@ function validateHttpTool(tool: unknown, file: string): ToolDef {
     result.error_map = t.error_map as Record<string, string>;
   }
 
+  if (t.validate_input !== undefined) {
+    if (typeof t.validate_input !== "boolean") {
+      throw new Error(`[${file}] tool "${t.name as string}".validate_input must be a boolean`);
+    }
+    result.validate_input = t.validate_input;
+  }
+
   return result;
 }
 
-function validateBaseTool(tool: unknown, file: string): { name: string; description: string; params: ReturnType<typeof validateParam>[] } {
+function validateBaseTool(tool: unknown, file: string): { name: string; description: string; params: ReturnType<typeof validateParam>[]; validate_input?: boolean } {
   if (!tool || typeof tool !== "object") {
     throw new Error(`[${file}] Each tool must be an object`);
   }
@@ -185,7 +235,18 @@ function validateBaseTool(tool: unknown, file: string): { name: string; descript
   assertArray(t.params, `tool "${t.name}".params`, file);
 
   const params = (t.params as unknown[]).map((p) => validateParam(p, t.name as string, file, false));
-  return { name: t.name as string, description: t.description as string, params };
+  const result: { name: string; description: string; params: ParamDef[]; validate_input?: boolean } = {
+    name: t.name as string,
+    description: t.description as string,
+    params,
+  };
+  if (t.validate_input !== undefined) {
+    if (typeof t.validate_input !== "boolean") {
+      throw new Error(`[${file}] tool "${t.name as string}".validate_input must be a boolean`);
+    }
+    result.validate_input = t.validate_input;
+  }
+  return result;
 }
 
 function validateCliTool(tool: unknown, file: string): ToolDef {

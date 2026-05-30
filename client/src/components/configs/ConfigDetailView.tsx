@@ -84,6 +84,86 @@ function Badge({ label, accent }: { label: string; accent?: boolean }) {
   )
 }
 
+// ── Recursive param line ─────────────────────────────────────────────
+
+function ParamLine({
+  name,
+  def,
+  isRequired,
+  depth,
+}: {
+  name: string
+  def: Record<string, unknown>
+  isRequired: boolean
+  depth: number
+}) {
+  const indent = depth * 12
+  const type = String(def.type ?? 'any')
+  const enumVals = Array.isArray(def.enum) ? (def.enum as unknown[]).map(String) : null
+  const format = typeof def.format === 'string' ? def.format : null
+  const childProps = def.type === 'object' && def.properties
+    ? (def.properties as Record<string, Record<string, unknown>>)
+    : null
+  const childRequired = Array.isArray(def.required) ? (def.required as string[]) : []
+  const itemDef = def.type === 'array' && def.items && typeof def.items === 'object'
+    ? (def.items as Record<string, unknown>)
+    : null
+
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, paddingLeft: indent }}>
+        <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text)', minWidth: 120 }}>
+          {name}
+          {isRequired && <span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>}
+        </span>
+        <span style={{ fontSize: 9, color: 'var(--accent)', letterSpacing: '0.04em' }}>{type}</span>
+        {format && (
+          <span style={{
+            fontSize: 8, padding: '1px 5px', borderRadius: 3,
+            background: 'var(--surface)', color: 'var(--text-dim)',
+            border: '1px solid var(--border)', letterSpacing: '0.04em',
+          }}>
+            {format}
+          </span>
+        )}
+        {enumVals && (
+          <span style={{
+            fontSize: 8, padding: '1px 5px', borderRadius: 3,
+            background: 'var(--surface)', color: 'var(--text-dim)',
+            border: '1px solid var(--border)', letterSpacing: '0.03em',
+          }}>
+            {enumVals.slice(0, 4).join(' | ')}{enumVals.length > 4 ? ' …' : ''}
+          </span>
+        )}
+        {!!def.description && (
+          <span style={{ fontSize: 9, color: 'var(--text-dim)', flex: 1 }}>
+            — {String(def.description)}
+          </span>
+        )}
+      </div>
+
+      {childProps && Object.entries(childProps).map(([k, v]) => (
+        <ParamLine
+          key={k}
+          name={k}
+          def={v}
+          isRequired={childRequired.includes(k)}
+          depth={depth + 1}
+        />
+      ))}
+
+      {itemDef && (
+        <ParamLine
+          name="items[]"
+          def={itemDef}
+          isRequired={false}
+          depth={depth + 1}
+        />
+      )}
+    </>
+  )
+}
+
 // ── Tool row ─────────────────────────────────────────────────────────
 
 function ToolRow({ tool }: { tool: McpTool }) {
@@ -134,27 +214,17 @@ function ToolRow({ tool }: { tool: McpTool }) {
       </button>
 
       {open && hasParams && (
-        <div style={{ borderTop: '1px solid var(--border)', padding: '6px 10px 8px 28px' }}>
+        <div style={{ borderTop: '1px solid var(--border)', padding: '6px 10px 8px 10px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {Object.entries(props).map(([name, def]) => {
-              const isRequired = required.includes(name)
-              return (
-                <div key={name} style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text)', minWidth: 120 }}>
-                    {name}
-                    {isRequired && <span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>}
-                  </span>
-                  <span style={{ fontSize: 9, color: 'var(--accent)', letterSpacing: '0.04em' }}>
-                    {String(def.type ?? 'any')}
-                  </span>
-                  {!!def.description && (
-                    <span style={{ fontSize: 9, color: 'var(--text-dim)', flex: 1 }}>
-                      — {String(def.description)}
-                    </span>
-                  )}
-                </div>
-              )
-            })}
+            {Object.entries(props).map(([name, def]) => (
+              <ParamLine
+                key={name}
+                name={name}
+                def={def}
+                isRequired={required.includes(name)}
+                depth={0}
+              />
+            ))}
           </div>
         </div>
       )}

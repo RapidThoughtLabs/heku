@@ -10,13 +10,13 @@ interface GraphqlChild {
   tools: ToolDef[];
 }
 
-interface GqlType {
+export interface GqlType {
   kind: string;
   name: string | null;
   ofType?: GqlType | null;
 }
 
-interface GqlInputValue {
+export interface GqlInputValue {
   name: string;
   description: string | null;
   type: GqlType;
@@ -30,11 +30,17 @@ interface GqlField {
   type: GqlType;
 }
 
-interface GqlFullType {
+export interface GqlEnumValue {
+  name: string;
+}
+
+export interface GqlFullType {
   kind: string;
   name: string;
   description: string | null;
   fields: GqlField[] | null;
+  inputFields: GqlInputValue[] | null;
+  enumValues: GqlEnumValue[] | null;
 }
 
 interface GqlSchema {
@@ -46,6 +52,15 @@ interface GqlSchema {
 // ── Constants ─────────────────────────────────────────────────────
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+// Depth 4 is sufficient for LLM-facing params; deeper schemas (e.g. Linear) cause
+// exponential traversal with no practical benefit beyond level 3-4.
+const MAX_PARAM_DEPTH = 4;
+
+export const SCALAR_FORMAT_MAP: Record<string, string> = {
+  DateTime: "date-time",
+  Date: "date",
+  UUID: "uuid",
+};
 
 const INTROSPECTION_QUERY = `
   query IntrospectionQuery {
@@ -59,6 +74,8 @@ const INTROSPECTION_QUERY = `
           args { name description type { ...TypeRef } defaultValue }
           type { ...TypeRef }
         }
+        inputFields { name description type { ...TypeRef } defaultValue }
+        enumValues(includeDeprecated: false) { name }
       }
     }
   }
@@ -76,37 +93,145 @@ function unwrapType(t: GqlType): GqlType {
   return t;
 }
 
-function isNonNull(t: GqlType): boolean {
-  return t.kind === "NON_NULL";
-}
+function resolveGqlType(
+  name: string,
+  description: string | null,
+  t: GqlType,
+  typeMap: Map<string, GqlFullType>,
+  depth: number,
+  visited: Set<string>,
+  configId: string,
+  paramPath: string,
+  propsCache: Map<string, Record<string, ParamDef>>,
+  stats: { cycles: number; truncations: number },
+  defaultValue?: string | null,
+): ParamDef {
+  const required = t.kind === "NON_NULL";
+  const innerType = required ? t.ofType! : t;
 
-function graphqlTypeToParamType(t: GqlType): ParamDef["type"] {
-  if (t.kind === "LIST") return "array";
-  const inner = unwrapType(t);
-  if (inner.kind === "LIST") return "array";
-  switch (inner.name) {
-    case "String":
-    case "ID":
-      return "string";
-    case "Int":
-    case "Float":
-      return "number";
-    case "Boolean":
-      return "boolean";
-    default:
-      if (inner.kind === "SCALAR") return "string";
-      return "object";
+  // LIST → array with recursive items
+  if (innerType.kind === "LIST") {
+    const itemType = innerType.ofType!;
+    const items = resolveGqlType("item", null, itemType, typeMap, depth, visited, configId, `${paramPath}[]`, propsCache, stats);
+    return {
+      name,
+      type: "array",
+      required,
+      description: description ?? name,
+      items,
+      ...(defaultValue != null ? { default: defaultValue } : {}),
+    };
   }
+
+  const unwrapped = unwrapType(innerType);
+
+  if (!unwrapped.name) {
+    return { name, type: "string", required, description: description ?? name };
+  }
+
+  // ENUM → string + enum values
+  if (unwrapped.kind === "ENUM") {
+    const fullType = typeMap.get(unwrapped.name);
+    const enumVals = (fullType?.enumValues ?? []).map((v) => v.name);
+    return {
+      name,
+      type: "string",
+      required,
+      description: description ?? name,
+      ...(enumVals.length > 0 ? { enum: enumVals } : {}),
+      ...(defaultValue != null ? { default: defaultValue } : {}),
+    };
+  }
+
+  // INPUT_OBJECT → recursive properties
+  if (unwrapped.kind === "INPUT_OBJECT") {
+    if (depth >= MAX_PARAM_DEPTH) {
+      stats.truncations++;
+      return { name, type: "object", required, description: description ?? name };
+    }
+    if (visited.has(unwrapped.name)) {
+      stats.cycles++;
+      return { name, type: "object", required, description: description ?? name };
+    }
+
+    // Reuse already-resolved properties to avoid re-traversing the same type
+    // (common in filter-heavy schemas like Linear where IssueFilter appears in many fields)
+    if (propsCache.has(unwrapped.name)) {
+      return {
+        name,
+        type: "object",
+        required,
+        description: description ?? unwrapped.name,
+        properties: propsCache.get(unwrapped.name)!,
+        ...(defaultValue != null ? { default: defaultValue } : {}),
+      };
+    }
+
+    const fullType = typeMap.get(unwrapped.name);
+    if (!fullType?.inputFields?.length) {
+      return { name, type: "object", required, description: description ?? unwrapped.name };
+    }
+
+    const newVisited = new Set(visited);
+    newVisited.add(unwrapped.name);
+    const properties: Record<string, ParamDef> = {};
+    for (const field of fullType.inputFields) {
+      const fieldPath = `${paramPath}.${field.name}`;
+      properties[field.name] = resolveGqlType(
+        field.name, field.description, field.type,
+        typeMap, depth + 1, newVisited, configId, fieldPath, propsCache, stats, field.defaultValue,
+      );
+    }
+    propsCache.set(unwrapped.name, properties);
+    return {
+      name,
+      type: "object",
+      required,
+      description: description ?? unwrapped.name,
+      properties,
+      ...(defaultValue != null ? { default: defaultValue } : {}),
+    };
+  }
+
+  // SCALAR
+  if (unwrapped.kind === "SCALAR") {
+    switch (unwrapped.name) {
+      case "String":
+      case "ID":
+        return { name, type: "string", required, description: description ?? name, ...(defaultValue != null ? { default: defaultValue } : {}) };
+      case "Int":
+      case "Float":
+        return { name, type: "number", required, description: description ?? name, ...(defaultValue != null ? { default: defaultValue } : {}) };
+      case "Boolean":
+        return { name, type: "boolean", required, description: description ?? name, ...(defaultValue != null ? { default: defaultValue } : {}) };
+      default: {
+        const format = SCALAR_FORMAT_MAP[unwrapped.name];
+        return {
+          name,
+          type: "string",
+          required,
+          description: description ?? name,
+          ...(format ? { format } : {}),
+          ...(defaultValue != null ? { default: defaultValue } : {}),
+        };
+      }
+    }
+  }
+
+  // OBJECT / unknown — fall back to string
+  return { name, type: "string", required, description: description ?? name };
 }
 
-function argToParamDef(arg: GqlInputValue): ParamDef {
-  return {
-    name: arg.name,
-    type: graphqlTypeToParamType(arg.type),
-    required: isNonNull(arg.type),
-    description: arg.description ?? arg.name,
-    ...(arg.defaultValue !== null ? { default: arg.defaultValue } : {}),
-  };
+export function argToParamDef(
+  arg: GqlInputValue,
+  typeMap: Map<string, GqlFullType>,
+  depth: number,
+  visited: Set<string>,
+  configId: string,
+  propsCache: Map<string, Record<string, ParamDef>> = new Map(),
+  stats: { cycles: number; truncations: number } = { cycles: 0, truncations: 0 },
+): ParamDef {
+  return resolveGqlType(arg.name, arg.description, arg.type, typeMap, depth, visited, configId, arg.name, propsCache, stats, arg.defaultValue);
 }
 
 /** Render a GraphQL type reference as a type signature string */
@@ -399,7 +524,7 @@ export class GraphqlConnector implements IConnector {
       return;
     }
 
-    const tools = this.buildTools(config, schema, overlays);
+    const tools = this.buildTools(configId, config, schema, overlays);
     this.children.set(configId, { configId, config, tools });
     console.error(
       `[graphql-connector] Introspected "${configId}" — ${tools.length} tools discovered`,
@@ -407,6 +532,7 @@ export class GraphqlConnector implements IConnector {
   }
 
   private buildTools(
+    configId: string,
     config: GraphqlConnectorConfig,
     schema: GqlSchema,
     overlays?: Record<string, { description?: string }>,
@@ -421,6 +547,10 @@ export class GraphqlConnector implements IConnector {
     const typeMap = new Map<string, GqlFullType>();
     for (const t of schema.types) typeMap.set(t.name, t);
 
+    // Shared across all fields — each INPUT_OBJECT type is traversed only once
+    const propsCache = new Map<string, Record<string, ParamDef>>();
+    const stats = { cycles: 0, truncations: 0 };
+
     const processType = (typeName: string | null, isMutation: boolean) => {
       if (!typeName) return;
       const typeObj = typeMap.get(typeName);
@@ -429,7 +559,9 @@ export class GraphqlConnector implements IConnector {
       for (const field of typeObj.fields) {
         if (field.name.startsWith("__")) continue;
 
-        const params: ParamDef[] = field.args.map(argToParamDef);
+        const params: ParamDef[] = field.args.map((arg) =>
+          argToParamDef(arg, typeMap, 0, new Set(), configId, propsCache, stats),
+        );
         const overlay = overlays?.[field.name];
         const autoDescription = isMutation
           ? `GraphQL mutation: ${field.name}`
@@ -461,6 +593,13 @@ export class GraphqlConnector implements IConnector {
 
     if (includeQueries) processType(queryTypeName, false);
     if (includeMutations) processType(mutationTypeName, true);
+
+    if (stats.cycles + stats.truncations > 0) {
+      console.error(
+        `[graphql-connector] "${configId}": schema traversal — ` +
+        `${stats.cycles} cycle(s) stopped, ${stats.truncations} type(s) truncated at depth ${MAX_PARAM_DEPTH}`,
+      );
+    }
 
     return tools;
   }

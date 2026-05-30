@@ -68,12 +68,24 @@ export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
 
   useEffect(() => {
     if (!open) return
+    let cancelled = false
+
     api.get<{ loggedIn: boolean; user?: { username: string } }>('/registry/auth/status')
       .then((data) => {
-        if (data.loggedIn && data.user?.username) setAuthUsername(data.user.username)
+        if (!cancelled && data.loggedIn && data.user?.username) setAuthUsername(data.user.username)
       })
       .catch(() => {})
-  }, [open])
+
+    api.get<{ category: string; tags: string[] }>(`/registry/config-meta?config_id=${encodeURIComponent(cfg.id)}`)
+      .then((data) => {
+        if (cancelled) return
+        if (data.category) setCategory(data.category)
+        if (data.tags?.length) setTagsRaw(data.tags.join(', '))
+      })
+      .catch(() => {}) // non-critical — config may not be from registry
+
+    return () => { cancelled = true }
+  }, [open, cfg.id])
 
   useEffect(() => {
     if (open) {

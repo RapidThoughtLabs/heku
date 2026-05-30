@@ -8,7 +8,7 @@ import { AuthFormSection, type AuthFields, DEFAULT_AUTH_FIELDS } from './AuthFor
 import { ToolBuilder, type ToolRow } from './ToolBuilder'
 import { JsonPreview } from './JsonPreview'
 import { DiffPopup } from './DiffPopup'
-import type { ParamRow } from './ParamBuilder'
+import { type ParamRow, paramRowToConfig, configToParamRow } from './ParamBuilder'
 import { toast } from '@/components/ui/Toast'
 import { ApiRequestError } from '@/lib/api'
 import type { ConfigSummary } from '@/types/server'
@@ -96,14 +96,7 @@ function parseAuthFields(auth: Record<string, unknown> | undefined): AuthFields 
 
 function parseToolRow(t: Record<string, unknown>): ToolRow {
   const rawParams = Array.isArray(t.params) ? t.params as Record<string, unknown>[] : []
-  const params: ParamRow[] = rawParams.map((p) => ({
-    id: Math.random().toString(36).slice(2),
-    name: (p.name as string) || '',
-    type: (p.type as ParamRow['type']) || 'string',
-    required: Boolean(p.required),
-    location: (p.location as ParamRow['location']) || '',
-    description: (p.description as string) || '',
-  }))
+  const params: ParamRow[] = rawParams.map(configToParamRow)
 
   return {
     id: Math.random().toString(36).slice(2),
@@ -263,13 +256,7 @@ function buildTool(t: ToolRow): Record<string, unknown> {
   const tool: Record<string, unknown> = {
     name: t.name,
     description: t.description,
-    params: t.params.filter((p) => p.name).map((p) => {
-      const param: Record<string, unknown> = {
-        name: p.name, type: p.type, required: p.required, description: p.description,
-      }
-      if (p.location) param.location = p.location
-      return param
-    }),
+    params: t.params.filter((p) => p.name).map(paramRowToConfig),
   }
   if (t.method) tool.method = t.method
   if (t.path) tool.path = t.path
@@ -386,6 +373,11 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
   }
 
   const handleSaveConfirm = async () => {
+    const paramErrors = state.tools.flatMap((t) => t.params).filter((p) => p.advancedError)
+    if (paramErrors.length > 0) {
+      toast.error('Fix JSON errors in advanced param fields before saving')
+      return
+    }
     setSaving(true)
     try {
       await updateConfig(config.id, currentJson)
