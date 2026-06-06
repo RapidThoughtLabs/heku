@@ -32,7 +32,7 @@ export async function startBridge(options: {
     res.json({ service: "mcp-one-api", version: VERSION });
   });
 
-  const server = app.listen(port, () => {
+  const server = app.listen(port, '0.0.0.0', () => {
     console.error(`[bridge] console API on http://localhost:${port}`);
   });
 

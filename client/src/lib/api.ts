@@ -21,28 +21,36 @@ export class ApiRequestError extends Error {
 
 const STORAGE_KEY = 'mcp_one_bridge_url'
 
+function normalizeBase(url: string): string {
+  return url.replace(/\/$/, '').replace('://localhost:', '://127.0.0.1:')
+}
+
 let apiBase: string = (() => {
   try {
-    return localStorage.getItem(STORAGE_KEY)?.replace(/\/$/, '') ?? ''
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return stored ? normalizeBase(stored) : ''
   } catch {
     return ''
   }
 })()
 
 export function setApiBase(url: string): void {
-  apiBase = url.replace(/\/$/, '')
+  apiBase = normalizeBase(url)
   try { localStorage.setItem(STORAGE_KEY, apiBase) } catch { /* ignore */ }
 }
 
-/** Derive bridge URL (port 3456) from MCP endpoint URL (port 3333). */
+/** Derive bridge URL (port 3456) from MCP endpoint URL (port 3333).
+ *  Normalises `localhost` → `127.0.0.1` to avoid Windows IPv6 resolution issues:
+ *  on Windows, `localhost` can resolve to ::1 while the bridge only binds to 0.0.0.0 (IPv4). */
 export function deriveBridgeUrl(mcpUrl: string): string {
   try {
     const u = new URL(mcpUrl)
     u.port = '3456'
     u.pathname = ''
+    if (u.hostname === 'localhost') u.hostname = '127.0.0.1'
     return u.origin
   } catch {
-    return 'http://localhost:3456'
+    return 'http://127.0.0.1:3456'
   }
 }
 

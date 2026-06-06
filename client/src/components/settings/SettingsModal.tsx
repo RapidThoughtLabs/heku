@@ -561,7 +561,17 @@ function LlmTab() {
 declare const __APP_VERSION__: string
 
 function AboutTab() {
-  const { mcpServerVersion } = useAppStore()
+  const { mcpServerVersion, setMcpServerVersion } = useAppStore()
+
+  useEffect(() => {
+    if (mcpServerVersion) return
+    fetch('/api/server-settings')
+      .then((r) => r.json())
+      .then((data: { mcpServerVersion?: string }) => {
+        if (data.mcpServerVersion) setMcpServerVersion(data.mcpServerVersion)
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <div>
@@ -578,7 +588,7 @@ function AboutTab() {
       </SettingRow>
 
       <SettingRow label="Design system" sub="UI design language">
-        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)' }}>RTL:// v3</span>
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)' }}>rtl:// v3</span>
       </SettingRow>
 
       <div style={{ padding: '16px 0', fontSize: '0.77rem', color: 'var(--text-dim)', lineHeight: 1.7, letterSpacing: '0.04em' }}>
