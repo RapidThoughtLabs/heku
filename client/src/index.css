@@ -7,6 +7,7 @@
 
 /* ── Dark mode defaults ── */
 :root {
+  font-size: 13px;
   --accent-h: 270;
   --accent-s: 70%;
   --accent-l: 68%;
@@ -30,6 +31,9 @@
   --yellow: #febc2e;
   --green:  #28c840;
   --blue:   #60a8f0;
+
+  --green-text: #28c840;
+  --green-dim:  rgba(40, 200, 64, 0.13);
 
   /* 3-layer halogen glow */
   --glow:
@@ -66,6 +70,12 @@
   --text-dim: #6e6c66;
   --accent-txt: #ffffff;
 }
+/* Green for light mode: darker, desaturated */
+[data-mode="light"] {
+  --green-text: hsl(130, 40%, 32%);
+  --green-dim:  rgba(40, 200, 64, 0.10);
+}
+
 /* Dull accents for light backdrop: lower lightness + saturation */
 [data-mode="light"][data-accent="purple"] { --accent-s: 55%; --accent-l: 42%; }
 [data-mode="light"][data-accent="lime"]   { --accent-s: 65%; --accent-l: 34%; }
@@ -81,7 +91,6 @@ html, body, #root { height: 100%; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-size: var(--font-size, 13px);
   line-height: 1;
   overflow: hidden;
   transition: background 0.25s, color 0.25s;

@@ -143,10 +143,11 @@ export class HttpConnector implements IConnector {
       }
     }
 
-    // Resolve URL
+    // Resolve URL — tool-level base_url takes precedence for microservices
+    const effectiveBaseUrl = tool.tool.base_url ?? config.base_url;
     const interpolatedPath = this.interpolatePath(tool.tool.path!, pathParams);
     const url =
-      config.base_url.replace(/\/+$/, "") +
+      effectiveBaseUrl.replace(/\/+$/, "") +
       interpolatedPath +
       this.buildQueryString(queryParams);
 

@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { McpClientInstance } from "./mcp-client.js";
 import { createAdminClient, AdminUnavailableError } from "./mcp-admin.js";
 import { loadManifest, loadRegistries } from "../src/registry/auth.js";
+import { VERSION } from "../src/lib/version.js";
 
 // ─────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
     const { status, toolCount, endpoint } = mcp.getStatus();
     res.json({
       status: "ok",
+      version: VERSION,
       mcpStatus: status,
       mcpConnected: status === "connected",
       toolCount,
@@ -60,7 +62,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
         // Return safe defaults when mcp-one is not connected
-        res.json({ hotReload: true, logLevel: "info", unavailable: true });
+        res.json({ hotReload: true, logLevel: "info", manifestStyle: "flat", configWriteLock: false, unavailable: true });
         return;
       }
       res.status(500).json({ error: (err as Error).message });
@@ -207,6 +209,81 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       const id = req.params["id"]!;
       const data = await admin.delete(`/configs/${id}`);
       mcp.addLog("info", "config", `Config deleted: ${id}`);
+      res.json(data);
+    } catch (err) {
+      if (err instanceof AdminUnavailableError) {
+        res.status(503).json({ error: "mcp-one not connected" });
+        return;
+      }
+      const status = (err as Error & { status?: number }).status ?? 500;
+      res.status(status).json({ error: (err as Error).message });
+    }
+  });
+
+  // ── PATCH /api/configs/:id ───────────────────────────────────────
+  // Partial update — currently only { active: boolean } to activate/deactivate.
+
+  router.patch("/configs/:id", async (req, res) => {
+    try {
+      const id = req.params["id"]!;
+      const data = await admin.patch(`/configs/${id}`, req.body as unknown);
+      mcp.addLog("info", "config", `Config patched: ${id}`);
+      res.json(data);
+    } catch (err) {
+      if (err instanceof AdminUnavailableError) {
+        res.status(503).json({ error: "mcp-one not connected" });
+        return;
+      }
+      const status = (err as Error & { status?: number }).status ?? 500;
+      res.status(status).json({ error: (err as Error).message });
+    }
+  });
+
+  // ── POST /api/configs/:id/start ──────────────────────────────────
+  // Manually start an MCP server (ignores block flags).
+
+  router.post("/configs/:id/start", async (req, res) => {
+    try {
+      const id = req.params["id"]!;
+      const data = await admin.post(`/configs/${id}/start`, {});
+      mcp.addLog("info", "config", `Config start requested: ${id}`);
+      res.json(data);
+    } catch (err) {
+      if (err instanceof AdminUnavailableError) {
+        res.status(503).json({ error: "mcp-one not connected" });
+        return;
+      }
+      const status = (err as Error & { status?: number }).status ?? 500;
+      res.status(status).json({ error: (err as Error).message });
+    }
+  });
+
+  // ── POST /api/configs/:id/stop ───────────────────────────────────
+  // Manually stop a running MCP server.
+
+  router.post("/configs/:id/stop", async (req, res) => {
+    try {
+      const id = req.params["id"]!;
+      const data = await admin.post(`/configs/${id}/stop`, {});
+      mcp.addLog("info", "config", `Config stop requested: ${id}`);
+      res.json(data);
+    } catch (err) {
+      if (err instanceof AdminUnavailableError) {
+        res.status(503).json({ error: "mcp-one not connected" });
+        return;
+      }
+      const status = (err as Error & { status?: number }).status ?? 500;
+      res.status(status).json({ error: (err as Error).message });
+    }
+  });
+
+  // ── GET /api/configs/:id/runtime ─────────────────────────────────
+  // Live runtime state for an MCP config.
+
+  router.get("/configs/:id/runtime", async (req, res) => {
+    try {
+      const id = req.params["id"]!;
+      const data = await admin.get(`/configs/${id}/runtime`);
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {

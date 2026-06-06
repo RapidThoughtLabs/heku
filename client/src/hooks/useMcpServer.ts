@@ -6,7 +6,7 @@ import type { ConfigSummary, HealthResponse, McpTool } from '@/types/server'
 const POLL_INTERVAL_MS = 5_000
 
 export function useMcpServer() {
-  const { setServerStatus, setToolCount, setTools, setConfigs } = useAppStore()
+  const { setServerStatus, setToolCount, setTools, setConfigs, setServerVersion } = useAppStore()
   const configsRevision = useAppStore((s) => s.configsRevision)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mountedRef = useRef(true)
@@ -27,12 +27,13 @@ export function useMcpServer() {
 
       setServerStatus(status)
       setToolCount(health.toolCount)
+      if (health.version) setServerVersion(health.version)
     } catch {
       if (!mountedRef.current) return
       setServerStatus('offline')
       setToolCount(0)
     }
-  }, [setServerStatus, setToolCount])
+  }, [setServerStatus, setToolCount, setServerVersion])
 
   const fetchTools = useCallback(async () => {
     try {

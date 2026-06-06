@@ -125,6 +125,7 @@ export interface ConfigPayloadTool {
   name: string
   description?: string
   params?: ConfigPayloadParam[]
+  base_url?: string
 }
 
 export interface ConfigPayloadOverlay {

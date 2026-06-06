@@ -20,6 +20,16 @@ export interface ConnectorSummary {
   connection_string_env?: string
 }
 
+export type LifecycleState =
+  | 'idle'
+  | 'installing'
+  | 'installed'
+  | 'starting'
+  | 'running'
+  | 'stopped'
+  | 'error'
+  | 'unconfigured'
+
 export interface ConfigSummary {
   id: string
   name: string
@@ -28,6 +38,12 @@ export interface ConfigSummary {
   toolCount: number
   auth?: AuthStatus
   raw: Record<string, unknown>
+
+  // lifecycle (MCP configs only)
+  active: boolean
+  lifecycle?: LifecycleState
+  lastError?: string
+  installLogTail?: string[]
 }
 
 export interface McpTool {
@@ -53,6 +69,7 @@ export interface ConfigDetail {
 
 export interface HealthResponse {
   status: 'ok'
+  version?: string
   mcpStatus: 'connecting' | 'connected' | 'disconnected'
   mcpConnected: boolean
   toolCount: number

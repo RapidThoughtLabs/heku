@@ -41,6 +41,7 @@ interface DesignerState {
   mcpCommand: string
   mcpArgs: string
   mcpUrl: string
+  mcpInstallCommand: string
   // sql
   sqlDialect: 'postgres' | 'mysql' | 'sqlite'
   sqlConnMode: 'dsn' | 'fields'
@@ -68,7 +69,7 @@ const INITIAL_STATE: DesignerState = {
   fileBasePath: '',
   grpcEndpoint: '', grpcProtoPath: '', grpcTls: false,
   graphqlEndpoint: '',
-  mcpTransport: 'stdio', mcpCommand: '', mcpArgs: '', mcpUrl: '',
+  mcpTransport: 'stdio', mcpCommand: '', mcpArgs: '', mcpUrl: '', mcpInstallCommand: '',
   sqlDialect: 'postgres', sqlConnMode: 'dsn',
   sqlConnectionStringEnv: '', sqlHost: '', sqlPort: '', sqlDatabase: '', sqlSsl: false,
   sqlPoolMax: '', sqlIdleMs: '', sqlConnectionTimeoutMs: '',
@@ -117,6 +118,11 @@ function buildConnector(s: DesignerState): Record<string, unknown> {
         if (s.mcpArgs.trim()) conn.args = s.mcpArgs.trim().split(/\s+/)
       } else {
         conn.url = s.mcpUrl
+      }
+      if (s.mcpInstallCommand.trim()) {
+        const parts = s.mcpInstallCommand.trim().split(/\s+/)
+        conn.install_command = parts[0]
+        if (parts.length > 1) conn.install_args = parts.slice(1)
       }
       return conn
     }
@@ -171,6 +177,7 @@ function buildTool(t: ToolRow): Record<string, unknown> {
   }
   if (t.method) tool.method = t.method
   if (t.path) tool.path = t.path
+  if (t.baseUrl) tool.base_url = t.baseUrl
   if (t.command) tool.command = t.command
   if (t.output_as && t.output_as !== 'json') tool.output_as = t.output_as
   if (t.operation) tool.operation = t.operation
@@ -285,7 +292,7 @@ function prevStep(current: number, connectorType: ConnectorType): number {
 // ── Shared form field helpers ──────────────────────────────────────
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.07em',
+  fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.07em',
 }
 
 function inputCss(hasError?: boolean): React.CSSProperties {
@@ -294,7 +301,7 @@ function inputCss(hasError?: boolean): React.CSSProperties {
     border: `1px solid ${hasError ? 'rgba(255,95,87,0.5)' : 'var(--border2)'}`,
     borderRadius: 5,
     padding: '7px 10px',
-    fontSize: 11,
+    fontSize: '0.85rem',
     color: 'var(--text)',
     fontFamily: 'inherit',
     letterSpacing: '0.02em',
@@ -311,8 +318,8 @@ function FieldGroup({ label, error, hint, children }: {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
       <label style={labelStyle}>{label}</label>
       {children}
-      {hint && !error && <span style={{ fontSize: 9, color: 'var(--text-dim)', opacity: 0.7, lineHeight: 1.4 }}>{hint}</span>}
-      {error && <span style={{ fontSize: 9, color: 'var(--red)', letterSpacing: '0.03em' }}>{error}</span>}
+      {hint && !error && <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', opacity: 0.7, lineHeight: 1.4 }}>{hint}</span>}
+      {error && <span style={{ fontSize: '0.69rem', color: 'var(--red)', letterSpacing: '0.03em' }}>{error}</span>}
     </div>
   )
 }
@@ -393,8 +400,8 @@ function Step1({ state, set, errors }: { state: DesignerState; set: (p: Partial<
               >
                 <Icon size={14} style={{ color: active ? 'var(--accent)' : 'var(--text-dim)' }} />
                 <div>
-                  <div style={{ fontSize: 11, color: active ? 'var(--accent)' : 'var(--text)', fontWeight: 600, letterSpacing: '0.02em' }}>{label}</div>
-                  <div style={{ fontSize: 9, color: 'var(--text-dim)', marginTop: 2, lineHeight: 1.3 }}>{desc}</div>
+                  <div style={{ fontSize: '0.85rem', color: active ? 'var(--accent)' : 'var(--text)', fontWeight: 600, letterSpacing: '0.02em' }}>{label}</div>
+                  <div style={{ fontSize: '0.69rem', color: 'var(--text-dim)', marginTop: 2, lineHeight: 1.3 }}>{desc}</div>
                 </div>
               </button>
             )
@@ -443,7 +450,7 @@ function Step1({ state, set, errors }: { state: DesignerState; set: (p: Partial<
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
             <input type="checkbox" checked={state.grpcTls} onChange={(e) => set({ grpcTls: e.target.checked })} style={{ accentColor: 'var(--accent)' }} />
-            <span style={{ fontSize: 11, color: 'var(--text)' }}>Enable TLS</span>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text)' }}>Enable TLS</span>
           </label>
         </div>
       )}
@@ -469,7 +476,7 @@ function Step1({ state, set, errors }: { state: DesignerState; set: (p: Partial<
                   transition: 'all 0.12s',
                 }}>
                   <input type="radio" name="mcpTransport" value={t} checked={state.mcpTransport === t} onChange={() => set({ mcpTransport: t })} style={{ accentColor: 'var(--accent)' }} />
-                  <span style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>{t}</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600 }}>{t}</span>
                 </label>
               ))}
             </div>
@@ -488,6 +495,9 @@ function Step1({ state, set, errors }: { state: DesignerState; set: (p: Partial<
               <input style={inputCss(!!errors.mcpUrl)} value={state.mcpUrl} onChange={(e) => set({ mcpUrl: e.target.value })} placeholder="e.g. http://localhost:3001/sse" />
             </FieldGroup>
           )}
+          <FieldGroup label="INSTALL COMMAND (optional)" hint="Run once before first launch — e.g. npm install  or  npx -y @pkg/server">
+            <input style={inputCss()} value={state.mcpInstallCommand} onChange={(e) => set({ mcpInstallCommand: e.target.value })} placeholder="e.g. npm install" />
+          </FieldGroup>
         </div>
       )}
 
@@ -507,7 +517,7 @@ function Step1({ state, set, errors }: { state: DesignerState; set: (p: Partial<
                 }}>
                   <input type="radio" name="sqlDialect" value={d} checked={state.sqlDialect === d}
                     onChange={() => set({ sqlDialect: d, sqlConnMode: 'dsn' })} style={{ accentColor: 'var(--accent)' }} />
-                  <span style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>{d}</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600 }}>{d}</span>
                 </label>
               ))}
             </div>
@@ -528,7 +538,7 @@ function Step1({ state, set, errors }: { state: DesignerState; set: (p: Partial<
                   }}>
                     <input type="radio" name="sqlConnMode" value={v} checked={state.sqlConnMode === v}
                       onChange={() => set({ sqlConnMode: v })} style={{ accentColor: 'var(--accent)' }} />
-                    <span style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>{lbl}</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600 }}>{lbl}</span>
                   </label>
                 ))}
               </div>
@@ -572,13 +582,13 @@ function Step1({ state, set, errors }: { state: DesignerState; set: (p: Partial<
           {state.sqlDialect !== 'sqlite' && (
             <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
               <input type="checkbox" checked={state.sqlSsl} onChange={(e) => set({ sqlSsl: e.target.checked })} style={{ accentColor: 'var(--accent)' }} />
-              <span style={{ fontSize: 11, color: 'var(--text)' }}>Enable SSL</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text)' }}>Enable SSL</span>
             </label>
           )}
 
           {/* Advanced */}
           <details style={{ border: '1px solid var(--border)', borderRadius: 5, overflow: 'hidden' }}>
-            <summary style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.05em', background: 'var(--surface2)', userSelect: 'none' }}>
+            <summary style={{ padding: '8px 12px', cursor: 'pointer', fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.05em', background: 'var(--surface2)', userSelect: 'none' }}>
               Advanced (pool & timeouts)
             </summary>
             <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -622,8 +632,8 @@ function Step2({ state, set, errors }: { state: DesignerState; set: (p: Partial<
       return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '50px 0', color: 'var(--text-dim)' }}>
           <Info size={28} style={{ opacity: 0.3 }} />
-          <div style={{ fontSize: 12, letterSpacing: '0.04em' }}>Auth not applicable</div>
-          <div style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.7, maxWidth: 320 }}>
+          <div style={{ fontSize: '0.92rem', letterSpacing: '0.04em' }}>Auth not applicable</div>
+          <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.7, maxWidth: 320 }}>
             SQLite uses a local file — no credentials needed. Click Next to continue.
           </div>
         </div>
@@ -633,8 +643,8 @@ function Step2({ state, set, errors }: { state: DesignerState; set: (p: Partial<
       return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '50px 0', color: 'var(--text-dim)' }}>
           <Info size={28} style={{ opacity: 0.3 }} />
-          <div style={{ fontSize: 12, letterSpacing: '0.04em' }}>Credentials in DSN</div>
-          <div style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.7, maxWidth: 340 }}>
+          <div style={{ fontSize: '0.92rem', letterSpacing: '0.04em' }}>Credentials in DSN</div>
+          <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.7, maxWidth: 340 }}>
             The connection string env var already contains your credentials. No separate auth setup needed. Click Next to continue.
           </div>
         </div>
@@ -656,8 +666,8 @@ function Step2({ state, set, errors }: { state: DesignerState; set: (p: Partial<
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '50px 0', color: 'var(--text-dim)' }}>
         <Info size={28} style={{ opacity: 0.3 }} />
-        <div style={{ fontSize: 12, letterSpacing: '0.04em' }}>Auth not applicable</div>
-        <div style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.7, maxWidth: 320 }}>
+        <div style={{ fontSize: '0.92rem', letterSpacing: '0.04em' }}>Auth not applicable</div>
+        <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.7, maxWidth: 320 }}>
           The <strong style={{ color: 'var(--text)' }}>{ct.toUpperCase()}</strong> connector does not support authentication configuration. Click Next to continue.
         </div>
       </div>
@@ -677,8 +687,8 @@ function Step3({ state, set }: { state: DesignerState; set: (p: Partial<Designer
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '50px 0', color: 'var(--text-dim)' }}>
         <Plug size={28} style={{ opacity: 0.3 }} />
-        <div style={{ fontSize: 12, letterSpacing: '0.04em' }}>Tools auto-discovered</div>
-        <div style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.7, maxWidth: 340 }}>
+        <div style={{ fontSize: '0.92rem', letterSpacing: '0.04em' }}>Tools auto-discovered</div>
+        <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', textAlign: 'center', lineHeight: 1.7, maxWidth: 340 }}>
           MCP connectors expose tools dynamically from the remote server. No tool definitions needed — they will be discovered automatically at runtime.
         </div>
       </div>
@@ -701,7 +711,7 @@ function Step4({ state }: { state: DesignerState }) {
         display: 'flex', alignItems: 'center', gap: 10,
         padding: '10px 14px', background: 'var(--surface2)',
         border: '1px solid var(--border)', borderRadius: 6,
-        fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6,
+        fontSize: '0.77rem', color: 'var(--text-dim)', lineHeight: 1.6,
       }}>
         <Info size={13} style={{ color: 'var(--accent)', flexShrink: 0 }} />
         Review the generated config. Click <strong style={{ color: 'var(--text)' }}>Create Config</strong> to write it to disk and register the tools with the MCP server.
@@ -727,7 +737,7 @@ function StepIndicator({ current, connectorType }: { current: number; connectorT
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
               <div style={{
                 width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 9, fontWeight: 700, letterSpacing: '0.04em',
+                fontSize: '0.69rem', fontWeight: 700, letterSpacing: '0.04em',
                 background: isDone ? 'var(--accent)' : isActive ? 'var(--accent-dim)' : 'var(--surface2)',
                 border: `1px solid ${isDone || isActive ? 'var(--accent)' : 'var(--border)'}`,
                 color: isDone ? 'var(--accent-txt)' : isActive ? 'var(--accent)' : isSkipped ? 'var(--border2)' : 'var(--text-dim)',
@@ -736,7 +746,7 @@ function StepIndicator({ current, connectorType }: { current: number; connectorT
                 {isDone ? <Check size={10} /> : i + 1}
               </div>
               <span style={{
-                fontSize: 8, letterSpacing: '0.06em', whiteSpace: 'nowrap',
+                fontSize: '0.62rem', letterSpacing: '0.06em', whiteSpace: 'nowrap',
                 color: isDone ? 'var(--accent)' : isActive ? 'var(--text)' : isSkipped ? 'var(--border2)' : 'var(--text-dim)',
               }}>
                 {label}
@@ -835,7 +845,7 @@ export function ConfigDesigner({ createConfig, onClose }: ConfigDesignerProps) {
         height: 42, background: 'var(--surface)', borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', padding: '0 16px', flexShrink: 0, gap: 10,
       }}>
-        <span style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
+        <span style={{ fontSize: '0.85rem', letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
           <span style={{ color: 'var(--accent)' }}>configs</span> / new
         </span>
         <div style={{ flex: 1 }} />
@@ -871,7 +881,7 @@ export function ConfigDesigner({ createConfig, onClose }: ConfigDesignerProps) {
           <ArrowLeft size={11} style={{ marginRight: 4 }} />
           Back
         </Button>
-        <span style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.06em' }}>
+        <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.06em' }}>
           Step {step + 1} of 4
         </span>
         {isLastStep ? (

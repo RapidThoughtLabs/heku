@@ -9,6 +9,16 @@ export interface AuthStatus {
   missingVars: string[];
 }
 
+export type LifecycleState =
+  | "idle"
+  | "installing"
+  | "installed"
+  | "starting"
+  | "running"
+  | "stopped"
+  | "error"
+  | "unconfigured";
+
 export interface ConfigSummary {
   id: string;
   name: string;
@@ -22,6 +32,12 @@ export interface ConfigSummary {
   toolCount: number;
   auth?: AuthStatus;
   raw: Record<string, unknown>;
+
+  // lifecycle (always present on MCP configs; populated from in-memory runtime by the admin API)
+  active: boolean;
+  lifecycle?: LifecycleState;
+  lastError?: string;
+  installLogTail?: string[];
 }
 
 /** Returns an error string if the base id is invalid, null if valid. */
@@ -108,5 +124,7 @@ export function toConfigSummary(raw: Record<string, unknown>, toolCount: number)
     };
   }
 
-  return { id, name, description, connector, toolCount, auth, raw };
+  const active = typeof connRaw["active"] === "boolean" ? connRaw["active"] : true;
+
+  return { id, name, description, connector, toolCount, auth, raw, active };
 }

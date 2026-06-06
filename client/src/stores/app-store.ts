@@ -6,6 +6,7 @@ export type Page = 'demo' | 'configs' | 'registry' | 'experimental' | 'logs' | '
 export type AccentColor = 'purple' | 'lime' | 'blue' | 'cyan' | 'pink' | 'yellow'
 export type ThemeMode = 'dark' | 'light'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+export type ManifestStyle = 'flat' | 'namespaced'
 
 const DEFAULT_REGISTRY_FILTERS: RegistryFilters = { sort_by: 'popular' }
 
@@ -30,8 +31,23 @@ interface AppState {
   // Server settings (fetched from mcp-one at runtime; reset on process restart)
   hotReload: boolean
   logLevel: LogLevel
+  manifestStyle: ManifestStyle
+  configWriteLock: boolean
+  blockAutoInstall: boolean
+  blockAutoStart: boolean
   setHotReload: (v: boolean) => void
   setLogLevel: (v: LogLevel) => void
+  setManifestStyle: (v: ManifestStyle) => void
+  setConfigWriteLock: (v: boolean) => void
+  setBlockAutoInstall: (v: boolean) => void
+  setBlockAutoStart: (v: boolean) => void
+
+  // Server version — populated from /api/health on first connect (console/bridge)
+  serverVersion: string | null
+  setServerVersion: (v: string | null) => void
+  // mcp-one MCP server version — populated from /api/server-settings
+  mcpServerVersion: string | null
+  setMcpServerVersion: (v: string | null) => void
 
   // MCP server connection — set by ServerConnect, gates the whole app
   connectedEndpoint: string | null
@@ -73,6 +89,7 @@ interface AppState {
   setRegistrySource: (source: string) => void
   setRegistryAvailableSources: (sources: RegistrySource[]) => void
   setRegistryResults: (results: RegistryConfigMeta[], total: number) => void
+  appendRegistryResults: (results: RegistryConfigMeta[], total: number) => void
   setRegistryFeatured: (featured: RegistryConfigMeta[]) => void
   patchRegistryFilters: (patch: Partial<RegistryFilters>) => void
   clearRegistryFilters: () => void
@@ -84,7 +101,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  activePage: 'demo',
+  activePage: 'configs',
   setActivePage: (page) => set({ activePage: page }),
 
   mode: 'dark',
@@ -100,8 +117,21 @@ export const useAppStore = create<AppState>((set) => ({
 
   hotReload: true,
   logLevel: 'info' as LogLevel,
+  manifestStyle: 'flat' as ManifestStyle,
+  configWriteLock: false,
+  blockAutoInstall: false,
+  blockAutoStart: false,
   setHotReload: (hotReload) => set({ hotReload }),
   setLogLevel: (logLevel) => set({ logLevel }),
+  setManifestStyle: (manifestStyle) => set({ manifestStyle }),
+  setConfigWriteLock: (configWriteLock) => set({ configWriteLock }),
+  setBlockAutoInstall: (blockAutoInstall) => set({ blockAutoInstall }),
+  setBlockAutoStart: (blockAutoStart) => set({ blockAutoStart }),
+
+  serverVersion: null,
+  setServerVersion: (serverVersion) => set({ serverVersion }),
+  mcpServerVersion: null,
+  setMcpServerVersion: (mcpServerVersion) => set({ mcpServerVersion }),
 
   connectedEndpoint: null,
   setConnectedEndpoint: (connectedEndpoint) => set({ connectedEndpoint }),
@@ -146,7 +176,8 @@ export const useAppStore = create<AppState>((set) => ({
     registrySubPage:      'browse',
     registrySelectedConfig: null,
   }),
-  setRegistryResults:  (registryResults, registryTotal) => set({ registryResults, registryTotal }),
+  setRegistryResults:    (registryResults, registryTotal) => set({ registryResults, registryTotal }),
+  appendRegistryResults: (more, registryTotal) => set((s) => ({ registryResults: [...s.registryResults, ...more], registryTotal })),
   setRegistryFeatured: (registryFeatured) => set({ registryFeatured }),
   patchRegistryFilters: (patch) => set((s) => ({ registryFilters: { ...s.registryFilters, ...patch } })),
   clearRegistryFilters: () => set({ registryFilters: DEFAULT_REGISTRY_FILTERS }),

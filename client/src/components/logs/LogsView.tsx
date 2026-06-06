@@ -84,7 +84,7 @@ export function LogsView() {
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, color: 'var(--text-dim)' }}>
         <ScrollText size={28} style={{ opacity: 0.25 }} />
-        <div style={{ fontSize: 11, letterSpacing: '0.08em' }}>{error}</div>
+        <div style={{ fontSize: '0.85rem', letterSpacing: '0.08em' }}>{error}</div>
       </div>
     )
   }
@@ -93,13 +93,13 @@ export function LogsView() {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderBottom: '1px solid var(--border)', background: 'var(--surface)', flexShrink: 0 }}>
-        <span style={{ fontSize: 10, color: 'var(--text-dim)', marginRight: 4, letterSpacing: '0.08em' }}>LEVEL</span>
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', marginRight: 4, letterSpacing: '0.08em' }}>LEVEL</span>
         {(['all', 'debug', 'info', 'warn', 'error'] as const).map(lvl => (
           <button
             key={lvl}
             onClick={() => setFilter(lvl)}
             style={{
-              fontSize: 9,
+              fontSize: '0.69rem',
               fontFamily: 'monospace',
               padding: '2px 7px',
               borderRadius: 3,
@@ -119,7 +119,7 @@ export function LogsView() {
           </button>
         ))}
         <span style={{ flex: 1 }} />
-        <span style={{ fontSize: 9, color: 'var(--text-dim)', fontFamily: 'monospace' }}>
+        <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
           {visible.length} entries
         </span>
         {!autoScroll && (
@@ -128,7 +128,7 @@ export function LogsView() {
               setAutoScroll(true)
               bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
             }}
-            style={{ fontSize: 9, color: 'var(--accent)', background: 'var(--accent-dim)', border: '1px solid var(--accent)', borderRadius: 3, padding: '2px 7px', cursor: 'pointer', letterSpacing: '0.06em' }}
+            style={{ fontSize: '0.69rem', color: 'var(--accent)', background: 'var(--accent-dim)', border: '1px solid var(--accent)', borderRadius: 3, padding: '2px 7px', cursor: 'pointer', letterSpacing: '0.06em' }}
           >
             JUMP TO BOTTOM
           </button>
@@ -139,10 +139,10 @@ export function LogsView() {
       <div
         ref={listRef}
         onScroll={handleScroll}
-        style={{ flex: 1, overflowY: 'auto', fontFamily: 'monospace', fontSize: 11 }}
+        style={{ flex: 1, overflowY: 'auto', fontFamily: 'monospace', fontSize: '0.85rem' }}
       >
         {visible.length === 0 ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-dim)', fontSize: 11 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-dim)', fontSize: '0.85rem' }}>
             No log entries yet
           </div>
         ) : (
@@ -161,9 +161,9 @@ export function LogsView() {
                   lineHeight: 1.6,
                 }}
               >
-                <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>{fmtTime(entry.ts)}</span>
-                <span style={{ color: lvl.color, fontWeight: 600, fontSize: 10 }}>{lvl.label}</span>
-                <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>{SOURCE_LABEL[entry.source]}</span>
+                <span style={{ color: 'var(--text-dim)', fontSize: '0.77rem' }}>{fmtTime(entry.ts)}</span>
+                <span style={{ color: lvl.color, fontWeight: 600, fontSize: '0.77rem' }}>{lvl.label}</span>
+                <span style={{ color: 'var(--text-dim)', fontSize: '0.77rem' }}>{SOURCE_LABEL[entry.source]}</span>
                 <span style={{ color: 'var(--text)', wordBreak: 'break-all' }}>{entry.msg}</span>
               </div>
             )

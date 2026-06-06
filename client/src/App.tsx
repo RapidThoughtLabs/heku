@@ -4,15 +4,16 @@ import { ServerConnect } from '@/components/connect/ServerConnect'
 import { useAppStore } from '@/stores/app-store'
 import { loadTheme, applyTheme, applyFontSize } from '@/lib/theme'
 import { useMcpServer } from '@/hooks/useMcpServer'
+import { useFaviconState } from '@/hooks/useFaviconState'
 
 function ConnectedApp() {
-  // Only poll server health + tools when we have an active connection
   useMcpServer()
   return <AppShell />
 }
 
 function App() {
   const { setMode, setAccent, setFontSize, connectedEndpoint } = useAppStore()
+  useFaviconState()
 
   useEffect(() => {
     const { mode, accent, fontSize } = loadTheme()

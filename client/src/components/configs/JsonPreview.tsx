@@ -34,7 +34,7 @@ export function JsonPreview({ json, maxHeight = 420 }: JsonPreviewProps) {
         padding: '5px 12px', borderBottom: '1px solid var(--border)',
         background: 'var(--surface3)',
       }}>
-        <span style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>JSON PREVIEW</span>
+        <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.08em' }}>JSON PREVIEW</span>
         <Button
           variant="ghost"
           size="sm"
@@ -49,7 +49,7 @@ export function JsonPreview({ json, maxHeight = 420 }: JsonPreviewProps) {
       {/* JSON content */}
       <pre style={{
         padding: '12px 14px',
-        fontSize: 10,
+        fontSize: '0.77rem',
         lineHeight: 1.75,
         color: 'var(--text)',
         overflowY: 'auto',

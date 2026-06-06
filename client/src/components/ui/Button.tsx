@@ -7,10 +7,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const SIZE_STYLES: Record<string, React.CSSProperties> = {
-  xs:   { width: 22, height: 22, fontSize: 10, padding: 0, borderRadius: 4 },
-  sm:   { padding: '5px 14px', fontSize: 10 },
-  md:   { padding: '8px 18px', fontSize: 11 },
-  pill: { padding: '9px 22px', fontSize: 11, borderRadius: 9999 },
+  xs:   { width: 22, height: 22, fontSize: '0.77rem', padding: 0, borderRadius: 4 },
+  sm:   { padding: '7px 14px', fontSize: '0.77rem' },
+  md:   { padding: '9px 18px', fontSize: '0.85rem' },
+  pill: { padding: '9px 22px', fontSize: '0.85rem', borderRadius: 9999 },
 }
 
 function getVariantStyles(variant: string, hovered: boolean, disabled: boolean): React.CSSProperties {

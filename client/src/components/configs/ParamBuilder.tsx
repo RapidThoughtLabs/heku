@@ -86,7 +86,7 @@ const cellInput: React.CSSProperties = {
   border: 'none',
   borderBottom: '1px solid var(--border)',
   padding: '4px 6px',
-  fontSize: 10,
+  fontSize: '0.77rem',
   color: 'var(--text)',
   fontFamily: 'inherit',
   outline: 'none',
@@ -133,7 +133,7 @@ export function ParamBuilder({ params, onChange, showLocation = false }: ParamBu
         }}
       >
         {headers.map((h, i) => (
-          <span key={i} style={{ fontSize: 8, color: 'var(--text-dim)', letterSpacing: '0.08em' }}>{h}</span>
+          <span key={i} style={{ fontSize: '0.62rem', color: 'var(--text-dim)', letterSpacing: '0.08em' }}>{h}</span>
         ))}
       </div>
 
@@ -196,7 +196,7 @@ export function ParamBuilder({ params, onChange, showLocation = false }: ParamBu
                   background: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  fontSize: 9,
+                  fontSize: '0.69rem',
                   fontFamily: 'monospace',
                   color: panelActive ? 'var(--accent)' : 'var(--text-dim)',
                   padding: '2px 4px',
@@ -232,7 +232,7 @@ export function ParamBuilder({ params, onChange, showLocation = false }: ParamBu
                     border: `1px solid ${p.advancedError ? 'rgba(255,95,87,0.5)' : 'var(--border)'}`,
                     borderRadius: 4,
                     padding: '6px 8px',
-                    fontSize: 10,
+                    fontSize: '0.77rem',
                     fontFamily: 'monospace',
                     color: 'var(--text)',
                     resize: 'vertical',
@@ -243,7 +243,7 @@ export function ParamBuilder({ params, onChange, showLocation = false }: ParamBu
                   }}
                 />
                 {p.advancedError && (
-                  <span style={{ fontSize: 9, color: 'var(--red)', letterSpacing: '0.03em' }}>
+                  <span style={{ fontSize: '0.69rem', color: 'var(--red)', letterSpacing: '0.03em' }}>
                     {p.advancedError}
                   </span>
                 )}
@@ -259,7 +259,7 @@ export function ParamBuilder({ params, onChange, showLocation = false }: ParamBu
           display: 'flex', alignItems: 'center', gap: 5,
           padding: '5px 9px', background: 'transparent',
           border: '1px dashed var(--border2)', borderRadius: 4,
-          color: 'var(--text-dim)', fontSize: 9, cursor: 'pointer',
+          color: 'var(--text-dim)', fontSize: '0.69rem', cursor: 'pointer',
           letterSpacing: '0.05em', transition: 'all 0.12s', width: 'fit-content',
           fontFamily: 'inherit',
         }}

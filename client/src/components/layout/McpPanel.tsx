@@ -96,12 +96,12 @@ export function McpPanel() {
         ) : (
           <Zap size={12} style={{ color: 'var(--text-dim)' }} />
         )}
-        <span style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--text-dim)', flex: 1 }}>
+        <span style={{ fontSize: '0.85rem', letterSpacing: '0.12em', color: 'var(--text-dim)', flex: 1 }}>
           MCP TOOLS
         </span>
         <span
           style={{
-            fontSize: 9,
+            fontSize: '0.69rem',
             color: totalTools > 0 ? 'var(--accent)' : 'var(--text-dim)',
             letterSpacing: '0.08em',
             background: totalTools > 0 ? 'var(--accent-dim)' : 'var(--surface2)',
@@ -129,9 +129,9 @@ export function McpPanel() {
             }}
           >
             <WifiOff size={24} style={{ opacity: 0.3 }} />
-            <span style={{ fontSize: 10, letterSpacing: '0.06em', textAlign: 'center', lineHeight: 1.6 }}>
+            <span style={{ fontSize: '0.77rem', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 1.6 }}>
               Server offline.<br />
-              Run <code style={{ background: 'var(--surface2)', padding: '1px 5px', borderRadius: 3, fontSize: 10 }}>npm run dev</code>
+              Run <code style={{ background: 'var(--surface2)', padding: '1px 5px', borderRadius: 3, fontSize: '0.77rem' }}>npm run dev</code>
             </span>
           </div>
         ) : serverStatus === 'connecting' && tools.length === 0 ? (
@@ -147,7 +147,7 @@ export function McpPanel() {
             }}
           >
             <Loader2 size={24} style={{ opacity: 0.3, animation: 'spin 1s linear infinite' }} />
-            <span style={{ fontSize: 10, letterSpacing: '0.06em' }}>Connecting to mcp-one...</span>
+            <span style={{ fontSize: '0.77rem', letterSpacing: '0.06em' }}>Connecting to mcp-one...</span>
           </div>
         ) : tools.length === 0 ? (
           <div
@@ -162,7 +162,7 @@ export function McpPanel() {
             }}
           >
             <Zap size={24} style={{ opacity: 0.2 }} />
-            <span style={{ fontSize: 10, letterSpacing: '0.06em', textAlign: 'center', lineHeight: 1.6 }}>
+            <span style={{ fontSize: '0.77rem', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 1.6 }}>
               No tools loaded.<br />Add a config to get started.
             </span>
           </div>
@@ -215,12 +215,12 @@ export function McpPanel() {
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'nowrap' }}>
-                      <span style={{ fontSize: 12, color: 'var(--text)', fontWeight: 600, letterSpacing: '0.02em' }}>
+                      <span style={{ fontSize: '0.92rem', color: 'var(--text)', fontWeight: 600, letterSpacing: '0.02em' }}>
                         {displayName}
                       </span>
                       {connectorStyle && connectorType && (
                         <span style={{
-                          fontSize: 8,
+                          fontSize: '0.62rem',
                           fontWeight: 700,
                           letterSpacing: '0.08em',
                           padding: '3px 8px',
@@ -234,7 +234,7 @@ export function McpPanel() {
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.02em', marginTop: 2 }}>
+                    <div style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.02em', marginTop: 2 }}>
                       {configId}
                     </div>
                   </div>
@@ -247,7 +247,7 @@ export function McpPanel() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 9,
+                      fontSize: '0.69rem',
                       fontWeight: 700,
                       color: 'var(--accent)',
                       flexShrink: 0,
@@ -276,7 +276,7 @@ export function McpPanel() {
                             alignItems: 'flex-start',
                             gap: 8,
                             padding: '6px 4px',
-                            fontSize: 10,
+                            fontSize: '0.77rem',
                             color: 'var(--text-dim)',
                             letterSpacing: '0.04em',
                             cursor: tool.description ? 'pointer' : 'default',
@@ -322,7 +322,7 @@ export function McpPanel() {
                             {tool.description && (
                               <div
                                 style={{
-                                  fontSize: 9,
+                                  fontSize: '0.69rem',
                                   color: 'var(--text-dim)',
                                   marginTop: 3,
                                   lineHeight: 1.5,
@@ -364,7 +364,7 @@ export function McpPanel() {
         {/* Endpoint label */}
         {connectedEndpoint && (
           <div style={{
-            fontSize: 9,
+            fontSize: '0.69rem',
             color: 'var(--text-dim)',
             letterSpacing: '0.04em',
             marginBottom: 6,
@@ -376,13 +376,13 @@ export function McpPanel() {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.06em', flex: 1 }}>
+          <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.06em', flex: 1 }}>
             <strong style={{ color: 'var(--accent)' }}>{totalTools}</strong> tools ·{' '}
             <strong style={{ color: 'var(--accent)' }}>{groups.size}</strong> configs
           </span>
           <span
             style={{
-              fontSize: 9,
+              fontSize: '0.69rem',
               padding: '2px 8px',
               borderRadius: 99,
               letterSpacing: '0.06em',

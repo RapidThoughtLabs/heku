@@ -9,7 +9,8 @@ import type { GraphqlConnector } from "./connectors/graphql.js";
 import type { GrpcConnector } from "./connectors/grpc.js";
 import type { SqlConnector } from "./connectors/sql.js";
 import type { MongoConnector } from "./connectors/mongodb.js";
-import type { GraphqlConnectorConfig, GrpcConnectorConfig, SqlConnectorConfig, MongoConnectorConfig } from "./types.js";
+import type { GraphqlConnectorConfig, GrpcConnectorConfig, SqlConnectorConfig, MongoConnectorConfig, McpConnectorConfig } from "./types.js";
+import { bringServerOnline, takeServerOffline } from "./lifecycle/pipeline.js";
 
 // ── Constants ──────────────────────────────────────────────────────
 
@@ -120,6 +121,19 @@ export function startWatcher(
       const prevId = fileToConfigId.get(filePath);
       if (prevId) registry.unregisterConfig(prevId);
 
+      fileToConfigId.set(filePath, config.id);
+
+      // MCP configs: pipeline handles install → connect → registry → notify
+      if (config.connector.type === "mcp") {
+        bringServerOnline({
+          configId: config.id,
+          trigger: "watcher",
+          config: config.connector as McpConnectorConfig,
+          filePath,
+        });
+        return;
+      }
+
       // Re-introspect GraphQL configs with empty tools
       if (config.connector.type === "graphql" && config.tools.length === 0) {
         const gql = connectorRegistry.get("graphql") as GraphqlConnector;
@@ -154,7 +168,6 @@ export function startWatcher(
         await mongo.reinitConfig(config.id, config.connector as MongoConnectorConfig);
       }
 
-      fileToConfigId.set(filePath, config.id);
       registry.registerConfig(config);
       await notifyToolsChanged();
       console.error(
@@ -189,20 +202,33 @@ export function startWatcher(
 
       console.error(`[watcher] ~ ${path.basename(filePath)}`);
 
-      // Remove previous version of this config
+      // Remove previous version of this config from the registry
       const oldId = fileToConfigId.get(filePath);
       if (oldId) registry.unregisterConfig(oldId);
 
       const config = loadSingleConfig(filePath);
       if (!config) {
-        // File is now invalid — remove it from tracking and notify
         if (oldId) {
           fileToConfigId.delete(filePath);
-          await notifyToolsChanged();
+          // For MCP configs that were running, stop the server
+          takeServerOffline(oldId, "config-deleted");
           console.error(
             `[watcher]   ✗ "${oldId}" removed (invalid config) — ${registry.size()} total tools`,
           );
         }
+        return;
+      }
+
+      fileToConfigId.set(filePath, config.id);
+
+      // MCP configs: pipeline handles reconnect → registry → notify
+      if (config.connector.type === "mcp") {
+        bringServerOnline({
+          configId: config.id,
+          trigger: "watcher",
+          config: config.connector as McpConnectorConfig,
+          filePath,
+        });
         return;
       }
 
@@ -240,7 +266,6 @@ export function startWatcher(
         await mongo.reinitConfig(config.id, config.connector as MongoConnectorConfig);
       }
 
-      fileToConfigId.set(filePath, config.id);
       registry.registerConfig(config);
       await notifyToolsChanged();
       console.error(
@@ -270,9 +295,13 @@ export function startWatcher(
       const configId = fileToConfigId.get(filePath) ?? (derived || null);
       if (!configId) return;
 
-      registry.unregisterConfig(configId);
       fileToConfigId.delete(filePath);
-      await notifyToolsChanged();
+
+      // MCP configs: pipeline stops the server, unregisters, and notifies
+      // (We still call unregisterConfig inline so the registry is updated
+      //  immediately rather than waiting for the async pipeline queue.)
+      registry.unregisterConfig(configId);
+      takeServerOffline(configId, "config-deleted");
       console.error(
         `[watcher]   - Removed "${configId}" — ${registry.size()} total tools`,
       );

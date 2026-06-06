@@ -26,8 +26,8 @@ export function SegCtrl<T extends string>({ options, value, onChange, disabled }
           onClick={() => !disabled && onChange(opt.value)}
           disabled={disabled}
           style={{
-            padding: '4px 11px',
-            fontSize: 10,
+            padding: '6px 11px',
+            fontSize: '0.77rem',
             borderRadius: 4,
             border: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',

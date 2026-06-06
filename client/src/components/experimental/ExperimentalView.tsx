@@ -155,7 +155,7 @@ const CONNECTORS: ConnectorMeta[] = [
 // ── Sub-components ─────────────────────────────────────────────────
 
 const sectionTitleStyle: React.CSSProperties = {
-  fontSize: 9, letterSpacing: '0.1em', color: 'var(--text-dim)',
+  fontSize: '0.69rem', letterSpacing: '0.1em', color: 'var(--text-dim)',
   textTransform: 'uppercase', marginBottom: 6,
 }
 
@@ -165,7 +165,7 @@ function CaveatList({ items }: { items: string[] }) {
       {items.map((item, i) => (
         <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <AlertTriangle size={10} style={{ color: 'rgba(255,200,0,0.7)', flexShrink: 0, marginTop: 2 }} />
-          <span style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.55, letterSpacing: '0.01em' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.55, letterSpacing: '0.01em' }}>
             {item}
           </span>
         </div>
@@ -189,7 +189,7 @@ function AuthorInstructions() {
           'mcp.one hot-reloads — no restart needed.',
           'The config will appear in Configs with an "experimental" tag.',
         ].map((step, i) => (
-          <li key={i} style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5, letterSpacing: '0.01em' }}>
+          <li key={i} style={{ fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.5, letterSpacing: '0.01em' }}>
             {step}
           </li>
         ))}
@@ -217,18 +217,18 @@ function ConnectorCard({ meta }: { meta: ConnectorMeta }) {
         padding: '12px 16px', borderBottom: '1px solid var(--border)',
       }}>
         <Icon size={14} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', letterSpacing: '0.04em' }}>
+        <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', letterSpacing: '0.04em' }}>
           {label}
         </span>
         <span style={{
-          fontSize: 9, padding: '2px 8px', borderRadius: 99,
+          fontSize: '0.69rem', padding: '2px 8px', borderRadius: 99,
           letterSpacing: '0.06em',
           background: 'rgba(255,200,0,0.12)', color: 'rgba(255,200,0,0.85)',
           border: '1px solid rgba(255,200,0,0.2)',
         }}>
           experimental
         </span>
-        <span style={{ fontSize: 11, color: 'var(--text-dim)', marginLeft: 2 }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginLeft: 2 }}>
           {tagline}
         </span>
       </div>
@@ -245,7 +245,7 @@ function ConnectorCard({ meta }: { meta: ConnectorMeta }) {
         {/* When to use */}
         <div>
           <div style={sectionTitleStyle}>When to use</div>
-          <p style={{ margin: 0, fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.55, letterSpacing: '0.01em' }}>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.55, letterSpacing: '0.01em' }}>
             {whenToUse}
           </p>
         </div>
@@ -274,7 +274,7 @@ export function ExperimentalView() {
         position: 'sticky', top: 0, zIndex: 1,
       }}>
         <FlaskConical size={13} style={{ color: 'var(--text-dim)' }} />
-        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)', letterSpacing: '0.08em' }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)', letterSpacing: '0.08em' }}>
           Experimental
         </span>
       </div>
@@ -288,7 +288,7 @@ export function ExperimentalView() {
           borderRadius: 6,
           marginBottom: 8,
         }}>
-          <p style={{ margin: 0, fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.6, letterSpacing: '0.01em' }}>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.6, letterSpacing: '0.01em' }}>
             These connector types ship with mcp.one but are outside the v0.1.0 supported surface. The runtime executes them, but each has known rough edges documented below. There is no designer UI — power users can author configs by hand using the snippets provided. Self-authored configs appear in{' '}
             <span style={{ color: 'var(--text)' }}>Configs</span>
             {' '}with an <span style={{ color: 'rgba(255,200,0,0.85)' }}>experimental</span> tag and are editable through the available UI.

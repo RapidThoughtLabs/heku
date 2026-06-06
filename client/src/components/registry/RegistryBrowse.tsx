@@ -16,8 +16,10 @@ interface RegistryBrowseProps {
   results: RegistryConfigMeta[]
   featured: RegistryConfigMeta[]
   loading: boolean
+  loadingMore: boolean
   error: string | null
   total: number
+  hasMore: boolean
   filters: RegistryFilters
   selectedRegistry: string
   availableSources: RegistrySource[]
@@ -25,6 +27,7 @@ interface RegistryBrowseProps {
   onSetFilter: (patch: Partial<RegistryFilters>) => void
   onClearFilters: () => void
   onRefetch: () => void
+  onLoadMore: () => void
   isInstalled: (slug: string) => boolean
   getUpdateInfo: (slug: string) => RegistryUpdateInfo | undefined
   onSelect: (config: RegistryConfigMeta) => void
@@ -34,8 +37,10 @@ export function RegistryBrowse({
   results,
   featured,
   loading,
+  loadingMore,
   error,
   total,
+  hasMore,
   filters,
   selectedRegistry,
   availableSources,
@@ -43,6 +48,7 @@ export function RegistryBrowse({
   onSetFilter,
   onClearFilters,
   onRefetch,
+  onLoadMore,
   isInstalled,
   getUpdateInfo,
   onSelect,
@@ -71,7 +77,7 @@ export function RegistryBrowse({
   const sectionLabel = (text: string) => (
     <div style={{
       padding: '14px 0 6px',
-      fontSize: 9,
+      fontSize: '0.69rem',
       letterSpacing: '0.16em',
       color: 'var(--text-dim)',
       textTransform: 'uppercase',
@@ -87,13 +93,13 @@ export function RegistryBrowse({
         height: 42, background: 'var(--surface)', borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', padding: '0 16px', flexShrink: 0, gap: 10,
       }}>
-        <span style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
+        <span style={{ fontSize: '0.85rem', letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
           <span style={{ color: 'var(--accent)' }}>registry</span> / browse
         </span>
         {loading && <Loader2 size={11} style={{ color: 'var(--text-dim)', animation: 'spin 1s linear infinite' }} />}
         <div style={{ flex: 1 }} />
         {hasActiveSearch && (
-          <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>
+          <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)' }}>
             {total} result{total !== 1 ? 's' : ''}
           </span>
         )}
@@ -108,7 +114,7 @@ export function RegistryBrowse({
               borderRadius: 4,
               padding: '2px 8px',
               color: 'var(--text-dim)',
-              fontSize: 9,
+              fontSize: '0.69rem',
               fontFamily: "'JetBrains Mono', monospace",
               cursor: 'pointer',
               letterSpacing: '0.06em',
@@ -148,7 +154,7 @@ export function RegistryBrowse({
             placeholder="Search configs… (e.g. github, postgres, openai)"
             style={{
               flex: 1, background: 'transparent', border: 'none', outline: 'none',
-              fontSize: 11, color: 'var(--text)', letterSpacing: '0.03em',
+              fontSize: '0.85rem', color: 'var(--text)', letterSpacing: '0.03em',
               fontFamily: 'inherit',
             }}
           />
@@ -170,7 +176,7 @@ export function RegistryBrowse({
           borderBottom: '1px solid var(--border)', flexShrink: 0,
           display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
         }}>
-          <span style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Sort:
           </span>
           {SORT_OPTIONS.map(({ value, label }) => (
@@ -178,7 +184,7 @@ export function RegistryBrowse({
               key={value}
               onClick={() => onSetFilter({ sort_by: value })}
               style={{
-                fontSize: 9, padding: '3px 10px', borderRadius: 99, cursor: 'pointer',
+                fontSize: '0.69rem', padding: '3px 10px', borderRadius: 99, cursor: 'pointer',
                 border: `1px solid ${filters.sort_by === value ? 'var(--accent)' : 'var(--border2)'}`,
                 background: filters.sort_by === value ? 'var(--accent-dim)' : 'transparent',
                 color: filters.sort_by === value ? 'var(--accent)' : 'var(--text-dim)',
@@ -191,7 +197,7 @@ export function RegistryBrowse({
 
           <div style={{ width: 1, height: 14, background: 'var(--border2)' }} />
 
-          <span style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
             Type:
           </span>
           {CONNECTOR_TYPES.map((type) => (
@@ -199,7 +205,7 @@ export function RegistryBrowse({
               key={type}
               onClick={() => onSetFilter({ connector_type: filters.connector_type === type ? undefined : type })}
               style={{
-                fontSize: 9, padding: '3px 10px', borderRadius: 99, cursor: 'pointer',
+                fontSize: '0.69rem', padding: '3px 10px', borderRadius: 99, cursor: 'pointer',
                 border: `1px solid ${filters.connector_type === type ? 'var(--accent)' : 'var(--border2)'}`,
                 background: filters.connector_type === type ? 'var(--accent-dim)' : 'transparent',
                 color: filters.connector_type === type ? 'var(--accent)' : 'var(--text-dim)',
@@ -215,7 +221,7 @@ export function RegistryBrowse({
           <button
             onClick={() => onSetFilter({ verified: filters.verified ? undefined : true })}
             style={{
-              fontSize: 9, padding: '3px 10px', borderRadius: 99, cursor: 'pointer',
+              fontSize: '0.69rem', padding: '3px 10px', borderRadius: 99, cursor: 'pointer',
               border: `1px solid ${filters.verified ? 'var(--accent)' : 'var(--border2)'}`,
               background: filters.verified ? 'var(--accent-dim)' : 'transparent',
               color: filters.verified ? 'var(--accent)' : 'var(--text-dim)',
@@ -229,7 +235,7 @@ export function RegistryBrowse({
             <button
               onClick={clearSearch}
               style={{
-                fontSize: 9, padding: '3px 10px', borderRadius: 99, cursor: 'pointer',
+                fontSize: '0.69rem', padding: '3px 10px', borderRadius: 99, cursor: 'pointer',
                 border: '1px solid var(--border2)', background: 'transparent',
                 color: 'var(--text-dim)', letterSpacing: '0.06em',
                 marginLeft: 'auto',
@@ -242,15 +248,23 @@ export function RegistryBrowse({
       )}
 
       {/* Main content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+      <div
+        style={{ flex: 1, overflowY: 'auto', padding: 16 }}
+        onScroll={(e) => {
+          const el = e.currentTarget
+          if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
+            onLoadMore()
+          }
+        }}
+      >
         {error ? (
           <div style={{
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', gap: 10, padding: '60px 20px', color: 'var(--red)',
           }}>
             <PackageSearch size={28} style={{ opacity: 0.5 }} />
-            <span style={{ fontSize: 11, letterSpacing: '0.04em' }}>Failed to load registry</span>
-            <span style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center' }}>{error}</span>
+            <span style={{ fontSize: '0.85rem', letterSpacing: '0.04em' }}>Failed to load registry</span>
+            <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', textAlign: 'center' }}>{error}</span>
             <Button size="sm" variant="ghost" onClick={onRefetch}>Retry</Button>
           </div>
         ) : (
@@ -281,7 +295,7 @@ export function RegistryBrowse({
                 justifyContent: 'center', gap: 10, padding: '60px 20px', color: 'var(--text-dim)',
               }}>
                 <Loader2 size={28} style={{ opacity: 0.3, animation: 'spin 1s linear infinite' }} />
-                <span style={{ fontSize: 10, letterSpacing: '0.06em' }}>Loading registry…</span>
+                <span style={{ fontSize: '0.77rem', letterSpacing: '0.06em' }}>Loading registry…</span>
               </div>
             ) : results.length === 0 ? (
               <div style={{
@@ -289,23 +303,37 @@ export function RegistryBrowse({
                 justifyContent: 'center', gap: 12, padding: '60px 20px', color: 'var(--text-dim)',
               }}>
                 <PackageSearch size={28} style={{ opacity: 0.2 }} />
-                <span style={{ fontSize: 11, letterSpacing: '0.04em' }}>No configs found</span>
+                <span style={{ fontSize: '0.85rem', letterSpacing: '0.04em' }}>No configs found</span>
                 {hasActiveSearch && (
                   <Button size="sm" variant="ghost" onClick={clearSearch}>Clear search</Button>
                 )}
               </div>
             ) : (
-              <div style={gridStyle}>
-                {results.map((cfg) => (
-                  <RegistryCard
-                    key={cfg.id ?? `${cfg.namespace}/${cfg.slug}`}
-                    config={cfg}
-                    isInstalled={isInstalled(cfg.qualified_slug)}
-                    updateInfo={getUpdateInfo(cfg.qualified_slug)}
-                    onClick={() => onSelect(cfg)}
-                  />
-                ))}
-              </div>
+              <>
+                <div style={gridStyle}>
+                  {results.map((cfg) => (
+                    <RegistryCard
+                      key={cfg.id ?? `${cfg.namespace}/${cfg.slug}`}
+                      config={cfg}
+                      isInstalled={isInstalled(cfg.qualified_slug)}
+                      updateInfo={getUpdateInfo(cfg.qualified_slug)}
+                      onClick={() => onSelect(cfg)}
+                    />
+                  ))}
+                </div>
+                {(loadingMore || (!hasMore && results.length > 0 && !loading)) && (
+                  <div style={{
+                    display: 'flex', justifyContent: 'center',
+                    padding: '20px 0 8px',
+                    color: 'var(--text-dim)',
+                  }}>
+                    {loadingMore
+                      ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                      : <span style={{ fontSize: '0.69rem', letterSpacing: '0.1em' }}>— end —</span>
+                    }
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

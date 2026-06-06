@@ -4,6 +4,7 @@ import cors from "cors";
 import { createMcpClient } from "./mcp-client.js";
 import { createApiRouter } from "./api.js";
 import { createRegistryRouter } from "./registry-api.js";
+import { VERSION } from "../src/lib/version.js";
 
 export async function startBridge(options: {
   port?: number;
@@ -28,7 +29,7 @@ export async function startBridge(options: {
   app.use("/api/registry", createRegistryRouter());
 
   app.get("/", (_req, res) => {
-    res.json({ service: "mcp-one-api", version: "0.1.0" });
+    res.json({ service: "mcp-one-api", version: VERSION });
   });
 
   const server = app.listen(port, () => {

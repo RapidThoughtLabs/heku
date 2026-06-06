@@ -20,6 +20,6 @@ export function applyTheme(mode: ThemeMode, accent: AccentColor): void {
 }
 
 export function applyFontSize(size: number): void {
-  document.documentElement.style.setProperty('--font-size', `${size}px`)
+  document.documentElement.style.fontSize = `${size}px`
   localStorage.setItem(STORAGE_KEY_FONT_SIZE, String(size))
 }

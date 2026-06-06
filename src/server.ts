@@ -10,7 +10,9 @@ import express from "express";
 import type { McpConfig, RegisteredTool, CallerContext } from "./types.js";
 import { buildInputSchema } from "./lib/schema.js";
 import { execute } from "./executor.js";
-import { createAdminRouter } from "./admin-api.js";
+import { createAdminRouter, getServerSettings, type ManifestStyle } from "./admin-api.js";
+import type { LifecycleCtx, ConfigRuntime } from "./lifecycle/pipeline.js";
+import { VERSION } from "./lib/version.js";
 import { invalidate as invalidateValidationCache } from "./connectors/validation.js";
 
 // ── Tool Registry ─────────────────────────────────────────────────
@@ -58,6 +60,43 @@ export class ToolRegistry {
   }
 }
 
+// ── Manifest view helpers ─────────────────────────────────────────
+
+const DISCOVERY_FLAT = new Set(["one.search", "one.list_tools", "one.list_configs", "one.invoke"]);
+const DISCOVERY_TRIO = new Set(["one.search", "one.list_tools", "one.list_configs"]);
+
+function buildManifestView(style: ManifestStyle, registry: ToolRegistry) {
+  if (style === "namespaced") {
+    return {
+      visible: registry.list().filter((rt) => DISCOVERY_TRIO.has(`${rt.configId}.${rt.tool.name}`)),
+      rewrite: (qualified: string) => qualified,
+      resolve: (incoming: string) => incoming,
+    };
+  }
+  return {
+    visible: registry.list().filter((rt) => DISCOVERY_FLAT.has(`${rt.configId}.${rt.tool.name}`)),
+    rewrite: (qualified: string) => qualified.replace(/^one\./, ""),
+    resolve: (incoming: string) => (incoming.includes(".") ? incoming : `one.${incoming}`),
+  };
+}
+
+// ── Config Write Lock ─────────────────────────────────────────────
+
+const BLOCKED_WHEN_LOCKED = new Set([
+  "one.create_config", "one.update_config", "one.delete_config",
+  "one.add_tool",      "one.remove_tool",   "one.update_tool",
+  "one.registry_install", "one.auth_set",
+]);
+
+function blockedTool(qualifiedName: string, args: Record<string, unknown>): string | null {
+  if (BLOCKED_WHEN_LOCKED.has(qualifiedName)) return qualifiedName;
+  if (qualifiedName === "one.invoke") {
+    const target = args["tool"];
+    if (typeof target === "string" && BLOCKED_WHEN_LOCKED.has(target)) return target;
+  }
+  return null;
+}
+
 // ── Server factory — wire handlers onto a fresh Server instance ───
 
 function makeServer(
@@ -65,20 +104,17 @@ function makeServer(
   transportCtx?: Partial<CallerContext>,
 ): Server {
   const server = new Server(
-    { name: "mcp-one", version: "0.1.0" },
+    { name: "mcp-one", version: VERSION },
     { capabilities: { tools: {} } },
   );
 
   // ── tools/list ────────────────────────────────────────────────
 
-  const DISCOVERY_QUAD = new Set(["one.search", "one.list_tools", "one.list_configs", "one.invoke"]);
-
   server.setRequestHandler(ListToolsRequestSchema, () => {
-    const visible = registry.list().filter((rt) =>
-      DISCOVERY_QUAD.has(`${rt.configId}.${rt.tool.name}`),
-    );
+    const { manifestStyle } = getServerSettings();
+    const { visible, rewrite } = buildManifestView(manifestStyle, registry);
     const tools = visible.map((rt) => ({
-      name: `${rt.configId}.${rt.tool.name}`,
+      name: rewrite(`${rt.configId}.${rt.tool.name}`),
       description: `[${rt.configId}] ${rt.tool.description}`,
       inputSchema: buildInputSchema(rt.tool.params),
     }));
@@ -88,8 +124,12 @@ function makeServer(
   // ── tools/call ────────────────────────────────────────────────
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const toolName = request.params.name;
+    const incomingName = request.params.name;
     const args = (request.params.arguments ?? {}) as Record<string, unknown>;
+
+    const { manifestStyle, configWriteLock } = getServerSettings();
+    const { resolve } = buildManifestView(manifestStyle, registry);
+    const toolName = resolve(incomingName);
 
     // Build caller context: merge transport-level info (headers) with
     // any _meta fields the client injected into the MCP request itself.
@@ -107,6 +147,26 @@ function makeServer(
       source: transportCtx?.source ?? (meta?.source as string | undefined),
       ip: transportCtx?.ip,
     };
+
+    // Config Write Lock: block mutating tools from LLM agents
+    if (configWriteLock) {
+      const blocked = blockedTool(toolName, args);
+      if (blocked) {
+        console.error(`[server] WRITE LOCK blocked: ${blocked} (called as ${incomingName})`);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify({
+                error: `Config Write Lock is enabled — "${blocked}" is blocked. Disable it in mcp.one settings to make config changes.`,
+                lockEnabled: true,
+              }),
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
 
     const tool = registry.get(toolName);
     if (!tool) {
@@ -158,6 +218,10 @@ export interface StartServerOptions {
   configDir?: string;
   /** Live watcher handle — enables the admin API to pause/resume hot reload. */
   watcher?: { pause(): void; resume(): void; isPaused(): boolean };
+  /** Pipeline functions — enable lifecycle control via admin API. */
+  getRuntime?: (configId: string) => ConfigRuntime | undefined;
+  bringServerOnline?: (ctx: LifecycleCtx) => void;
+  takeServerOffline?: (configId: string, reason: "user-stop" | "config-deleted") => void;
 }
 
 // ── startServer ───────────────────────────────────────────────────
@@ -180,7 +244,17 @@ export async function startServer(
 
   // All active Server instances — one per transport.
   // Each shares the same ToolRegistry so tool calls are consistent.
-  const activeServers: Server[] = [];
+  const activeServers = new Set<Server>();
+
+  async function notifyToolsChanged(): Promise<void> {
+    await Promise.allSettled(
+      [...activeServers].map((s) =>
+        s.sendToolListChanged().catch((err: unknown) => {
+          console.error("[server] sendToolListChanged error:", err);
+        }),
+      ),
+    );
+  }
 
   // ── Transport 1: stdio (always on) ───────────────────────────────
   // Claude Desktop / Cursor spawns mcp-one and talks via stdio.
@@ -189,7 +263,7 @@ export async function startServer(
   const stdioServer = makeServer(registry, { transport: "stdio" });
   const stdioTransport = new StdioServerTransport();
   await stdioServer.connect(stdioTransport);
-  activeServers.push(stdioServer);
+  activeServers.add(stdioServer);
 
   console.error(
     `[mcp-one] stdio  ready — ${registry.size()} tools from ${configs.length} config(s)`,
@@ -212,7 +286,7 @@ export async function startServer(
       res.json({
         ok: true,
         service: "mcp-one",
-        version: "0.1.0",
+        version: VERSION,
         toolCount: registry.size(),
         transport: "http+stdio",
       });
@@ -222,7 +296,16 @@ export async function startServer(
     // Console config CRUD — humans editing JSON. Full replace-style PUT.
     // Separate from the MCP tools (one.*) which are narrow/additive for LLMs.
     if (options.configDir) {
-      app.use("/admin", createAdminRouter({ configDir: options.configDir, registry, watcher: options.watcher ?? null }));
+      app.use("/admin", createAdminRouter({
+        configDir: options.configDir,
+        registry,
+        watcher: options.watcher ?? null,
+        onManifestStyleChanged: () => void notifyToolsChanged(),
+        notifyToolsChanged,
+        getRuntime: options.getRuntime,
+        bringServerOnline: options.bringServerOnline,
+        takeServerOffline: options.takeServerOffline,
+      }));
       console.error(`[mcp-one] admin  ready — http://localhost:${port}/admin/configs`);
     }
 
@@ -252,7 +335,7 @@ export async function startServer(
       await reqServer.connect(reqTransport);
 
       // Track the server so it receives ToolListChanged broadcast notifications
-      activeServers.push(reqServer);
+      activeServers.add(reqServer);
 
       // Properly fix idle timeouts by sending SSE keep-alive comments.
       // This resets the TCP/Node idle timer without needing setTimeout(0),
@@ -277,10 +360,7 @@ export async function startServer(
       } finally {
         if (keepAliveTimer) clearInterval(keepAliveTimer);
         // Prevent memory leaks when connection closes
-        const idx = activeServers.indexOf(reqServer);
-        if (idx !== -1) {
-          activeServers.splice(idx, 1);
-        }
+        activeServers.delete(reqServer);
       }
     });
 
@@ -288,18 +368,6 @@ export async function startServer(
       console.error(`[mcp-one] http   ready — http://localhost:${port}/mcp`);
       console.error(`[mcp-one] health        → http://localhost:${port}/health`);
     });
-  }
-
-  // ── Broadcast helper ──────────────────────────────────────────────
-
-  async function notifyToolsChanged(): Promise<void> {
-    await Promise.allSettled(
-      activeServers.map((s) =>
-        s.sendToolListChanged().catch((err: unknown) => {
-          console.error("[server] sendToolListChanged error:", err);
-        }),
-      ),
-    );
   }
 
   return { registry, notifyToolsChanged };

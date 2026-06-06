@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { loadConfigs } from "../loader.js";
+import { loadConfigs, loadSingleConfig } from "../loader.js";
 import { startServer } from "../server.js";
 import { loadSystemConfig } from "../system-config.js";
 import { configureLimiter } from "../rate-limiter.js";
@@ -22,6 +22,8 @@ import { McpConnector } from "../connectors/mcp.js";
 import { InternalConnector } from "../connectors/internal.js";
 import { SqlConnector } from "../connectors/sql.js";
 import { MongoConnector } from "../connectors/mongodb.js";
+import { initPipeline, bringServerOnline, takeServerOffline, getRuntime } from "../lifecycle/pipeline.js";
+import { getServerSettings } from "../admin-api.js";
 import type {
   McpConfig,
   HttpConnectorConfig,
@@ -332,6 +334,18 @@ export async function run(args: string[]): Promise<void> {
     port,
     configDir,
     watcher: watcherRef,
+    getRuntime,
+    bringServerOnline,
+    takeServerOffline,
+  });
+
+  // Initialize the lifecycle pipeline with full deps now that registry + notifyToolsChanged exist
+  initPipeline({
+    mcpConnector,
+    registry,
+    notifyToolsChanged,
+    loadSingleConfig: (fp: string) => loadSingleConfig(fp),
+    getSettings: () => getServerSettings(),
   });
 
   // ── Bind internal connector with live server context ────────────

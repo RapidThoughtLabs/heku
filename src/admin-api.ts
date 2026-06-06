@@ -14,6 +14,9 @@ import {
 } from "./lib/config-rules.js";
 import { loadManifest, removeFromManifest } from "./registry/auth.js";
 import type { RegisteredTool, ParamDef } from "./types.js";
+import { VERSION } from "./lib/version.js";
+import { recentlySelfWrote } from "./connectors/mcp.js";
+import type { LifecycleCtx, ConfigRuntime } from "./lifecycle/pipeline.js";
 
 function buildInputSchema(params: ParamDef[]): Record<string, unknown> {
   const properties: Record<string, unknown> = {};
@@ -29,8 +32,17 @@ function buildInputSchema(params: ParamDef[]): Record<string, unknown> {
 
 export interface AdminContext {
   configDir: string;
-  registry: { list(): RegisteredTool[] };
+  registry: {
+    list(): RegisteredTool[];
+    unregisterConfig(configId: string): void;
+  };
   watcher: { pause(): void; resume(): void; isPaused(): boolean } | null;
+  onManifestStyleChanged?: () => void;
+  notifyToolsChanged?: () => Promise<void>;
+  // pipeline integration (optional — absent when mcp-one runs without HTTP/bridge)
+  getRuntime?: (configId: string) => ConfigRuntime | undefined;
+  bringServerOnline?: (ctx: LifecycleCtx) => void;
+  takeServerOffline?: (configId: string, reason: "user-stop" | "config-deleted") => void;
 }
 
 // ── In-memory server settings ─────────────────────────────────────
@@ -38,13 +50,30 @@ export interface AdminContext {
 // The --debug CLI flag is the durable way to boot with debug logging.
 
 type LogLevel = "debug" | "info" | "warn" | "error";
+export type ManifestStyle = "flat" | "namespaced";
 
 const VALID_LOG_LEVELS: LogLevel[] = ["debug", "info", "warn", "error"];
+const VALID_MANIFEST_STYLES: ManifestStyle[] = ["flat", "namespaced"];
 
-const serverSettings: { hotReload: boolean; logLevel: LogLevel } = {
+const serverSettings: {
+  hotReload: boolean;
+  logLevel: LogLevel;
+  manifestStyle: ManifestStyle;
+  configWriteLock: boolean;
+  blockAutoInstall: boolean;
+  blockAutoStart: boolean;
+} = {
   hotReload: true,
   logLevel: "info",
+  manifestStyle: "flat",
+  configWriteLock: false,
+  blockAutoInstall: false,
+  blockAutoStart: false,
 };
+
+export function getServerSettings() {
+  return { ...serverSettings };
+}
 
 export function createAdminRouter(ctx: AdminContext): Router {
   const router = Router();
@@ -56,6 +85,12 @@ export function createAdminRouter(ctx: AdminContext): Router {
     res.json({
       hotReload: ctx.watcher ? !ctx.watcher.isPaused() : serverSettings.hotReload,
       logLevel: serverSettings.logLevel,
+      manifestStyle: serverSettings.manifestStyle,
+      configWriteLock: serverSettings.configWriteLock,
+      blockAutoInstall: serverSettings.blockAutoInstall,
+      blockAutoStart: serverSettings.blockAutoStart,
+      configDir: ctx.configDir,
+      mcpServerVersion: VERSION,
     });
   });
 
@@ -63,8 +98,16 @@ export function createAdminRouter(ctx: AdminContext): Router {
   // Accepts { hotReload?: boolean, logLevel?: string } and applies them live.
 
   router.post("/server-settings", (req, res) => {
-    const body = req.body as { hotReload?: unknown; logLevel?: unknown };
+    const body = req.body as {
+      hotReload?: unknown;
+      logLevel?: unknown;
+      manifestStyle?: unknown;
+      configWriteLock?: unknown;
+      blockAutoInstall?: unknown;
+      blockAutoStart?: unknown;
+    };
     const errors: string[] = [];
+    let manifestStyleChanged = false;
 
     if (body.hotReload !== undefined) {
       if (typeof body.hotReload !== "boolean") {
@@ -78,6 +121,7 @@ export function createAdminRouter(ctx: AdminContext): Router {
             ctx.watcher.pause();
           }
         }
+        log.info("settings", `hotReload → ${body.hotReload}`);
       }
     }
 
@@ -87,6 +131,45 @@ export function createAdminRouter(ctx: AdminContext): Router {
       } else {
         serverSettings.logLevel = body.logLevel as LogLevel;
         log.setConsoleLevel(body.logLevel as LogLevel);
+        log.info("settings", `logLevel → ${body.logLevel}`);
+      }
+    }
+
+    if (body.manifestStyle !== undefined) {
+      if (!VALID_MANIFEST_STYLES.includes(body.manifestStyle as ManifestStyle)) {
+        errors.push(`"manifestStyle" must be one of: ${VALID_MANIFEST_STYLES.join(", ")}`);
+      } else {
+        const prev = serverSettings.manifestStyle;
+        serverSettings.manifestStyle = body.manifestStyle as ManifestStyle;
+        if (prev !== serverSettings.manifestStyle) manifestStyleChanged = true;
+        log.info("settings", `manifestStyle → ${body.manifestStyle}`);
+      }
+    }
+
+    if (body.configWriteLock !== undefined) {
+      if (typeof body.configWriteLock !== "boolean") {
+        errors.push('"configWriteLock" must be a boolean');
+      } else {
+        serverSettings.configWriteLock = body.configWriteLock;
+        log.info("settings", `configWriteLock → ${body.configWriteLock}`);
+      }
+    }
+
+    if (body.blockAutoInstall !== undefined) {
+      if (typeof body.blockAutoInstall !== "boolean") {
+        errors.push('"blockAutoInstall" must be a boolean');
+      } else {
+        serverSettings.blockAutoInstall = body.blockAutoInstall;
+        log.info("settings", `blockAutoInstall → ${body.blockAutoInstall}`);
+      }
+    }
+
+    if (body.blockAutoStart !== undefined) {
+      if (typeof body.blockAutoStart !== "boolean") {
+        errors.push('"blockAutoStart" must be a boolean');
+      } else {
+        serverSettings.blockAutoStart = body.blockAutoStart;
+        log.info("settings", `blockAutoStart → ${body.blockAutoStart}`);
       }
     }
 
@@ -95,11 +178,19 @@ export function createAdminRouter(ctx: AdminContext): Router {
       return;
     }
 
+    if (manifestStyleChanged) {
+      ctx.onManifestStyleChanged?.();
+    }
+
     res.json({
       ok: true,
       settings: {
         hotReload: ctx.watcher ? !ctx.watcher.isPaused() : serverSettings.hotReload,
         logLevel: serverSettings.logLevel,
+        manifestStyle: serverSettings.manifestStyle,
+        configWriteLock: serverSettings.configWriteLock,
+        blockAutoInstall: serverSettings.blockAutoInstall,
+        blockAutoStart: serverSettings.blockAutoStart,
       },
     });
   });
@@ -138,7 +229,14 @@ export function createAdminRouter(ctx: AdminContext): Router {
             fs.readFileSync(path.join(configDir, f), "utf-8"),
           ) as Record<string, unknown>;
           const id = String(raw["id"] ?? "");
-          return [toConfigSummary(raw, toolsByConfig.get(id) ?? 0)];
+          const summary = toConfigSummary(raw, toolsByConfig.get(id) ?? 0);
+          const rt = ctx.getRuntime?.(id);
+          if (rt) {
+            summary.lifecycle = rt.state;
+            if (rt.lastError) summary.lastError = rt.lastError;
+            if (rt.installLogTail) summary.installLogTail = rt.installLogTail;
+          }
+          return [summary];
         } catch {
           return [];
         }
@@ -160,7 +258,14 @@ export function createAdminRouter(ctx: AdminContext): Router {
     try {
       const raw = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Record<string, unknown>;
       const toolCount = ctx.registry.list().filter((rt) => rt.configId === id).length;
-      res.json(toConfigSummary(raw, toolCount));
+      const summary = toConfigSummary(raw, toolCount);
+      const rt = ctx.getRuntime?.(id);
+      if (rt) {
+        summary.lifecycle = rt.state;
+        if (rt.lastError) summary.lastError = rt.lastError;
+        if (rt.installLogTail) summary.installLogTail = rt.installLogTail;
+      }
+      res.json(summary);
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
     }
@@ -211,7 +316,9 @@ export function createAdminRouter(ctx: AdminContext): Router {
     }
 
     fs.mkdirSync(ctx.configDir, { recursive: true });
-    fs.writeFileSync(filePath, JSON.stringify(rawConfig, null, 2) + "\n", "utf-8");
+    const tmpPath = filePath + ".tmp";
+    fs.writeFileSync(tmpPath, JSON.stringify(rawConfig, null, 2) + "\n", "utf-8");
+    fs.renameSync(tmpPath, filePath);
 
     res.status(201).json({ ok: true, id: cId });
   });
@@ -247,7 +354,9 @@ export function createAdminRouter(ctx: AdminContext): Router {
       return;
     }
 
-    fs.writeFileSync(filePath, JSON.stringify(raw, null, 2) + "\n", "utf-8");
+    const tmpPath = filePath + ".tmp";
+    fs.writeFileSync(tmpPath, JSON.stringify(raw, null, 2) + "\n", "utf-8");
+    fs.renameSync(tmpPath, filePath);
     res.json({ ok: true });
   });
 
@@ -321,6 +430,142 @@ export function createAdminRouter(ctx: AdminContext): Router {
     if (entry) removeFromManifest(entry.slug, entry.registry);
 
     res.json({ ok: true });
+  });
+
+  // PATCH /admin/configs/:id — partial update ({ active: boolean } for all connector types)
+  router.patch("/configs/:id", (req, res) => {
+    const id = req.params["id"]!;
+    const filePath = path.join(ctx.configDir, `mcp.${id}.json`);
+
+    if (!fs.existsSync(filePath)) {
+      res.status(404).json({ error: `Config "${id}" not found` });
+      return;
+    }
+
+    const body = req.body as Record<string, unknown>;
+    if (body["active"] === undefined) {
+      res.status(400).json({ error: "only { active: boolean } is supported in PATCH" });
+      return;
+    }
+    if (typeof body["active"] !== "boolean") {
+      res.status(400).json({ error: '"active" must be a boolean' });
+      return;
+    }
+    const newActive = body["active"] as boolean;
+
+    let raw: Record<string, unknown>;
+    try {
+      raw = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Record<string, unknown>;
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+      return;
+    }
+
+    const connector = raw["connector"] as Record<string, unknown> | undefined;
+    if (!connector) {
+      res.status(400).json({ error: "config has no connector" });
+      return;
+    }
+    const connectorType = connector["type"] as string;
+
+    connector["active"] = newActive;
+    raw["connector"] = connector;
+
+    // Deactivations and MCP activations are handled directly below — suppress the watcher.
+    // For non-MCP activations we let the watcher fire so connector-specific reinit
+    // (GraphQL introspection, gRPC reflection, SQL pool, etc.) runs through the normal path.
+    const suppressWatcher = !newActive || connectorType === "mcp";
+    if (suppressWatcher) recentlySelfWrote.add(id);
+
+    try {
+      const tmpPath = filePath + ".tmp";
+      fs.writeFileSync(tmpPath, JSON.stringify(raw, null, 2) + "\n", "utf-8");
+      fs.renameSync(tmpPath, filePath);
+    } catch (err) {
+      if (suppressWatcher) recentlySelfWrote.delete(id);
+      res.status(500).json({ error: (err as Error).message });
+      return;
+    }
+
+    if (!newActive) {
+      // Deactivate: strip tools from the registry immediately for all connector types
+      ctx.registry.unregisterConfig(id);
+      void ctx.notifyToolsChanged?.();
+      // MCP: also stop the subprocess
+      if (connectorType === "mcp" && ctx.takeServerOffline) {
+        ctx.takeServerOffline(id, "user-stop");
+      }
+    } else if (connectorType === "mcp") {
+      // MCP activate: pipeline brings subprocess online (handles registry + notify)
+      if (ctx.bringServerOnline) {
+        const mcpConfig = connector as unknown as import("./types.js").McpConnectorConfig;
+        ctx.bringServerOnline({ configId: id, trigger: "user-start", config: mcpConfig, filePath });
+      }
+    }
+    // Non-MCP activate: watcher re-fires and handles re-registration + notify
+
+    res.json({ ok: true, id, active: newActive });
+  });
+
+  // POST /admin/configs/:id/start — manually start a config (ignores block flags)
+  router.post("/configs/:id/start", (req, res) => {
+    const id = req.params["id"]!;
+    const filePath = path.join(ctx.configDir, `mcp.${id}.json`);
+
+    if (!fs.existsSync(filePath)) {
+      res.status(404).json({ error: `Config "${id}" not found` });
+      return;
+    }
+    if (!ctx.bringServerOnline) {
+      res.status(503).json({ error: "pipeline not available" });
+      return;
+    }
+
+    let raw: Record<string, unknown>;
+    try {
+      raw = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Record<string, unknown>;
+    } catch (err) {
+      res.status(500).json({ error: (err as Error).message });
+      return;
+    }
+
+    const connector = raw["connector"] as Record<string, unknown> | undefined;
+    if (!connector || connector["type"] !== "mcp") {
+      res.status(400).json({ error: "start is only available for mcp connector configs" });
+      return;
+    }
+
+    const mcpConfig = connector as unknown as import("./types.js").McpConnectorConfig;
+    ctx.bringServerOnline({ configId: id, trigger: "user-start", config: mcpConfig, filePath });
+    res.json({ ok: true, id });
+  });
+
+  // POST /admin/configs/:id/stop — manually stop a running MCP server
+  router.post("/configs/:id/stop", (req, res) => {
+    const id = req.params["id"]!;
+
+    if (!ctx.takeServerOffline) {
+      res.status(503).json({ error: "pipeline not available" });
+      return;
+    }
+
+    ctx.takeServerOffline(id, "user-stop");
+    res.json({ ok: true, id });
+  });
+
+  // GET /admin/configs/:id/runtime — live runtime state for an MCP config
+  router.get("/configs/:id/runtime", (req, res) => {
+    const id = req.params["id"]!;
+    if (!ctx.getRuntime) {
+      res.status(503).json({ error: "pipeline not available" });
+      return;
+    }
+    const runtime = ctx.getRuntime(id);
+    if (!runtime) {
+      res.json({ id, state: "idle", userStopped: false });
+      return;
+    }
+    res.json(runtime);
   });
 
   return router;

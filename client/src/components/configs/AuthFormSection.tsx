@@ -45,7 +45,7 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid var(--border2)',
   borderRadius: 5,
   padding: '7px 10px',
-  fontSize: 11,
+  fontSize: '0.85rem',
   color: 'var(--text)',
   fontFamily: 'inherit',
   letterSpacing: '0.02em',
@@ -57,10 +57,10 @@ const inputStyle: React.CSSProperties = {
 function Field({ label, hint, error, children }: { label: string; hint?: string; error?: string; children: ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <label style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.07em' }}>{label}</label>
+      <label style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.07em' }}>{label}</label>
       {children}
-      {hint && !error && <span style={{ fontSize: 9, color: 'var(--text-dim)', opacity: 0.7, lineHeight: 1.4 }}>{hint}</span>}
-      {error && <span style={{ fontSize: 9, color: 'var(--red)', letterSpacing: '0.03em' }}>{error}</span>}
+      {hint && !error && <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', opacity: 0.7, lineHeight: 1.4 }}>{hint}</span>}
+      {error && <span style={{ fontSize: '0.69rem', color: 'var(--red)', letterSpacing: '0.03em' }}>{error}</span>}
     </div>
   )
 }
@@ -73,7 +73,7 @@ export function AuthFormSection({ fields, onChange, errors = {}, lockedType, lab
       {/* Auth type selector — hidden when lockedType is set */}
       {!lockedType && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <label style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.07em' }}>AUTH TYPE</label>
+        <label style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.07em' }}>AUTH TYPE</label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {AUTH_OPTIONS.map((opt) => {
             const active = fields.authType === opt.value
@@ -97,8 +97,8 @@ export function AuthFormSection({ fields, onChange, errors = {}, lockedType, lab
                   style={{ accentColor: 'var(--accent)', flexShrink: 0 }}
                 />
                 <div>
-                  <div style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600, letterSpacing: '0.02em' }}>{opt.label}</div>
-                  <div style={{ fontSize: 9, color: 'var(--text-dim)', marginTop: 2, lineHeight: 1.3 }}>{opt.desc}</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600, letterSpacing: '0.02em' }}>{opt.label}</div>
+                  <div style={{ fontSize: '0.69rem', color: 'var(--text-dim)', marginTop: 2, lineHeight: 1.3 }}>{opt.desc}</div>
                 </div>
               </label>
             )

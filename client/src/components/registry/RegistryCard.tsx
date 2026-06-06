@@ -47,13 +47,13 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: 12, fontWeight: 600, color: 'var(--text)',
+              fontSize: '0.92rem', fontWeight: 600, color: 'var(--text)',
               letterSpacing: '0.04em', marginBottom: 2,
               whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
             }}>
               {config.name}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.02em' }}>
               {config.namespace}/{config.slug}
             </div>
           </div>
@@ -65,7 +65,7 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
               </Badge>
             )}
             {isInstalled && !updateInfo && (
-              <Badge variant="online">installed</Badge>
+              <Badge variant="success">installed</Badge>
             )}
           </div>
         </div>
@@ -73,7 +73,7 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
         {/* Description */}
         {config.description && (
           <div style={{
-            fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.55,
+            fontSize: '0.77rem', color: 'var(--text-dim)', lineHeight: 1.55,
             letterSpacing: '0.02em', marginBottom: 10,
             display: '-webkit-box',
             WebkitLineClamp: 2,
@@ -87,7 +87,7 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
         {/* Bottom row: connector, stats, verified */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <span style={{
-            fontSize: 9, padding: '2px 7px', borderRadius: 99,
+            fontSize: '0.69rem', padding: '4px 7px', borderRadius: 99,
             background: 'var(--surface2)', color: 'var(--text-dim)',
             letterSpacing: '0.06em', flexShrink: 0,
           }}>
@@ -97,17 +97,17 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
           {config.verified && (
             <span title="Verified" style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
               <ShieldCheck size={11} style={{ color: 'var(--accent)' }} />
-              <span style={{ fontSize: 9, color: 'var(--accent)', letterSpacing: '0.04em' }}>verified</span>
+              <span style={{ fontSize: '0.69rem', color: 'var(--accent)', letterSpacing: '0.04em' }}>verified</span>
             </span>
           )}
 
           <div style={{ flex: 1 }} />
 
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--text-dim)', fontSize: 10 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--text-dim)', fontSize: '0.77rem' }}>
             <Star size={10} />
             {(config.stars ?? 0).toLocaleString()}
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--text-dim)', fontSize: 10 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--text-dim)', fontSize: '0.77rem' }}>
             <Download size={10} />
             {(config.installs ?? 0).toLocaleString()}
           </span>
@@ -118,7 +118,7 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 8 }}>
             {config.tags!.slice(0, 3).map((tag) => (
               <span key={tag} style={{
-                fontSize: 8, padding: '1px 6px', borderRadius: 99,
+                fontSize: '0.62rem', padding: '3px 6px', borderRadius: 99,
                 background: 'var(--accent-dim)', color: 'var(--accent)',
                 letterSpacing: '0.06em',
               }}>
@@ -126,7 +126,7 @@ export function RegistryCard({ config, isInstalled, updateInfo, onClick }: Regis
               </span>
             ))}
             {config.tags!.length > 3 && (
-              <span style={{ fontSize: 8, color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
                 +{config.tags!.length - 3} more
               </span>
             )}

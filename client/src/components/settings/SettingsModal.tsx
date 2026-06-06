@@ -1,21 +1,22 @@
-import { Palette, Server, Bot, Info, X } from 'lucide-react'
+import { Palette, Server, Bot, Info, X, Lock, Cpu } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Toggle } from '@/components/ui/Toggle'
 import { SegCtrl } from '@/components/ui/SegCtrl'
 import { Button } from '@/components/ui/Button'
-import { useAppStore, type AccentColor, type ThemeMode, type LogLevel } from '@/stores/app-store'
+import { useAppStore, type AccentColor, type ThemeMode, type LogLevel, type ManifestStyle } from '@/stores/app-store'
 import { useChatStore } from '@/stores/chat-store'
 import { useLlmStore } from '@/stores/llm-store'
 import { PROVIDER_DEFAULTS, type ProviderName } from '@/lib/chat-engine'
 import { applyTheme, applyFontSize } from '@/lib/theme'
 import { toast } from '@/components/ui/Toast'
 
-type Tab = 'appearance' | 'server' | 'llm' | 'about'
+type Tab = 'appearance' | 'server' | 'mcp' | 'llm' | 'about'
 
 const TABS: { id: Tab; icon: typeof Palette; label: string }[] = [
   { id: 'appearance', icon: Palette, label: 'Appearance' },
   { id: 'server', icon: Server, label: 'Server' },
+  { id: 'mcp', icon: Cpu, label: 'MCP' },
   { id: 'llm', icon: Bot, label: 'LLM' },
   { id: 'about', icon: Info, label: 'About' },
 ]
@@ -42,8 +43,8 @@ function SettingRow({ label, sub, children }: { label: string; sub?: string; chi
       }}
     >
       <div>
-        <div style={{ fontSize: 12, color: 'var(--text)', letterSpacing: '0.02em' }}>{label}</div>
-        {sub && <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 3, letterSpacing: '0.04em' }}>{sub}</div>}
+        <div style={{ fontSize: '0.92rem', color: 'var(--text)', letterSpacing: '0.02em' }}>{label}</div>
+        {sub && <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', marginTop: 3, letterSpacing: '0.04em' }}>{sub}</div>}
       </div>
       {children}
     </div>
@@ -70,7 +71,7 @@ function AppearanceTab() {
 
   return (
     <div>
-      <div style={{ fontSize: 9, letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+      <div style={{ fontSize: '0.69rem', letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
         Appearance
       </div>
 
@@ -106,7 +107,7 @@ function AppearanceTab() {
               onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.filter = '' }}
             >
               {accent === a.value && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>✓</span>
+                <span style={{ fontSize: '0.77rem', fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>✓</span>
               )}
             </button>
           ))}
@@ -115,7 +116,7 @@ function AppearanceTab() {
 
       <SettingRow label="Font size" sub={`Adjust base font size (${fontSize}px)`}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 9, color: 'var(--text-dim)', fontFamily: 'monospace' }}>11</span>
+          <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>11</span>
           <input
             type="range"
             min={11}
@@ -129,37 +130,67 @@ function AppearanceTab() {
               cursor: 'pointer',
             }}
           />
-          <span style={{ fontSize: 9, color: 'var(--text-dim)', fontFamily: 'monospace' }}>18</span>
+          <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>18</span>
         </div>
       </SettingRow>
 
-      <SettingRow label="Compact mode" sub="Reduce padding and spacing">
-        <Toggle checked={false} onChange={() => toast.info('Compact mode coming soon')} />
-      </SettingRow>
+    </div>
+  )
+}
+
+function ManifestStylePreview({ style, selected }: { style: ManifestStyle; selected: boolean }) {
+  const tools = style === 'flat'
+    ? ['search()', 'list_configs()', 'list_tools()', 'invoke()']
+    : ['one.search()', 'one.list_configs()', 'one.list_tools()']
+
+  const label = style === 'flat' ? 'Flat' : 'Namespaced'
+  const desc = style === 'flat' ? 'Claude / Cursor (regex-safe)' : 'Bespoke / Enterprise'
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        border: `1px solid ${selected ? 'var(--accent)' : 'var(--border)'}`,
+        borderRadius: 6,
+        padding: '8px 10px',
+        background: selected ? 'var(--accent-dim)' : 'var(--bg)',
+        transition: 'all 0.15s',
+      }}
+    >
+      <div style={{ fontSize: '0.77rem', color: selected ? 'var(--accent)' : 'var(--text-mid)', fontWeight: 600, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: '0.69rem', color: 'var(--text-dim)', marginBottom: 8, letterSpacing: '0.03em' }}>{desc}</div>
+      {tools.map((t) => (
+        <div key={t} style={{ fontSize: '0.69rem', fontFamily: "'JetBrains Mono', monospace", color: selected ? 'var(--text)' : 'var(--text-dim)', padding: '1px 0' }}>
+          {t}
+        </div>
+      ))}
     </div>
   )
 }
 
 function ServerTab() {
-  const { hotReload, logLevel, setHotReload, setLogLevel } = useAppStore()
+  const { hotReload, logLevel, configWriteLock, setHotReload, setLogLevel, setConfigWriteLock, setMcpServerVersion } = useAppStore()
   const [loading, setLoading] = useState(true)
   const [unavailable, setUnavailable] = useState(false)
+  const [configDir, setConfigDir] = useState<string>('')
 
-  // Fetch real settings from mcp-one when the tab mounts
   useEffect(() => {
     setLoading(true)
     fetch('/api/server-settings')
       .then((r) => r.json())
-      .then((data: { hotReload?: boolean; logLevel?: LogLevel; unavailable?: boolean }) => {
+      .then((data: { hotReload?: boolean; logLevel?: LogLevel; configWriteLock?: boolean; unavailable?: boolean; configDir?: string; mcpServerVersion?: string }) => {
         if (typeof data.hotReload === 'boolean') setHotReload(data.hotReload)
         if (data.logLevel) setLogLevel(data.logLevel)
+        if (typeof data.configWriteLock === 'boolean') setConfigWriteLock(data.configWriteLock)
+        if (data.configDir) setConfigDir(data.configDir)
+        if (data.mcpServerVersion) setMcpServerVersion(data.mcpServerVersion)
         setUnavailable(data.unavailable === true)
       })
       .catch(() => setUnavailable(true))
       .finally(() => setLoading(false))
   }, [])
 
-  const applySettings = async (patch: { hotReload?: boolean; logLevel?: LogLevel }) => {
+  const applySettings = async (patch: { hotReload?: boolean; logLevel?: LogLevel; configWriteLock?: boolean }) => {
     try {
       const res = await fetch('/api/server-settings', {
         method: 'POST',
@@ -173,31 +204,37 @@ function ServerTab() {
   }
 
   const handleHotReload = async (v: boolean) => {
-    setHotReload(v)  // optimistic
+    setHotReload(v)
     await applySettings({ hotReload: v })
     toast.info(`Hot reload ${v ? 'enabled' : 'disabled'}`)
   }
 
   const handleLogLevel = async (v: LogLevel) => {
-    setLogLevel(v)   // optimistic
+    setLogLevel(v)
     await applySettings({ logLevel: v })
     toast.info(`Log level → ${v.toUpperCase()}`)
   }
 
+  const handleConfigWriteLock = async (v: boolean) => {
+    setConfigWriteLock(v)
+    await applySettings({ configWriteLock: v })
+    toast.info(`Config write lock ${v ? 'ON — agents cannot mutate configs' : 'OFF'}`)
+  }
+
   return (
     <div>
-      <div style={{ fontSize: 9, letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+      <div style={{ fontSize: '0.69rem', letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
         Server
       </div>
 
       {unavailable && (
-        <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 12, padding: '6px 10px', background: 'var(--bg)', borderRadius: 6, border: '1px solid var(--border)', letterSpacing: '0.04em' }}>
+        <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', marginBottom: 12, padding: '6px 10px', background: 'var(--bg)', borderRadius: 6, border: '1px solid var(--border)', letterSpacing: '0.04em' }}>
           mcp-one not connected — settings are read-only
         </div>
       )}
 
       <SettingRow label="Config directory" sub="Where mcp.*.json files are stored">
-        <span style={{ fontSize: 10, color: 'var(--text-dim)', fontFamily: 'monospace' }}>./mcp-configs</span>
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>{configDir || '…'}</span>
       </SettingRow>
 
       <SettingRow label="Hot reload" sub="Auto-reload when config files change">
@@ -213,6 +250,7 @@ function ServerTab() {
           options={[
             { value: 'info' as LogLevel, label: 'INFO' },
             { value: 'debug' as LogLevel, label: 'DEBUG' },
+            { value: 'warn' as LogLevel, label: 'WARN' },
             { value: 'error' as LogLevel, label: 'ERROR' },
           ]}
           value={logLevel}
@@ -220,6 +258,125 @@ function ServerTab() {
           disabled={loading || unavailable}
         />
       </SettingRow>
+
+      <SettingRow
+        label="Config write lock"
+        sub="Block LLM agents from creating, editing, or deleting configs"
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {configWriteLock && <Lock size={11} style={{ color: 'var(--yellow)', flexShrink: 0 }} />}
+          <Toggle
+            checked={configWriteLock}
+            onChange={handleConfigWriteLock}
+            disabled={loading || unavailable}
+          />
+        </div>
+      </SettingRow>
+      {configWriteLock && (
+        <div style={{ fontSize: '0.69rem', color: 'var(--text-dim)', marginBottom: 8, letterSpacing: '0.04em', lineHeight: 1.6 }}>
+          Blocked: create_config · update_config · delete_config · add_tool · remove_tool · update_tool · registry_install · auth_set
+        </div>
+      )}
+    </div>
+  )
+}
+
+function RuntimeTab() {
+  const { manifestStyle, blockAutoInstall, blockAutoStart, setManifestStyle, setBlockAutoInstall, setBlockAutoStart } = useAppStore()
+  const [loading, setLoading] = useState(true)
+  const [unavailable, setUnavailable] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    fetch('/api/server-settings')
+      .then((r) => r.json())
+      .then((data: { manifestStyle?: ManifestStyle; blockAutoInstall?: boolean; blockAutoStart?: boolean; unavailable?: boolean }) => {
+        if (data.manifestStyle) setManifestStyle(data.manifestStyle)
+        if (typeof data.blockAutoInstall === 'boolean') setBlockAutoInstall(data.blockAutoInstall)
+        if (typeof data.blockAutoStart === 'boolean') setBlockAutoStart(data.blockAutoStart)
+        setUnavailable(data.unavailable === true)
+      })
+      .catch(() => setUnavailable(true))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const applySettings = async (patch: { manifestStyle?: ManifestStyle; blockAutoInstall?: boolean; blockAutoStart?: boolean }) => {
+    try {
+      const res = await fetch('/api/server-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      if (!res.ok) throw new Error('Failed')
+    } catch {
+      toast.error('Could not apply setting — mcp-one may not be connected')
+    }
+  }
+
+  const handleBlockAutoInstall = async (v: boolean) => {
+    setBlockAutoInstall(v)
+    await applySettings({ blockAutoInstall: v })
+    toast.info(`Auto-install ${v ? 'blocked' : 'allowed'}`)
+  }
+
+  const handleBlockAutoStart = async (v: boolean) => {
+    setBlockAutoStart(v)
+    await applySettings({ blockAutoStart: v })
+    toast.info(`Auto-start ${v ? 'blocked' : 'allowed'}`)
+  }
+
+  const handleManifestStyle = async (v: ManifestStyle) => {
+    setManifestStyle(v)
+    await applySettings({ manifestStyle: v })
+    toast.info(`Manifest style → ${v}`)
+  }
+
+  return (
+    <div>
+      <div style={{ fontSize: '0.69rem', letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+        MCP
+      </div>
+
+      {unavailable && (
+        <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', marginBottom: 12, padding: '6px 10px', background: 'var(--bg)', borderRadius: 6, border: '1px solid var(--border)', letterSpacing: '0.04em' }}>
+          mcp-one not connected — settings are read-only
+        </div>
+      )}
+
+      {/* Lifecycle sub-section */}
+      <div style={{ fontSize: '0.69rem', letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+        Lifecycle
+      </div>
+
+      <SettingRow label="Block auto-install" sub="Prevent mcp-one from running install commands on startup">
+        <Toggle checked={blockAutoInstall} onChange={handleBlockAutoInstall} disabled={loading || unavailable} />
+      </SettingRow>
+
+      <SettingRow label="Block auto-start" sub="Prevent mcp-one from auto-spawning MCP subprocesses">
+        <Toggle checked={blockAutoStart} onChange={handleBlockAutoStart} disabled={loading || unavailable} />
+      </SettingRow>
+
+      {/* Agent Behavior sub-section */}
+      <div style={{ fontSize: '0.69rem', letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', margin: '20px 0 12px', paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+        Agent Behavior
+      </div>
+
+      <SettingRow label="Manifest style" sub="Tool names advertised to LLM clients via tools/list">
+        <SegCtrl
+          options={[
+            { value: 'flat' as ManifestStyle, label: 'Flat' },
+            { value: 'namespaced' as ManifestStyle, label: 'Namespaced' },
+          ]}
+          value={manifestStyle}
+          onChange={handleManifestStyle}
+          disabled={loading || unavailable}
+        />
+      </SettingRow>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 8, marginBottom: 16 }}>
+        <ManifestStylePreview style="flat" selected={manifestStyle === 'flat'} />
+        <ManifestStylePreview style="namespaced" selected={manifestStyle === 'namespaced'} />
+      </div>
     </div>
   )
 }
@@ -266,7 +423,7 @@ function LlmTab() {
 
   return (
     <div>
-      <div style={{ fontSize: 9, letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+      <div style={{ fontSize: '0.69rem', letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
         LLM Provider
       </div>
 
@@ -288,7 +445,7 @@ function LlmTab() {
             borderRadius: 6,
             padding: '5px 10px',
             color: 'var(--text)',
-            fontSize: 10,
+            fontSize: '0.77rem',
             fontFamily: "'JetBrains Mono', monospace",
             outline: 'none',
             cursor: 'pointer',
@@ -311,16 +468,16 @@ function LlmTab() {
       </SettingRow>
 
       <SettingRow label="Base URL" sub="Provider endpoint (read-only)">
-        <span style={{ fontSize: 9, color: 'var(--text-dim)', fontFamily: 'monospace' }}>
+        <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
           {PROVIDER_DEFAULTS[activeProvider].baseUrl}
         </span>
       </SettingRow>
 
       {/* Custom models section */}
       <div style={{ padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 10, color: 'var(--text)', marginBottom: 8, letterSpacing: '0.02em' }}>
+        <div style={{ fontSize: '0.77rem', color: 'var(--text)', marginBottom: 8, letterSpacing: '0.02em' }}>
           Custom models
-          <span style={{ fontSize: 9, color: 'var(--text-dim)', marginLeft: 6 }}>
+          <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', marginLeft: 6 }}>
             · {allModels.length - builtInModels.length} added
           </span>
         </div>
@@ -334,7 +491,7 @@ function LlmTab() {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '4px 0',
-              fontSize: 10,
+              fontSize: '0.77rem',
               color: 'var(--text-mid)',
               fontFamily: "'JetBrains Mono', monospace",
             }}
@@ -375,7 +532,7 @@ function LlmTab() {
               borderRadius: 6,
               padding: '5px 10px',
               color: 'var(--text)',
-              fontSize: 10,
+              fontSize: '0.77rem',
               fontFamily: "'JetBrains Mono', monospace",
               outline: 'none',
               letterSpacing: '0.04em',
@@ -394,33 +551,37 @@ function LlmTab() {
         </div>
       </div>
 
-      <div style={{ padding: '12px 0', fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.7, letterSpacing: '0.04em' }}>
+      <div style={{ padding: '12px 0', fontSize: '0.77rem', color: 'var(--text-dim)', lineHeight: 1.7, letterSpacing: '0.04em' }}>
         API keys are configured when you start a chat session. They are stored in session memory only and never persisted to disk.
       </div>
     </div>
   )
 }
 
+declare const __APP_VERSION__: string
+
 function AboutTab() {
+  const { mcpServerVersion } = useAppStore()
+
   return (
     <div>
-      <div style={{ fontSize: 9, letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
+      <div style={{ fontSize: '0.69rem', letterSpacing: '0.16em', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: 16, paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
         About
       </div>
 
-      <SettingRow label="Version" sub="mcp.one client">
-        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>v0.1.0</span>
+      <SettingRow label="Console" sub="Dashboard and API bridge">
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)' }}>v{__APP_VERSION__}</span>
       </SettingRow>
 
-      <SettingRow label="MCP transport" sub="Protocol used with the server">
-        <span style={{ fontSize: 10, color: 'var(--accent)' }}>stdio (JSON-RPC)</span>
+      <SettingRow label="mcp-one server" sub="MCP protocol layer">
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)' }}>{mcpServerVersion ? `v${mcpServerVersion}` : 'unknown'}</span>
       </SettingRow>
 
       <SettingRow label="Design system" sub="UI design language">
-        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>RTL:// v3</span>
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)' }}>RTL:// v3</span>
       </SettingRow>
 
-      <div style={{ padding: '16px 0', fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.7, letterSpacing: '0.04em' }}>
+      <div style={{ padding: '16px 0', fontSize: '0.77rem', color: 'var(--text-dim)', lineHeight: 1.7, letterSpacing: '0.04em' }}>
         Built by RapidThoughtLabs. mcp.one is an open-source MCP server that turns JSON configs into working API tools.
       </div>
     </div>
@@ -434,6 +595,7 @@ export function SettingsModal() {
   const tabContent = {
     appearance: <AppearanceTab />,
     server: <ServerTab />,
+    mcp: <RuntimeTab />,
     llm: <LlmTab />,
     about: <AboutTab />,
   }
@@ -451,7 +613,7 @@ export function SettingsModal() {
             flexShrink: 0,
           }}
         >
-          <div style={{ fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-dim)', padding: '0 14px 6px' }}>
+          <div style={{ fontSize: '0.69rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--text-dim)', padding: '0 14px 6px' }}>
             Settings
           </div>
           {TABS.map(({ id, icon: Icon, label }) => (
@@ -464,7 +626,7 @@ export function SettingsModal() {
                 alignItems: 'center',
                 gap: 8,
                 padding: '8px 14px',
-                fontSize: 11,
+                fontSize: '0.85rem',
                 color: activeTab === id ? 'var(--accent)' : 'var(--text-dim)',
                 cursor: 'pointer',
                 transition: 'all 0.1s',

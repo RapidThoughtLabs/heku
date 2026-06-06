@@ -114,6 +114,11 @@ export interface McpConnectorConfig {
   install_env?: Record<string, string>;
   install_timeout_ms?: number;      // default 600_000, max 1_800_000
   install_check_command?: string;   // probe: exit 0 = already installed, skip install_command
+
+  // lifecycle
+  /** When false, the pipeline does not auto-install or auto-start.
+   *  Default: true. Persists to the config file so it survives restarts. */
+  active?: boolean;
 }
 
 export interface InternalConnectorConfig {
@@ -194,6 +199,7 @@ export interface ToolDef {
   // ── HTTP-specific ──────────────────────────────────────────────
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path?: string;
+  base_url?: string;       // overrides connector.base_url for this tool (microservices)
   body_template?: Record<string, unknown>;
   response_map?: Record<string, string>;
   error_map?: Record<string, string>;

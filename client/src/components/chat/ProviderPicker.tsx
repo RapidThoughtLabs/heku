@@ -83,7 +83,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
           <Bot size={16} style={{ color: 'var(--accent)' }} />
           <span
             style={{
-              fontSize: 12,
+              fontSize: '0.92rem',
               fontWeight: 600,
               letterSpacing: '0.04em',
               color: 'var(--text)',
@@ -115,7 +115,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
           <div style={{ marginBottom: 16 }}>
             <label
               style={{
-                fontSize: 10,
+                fontSize: '0.77rem',
                 color: 'var(--text-dim)',
                 letterSpacing: '0.1em',
                 display: 'block',
@@ -138,7 +138,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
           <div style={{ marginBottom: 16 }}>
             <label
               style={{
-                fontSize: 10,
+                fontSize: '0.77rem',
                 color: 'var(--text-dim)',
                 letterSpacing: '0.1em',
                 display: 'block',
@@ -157,7 +157,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
                 borderRadius: 6,
                 padding: '8px 12px',
                 color: 'var(--text)',
-                fontSize: 11,
+                fontSize: '0.85rem',
                 fontFamily: "'JetBrains Mono', monospace",
                 outline: 'none',
                 cursor: 'pointer',
@@ -182,7 +182,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
           <div style={{ marginBottom: 6 }}>
             <label
               style={{
-                fontSize: 10,
+                fontSize: '0.77rem',
                 color: 'var(--text-dim)',
                 letterSpacing: '0.1em',
                 display: 'block',
@@ -208,7 +208,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
                   borderRadius: 6,
                   padding: '8px 38px 8px 12px',
                   color: 'var(--text)',
-                  fontSize: 11,
+                  fontSize: '0.85rem',
                   fontFamily: "'JetBrains Mono', monospace",
                   outline: 'none',
                   letterSpacing: '0.04em',
@@ -245,7 +245,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
 
           <div
             style={{
-              fontSize: 9,
+              fontSize: '0.69rem',
               color: 'var(--text-dim)',
               letterSpacing: '0.06em',
               lineHeight: 1.65,

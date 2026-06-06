@@ -32,21 +32,21 @@ export function DiffPopup({
         padding: '8px 20px', borderBottom: '1px solid var(--border)',
         background: 'var(--surface2)', flexShrink: 0,
       }}>
-        <span style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
           Diff summary:
         </span>
         {added > 0 && (
-          <span style={{ fontSize: 10, color: 'var(--green)', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '0.77rem', color: 'var(--green)', letterSpacing: '0.04em' }}>
             +{added} line{added !== 1 ? 's' : ''}
           </span>
         )}
         {removed > 0 && (
-          <span style={{ fontSize: 10, color: 'var(--red)', letterSpacing: '0.04em' }}>
+          <span style={{ fontSize: '0.77rem', color: 'var(--red)', letterSpacing: '0.04em' }}>
             −{removed} line{removed !== 1 ? 's' : ''}
           </span>
         )}
         {added === 0 && removed === 0 && (
-          <span style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.04em', fontStyle: 'italic' }}>
+          <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.04em', fontStyle: 'italic' }}>
             No changes detected
           </span>
         )}
@@ -57,10 +57,10 @@ export function DiffPopup({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {/* Before */}
           <div>
-            <div style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em', marginBottom: 6 }}>BEFORE</div>
+            <div style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.08em', marginBottom: 6 }}>BEFORE</div>
             <pre style={{
               background: 'var(--surface2)', border: '1px solid var(--border)',
-              borderRadius: 5, padding: '10px 12px', fontSize: 10, lineHeight: 1.75,
+              borderRadius: 5, padding: '10px 12px', fontSize: '0.77rem', lineHeight: 1.75,
               overflow: 'auto', maxHeight: 380, margin: 0, letterSpacing: '0.01em',
             }}>
               {changes.map((part, i) =>
@@ -84,10 +84,10 @@ export function DiffPopup({
 
           {/* After */}
           <div>
-            <div style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.08em', marginBottom: 6 }}>AFTER</div>
+            <div style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.08em', marginBottom: 6 }}>AFTER</div>
             <pre style={{
               background: 'var(--surface2)', border: '1px solid var(--border)',
-              borderRadius: 5, padding: '10px 12px', fontSize: 10, lineHeight: 1.75,
+              borderRadius: 5, padding: '10px 12px', fontSize: '0.77rem', lineHeight: 1.75,
               overflow: 'auto', maxHeight: 380, margin: 0, letterSpacing: '0.01em',
             }}>
               {changes.map((part, i) =>

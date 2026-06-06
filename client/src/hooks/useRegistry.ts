@@ -16,14 +16,17 @@ export interface UseRegistryResult {
   results: RegistryConfigMeta[]
   featured: RegistryConfigMeta[]
   loading: boolean
+  loadingMore: boolean
   error: string | null
   total: number
+  hasMore: boolean
   filters: RegistryFilters
   manifest: ManifestEntry[]
   updatesAvailable: Map<string, RegistryUpdateInfo>
 
   setFilter: (patch: Partial<RegistryFilters>) => void
   clearFilters: () => void
+  loadMore: () => void
   install: (args: {
     namespace: string
     slug: string
@@ -57,8 +60,9 @@ export function useRegistry({ registry }: { registry: string }): UseRegistryResu
   const updatesAvailable = useAppStore((s) => s.registryUpdates)
   const bootstrapped     = useAppStore((s) => s.registryBootstrapped)
 
-  const setResults         = useAppStore((s) => s.setRegistryResults)
-  const setFeatured        = useAppStore((s) => s.setRegistryFeatured)
+  const setResults            = useAppStore((s) => s.setRegistryResults)
+  const appendRegistryResults = useAppStore((s) => s.appendRegistryResults)
+  const setFeatured           = useAppStore((s) => s.setRegistryFeatured)
   const patchFilters       = useAppStore((s) => s.patchRegistryFilters)
   const clearFilters       = useAppStore((s) => s.clearRegistryFilters)
   const setManifest        = useAppStore((s) => s.setRegistryManifest)
@@ -68,9 +72,12 @@ export function useRegistry({ registry }: { registry: string }): UseRegistryResu
   const bumpConfigsRevision = useAppStore((s) => s.bumpConfigsRevision)
 
   // Ephemeral — don't need to survive navigation
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState<string | null>(null)
+  const [loading, setLoading]         = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [error, setError]             = useState<string | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const hasMore = results.length < total
 
   // On mount, note whether we already have cached results so the search effect
   // can skip the initial fetch when returning to the page.
@@ -116,30 +123,41 @@ export function useRegistry({ registry }: { registry: string }): UseRegistryResu
 
   // ── Search ────────────────────────────────────────────────────────
 
-  const executeSearch = useCallback(async (currentFilters: RegistryFilters) => {
-    setLoading(true)
-    setError(null)
+  const PAGE_LIMIT = 30
+
+  const executeSearch = useCallback(async (currentFilters: RegistryFilters, append = false) => {
+    if (append) setLoadingMore(true)
+    else { setLoading(true); setError(null) }
+
     try {
+      const offset = append ? results.length : 0
       const url = buildUrl('/registry/search', {
         registry,
         q:              currentFilters.q,
         sort_by:        currentFilters.sort_by,
         connector_type: currentFilters.connector_type,
         verified:       currentFilters.verified,
-        limit:          20,
-        offset:         0,
+        limit:          PAGE_LIMIT,
+        offset,
       })
       const data = await api.get<RegistryPaginatedResponse<RegistryConfigMeta>>(url)
-      setResults(
-        Array.isArray(data?.data) ? data.data : [],
-        typeof data?.total === 'number' ? data.total : 0,
-      )
+      const items    = Array.isArray(data?.data) ? data.data : []
+      const newTotal = typeof data?.total === 'number' ? data.total : 0
+
+      if (append) appendRegistryResults(items, newTotal)
+      else        setResults(items, newTotal)
     } catch (err) {
-      setError((err as Error).message)
+      if (!append) setError((err as Error).message)
     } finally {
-      setLoading(false)
+      if (append) setLoadingMore(false)
+      else        setLoading(false)
     }
-  }, [registry, setResults])
+  }, [registry, results.length, setResults, appendRegistryResults])
+
+  const loadMore = useCallback(() => {
+    if (loadingMore || loading || !hasMore) return
+    void executeSearch(filters, true)
+  }, [loadingMore, loading, hasMore, filters, executeSearch])
 
   // ── Bootstrap: fetch featured + manifest only on first visit ──────
 
@@ -232,13 +250,16 @@ export function useRegistry({ registry }: { registry: string }): UseRegistryResu
     results,
     featured,
     loading,
+    loadingMore,
     error,
     total,
+    hasMore,
     filters,
     manifest,
     updatesAvailable,
     setFilter,
     clearFilters,
+    loadMore,
     install,
     uninstall,
     isInstalled,

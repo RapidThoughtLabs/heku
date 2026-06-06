@@ -4,6 +4,7 @@
 
 import type { ConnectorResult } from "../base.js";
 import type { InternalContext } from "../internal.js";
+import { VERSION } from "../../lib/version.js";
 
 const START_TIME = Date.now();
 
@@ -28,7 +29,7 @@ export async function handleServerStatus(
     success: true,
     data: {
       service:    "mcp-one",
-      version:    "0.1.0",
+      version:    VERSION,
       uptime_ms:  uptimeMs,
       uptime:     formatUptime(uptimeMs),
       tool_count: tools.length,

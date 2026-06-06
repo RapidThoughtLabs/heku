@@ -1,18 +1,19 @@
 import { type ReactNode } from 'react'
 
 interface BadgeProps {
-  variant?: 'online' | 'offline' | 'error' | 'info' | 'warn'
+  variant?: 'online' | 'offline' | 'error' | 'info' | 'warn' | 'success'
   children: ReactNode
   className?: string
   style?: React.CSSProperties
 }
 
 const variantStyles = {
-  online: { background: 'var(--accent-dim)', color: 'var(--accent)' },
+  online:  { background: 'var(--accent-dim)', color: 'var(--accent)' },
   offline: { background: 'rgba(120,120,112,0.12)', color: 'var(--text-dim)' },
-  error: { background: 'rgba(255,95,87,0.1)', color: 'var(--red)' },
-  info: { background: 'var(--accent-dim)', color: 'var(--accent)' },
-  warn: { background: 'rgba(254,188,46,0.1)', color: 'var(--yellow)' },
+  error:   { background: 'rgba(255,95,87,0.1)', color: 'var(--red)' },
+  info:    { background: 'var(--accent-dim)', color: 'var(--accent)' },
+  warn:    { background: 'rgba(254,188,46,0.1)', color: 'var(--yellow)' },
+  success: { background: 'var(--green-dim)', color: 'var(--green-text)' },
 }
 
 export function Badge({ variant = 'info', children, className = '', style }: BadgeProps) {
@@ -21,8 +22,8 @@ export function Badge({ variant = 'info', children, className = '', style }: Bad
       className={className}
       style={{
         ...variantStyles[variant],
-        fontSize: 9,
-        padding: '2px 8px',
+        fontSize: '0.69rem',
+        padding: '4px 8px',
         borderRadius: 99,
         letterSpacing: '0.08em',
         fontWeight: 600,

@@ -45,10 +45,10 @@ function AttachedFileCard({ name, content }: { name: string; content: string }) 
         }}
       >
         <FileText size={11} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-        <span style={{ fontSize: 11, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {name}
         </span>
-        <span style={{ fontSize: 10, color: 'var(--text-dim)', flexShrink: 0 }}>
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', flexShrink: 0 }}>
           {lineCount} lines
         </span>
         {open
@@ -61,7 +61,7 @@ function AttachedFileCard({ name, content }: { name: string; content: string }) 
           style={{
             margin: 0,
             padding: '6px 10px 8px',
-            fontSize: 11,
+            fontSize: '0.85rem',
             color: 'var(--text-mid)',
             lineHeight: 1.55,
             overflowX: 'auto',
@@ -91,7 +91,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
     return (
       <div
         style={{
-          fontSize: 10,
+          fontSize: '0.77rem',
           color: 'var(--text-dim)',
           textAlign: 'center',
           padding: '10px 0',
@@ -114,7 +114,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
     return (
       <div
         style={{
-          fontSize: 12,
+          fontSize: '0.92rem',
           color: 'var(--text)',
           lineHeight: 1.65,
           padding: '6px 0',
@@ -155,7 +155,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
       {msg.content && (
         <div
           style={{
-            fontSize: 12,
+            fontSize: '0.92rem',
             color: 'var(--text-mid)',
             lineHeight: 1.7,
             padding: '6px 0 6px 21px',

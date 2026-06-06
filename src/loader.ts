@@ -490,6 +490,10 @@ function validateMcpConnectorConfig(raw: Record<string, unknown>, file: string):
     assertString(raw.install_check_command, "connector.install_check_command", file);
   }
 
+  if (raw.active !== undefined && typeof raw.active !== "boolean") {
+    throw new Error(`[${file}] connector.active must be a boolean`);
+  }
+
   return {
     type: "mcp",
     transport: raw.transport as "stdio" | "sse",
@@ -503,6 +507,7 @@ function validateMcpConnectorConfig(raw: Record<string, unknown>, file: string):
     ...(raw.install_env ? { install_env: raw.install_env as Record<string, string> } : {}),
     ...(raw.install_timeout_ms ? { install_timeout_ms: raw.install_timeout_ms as number } : {}),
     ...(raw.install_check_command ? { install_check_command: raw.install_check_command as string } : {}),
+    ...(raw.active !== undefined ? { active: raw.active as boolean } : {}),
   };
 }
 

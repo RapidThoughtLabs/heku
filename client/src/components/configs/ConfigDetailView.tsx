@@ -58,7 +58,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{
-        fontSize: 9, letterSpacing: '0.1em', color: 'var(--text-dim)',
+        fontSize: '0.69rem', letterSpacing: '0.1em', color: 'var(--text-dim)',
         textTransform: 'uppercase', marginBottom: 8, paddingBottom: 5,
         borderBottom: '1px solid var(--border)',
       }}>
@@ -74,7 +74,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Badge({ label, accent }: { label: string; accent?: boolean }) {
   return (
     <span style={{
-      fontSize: 9, padding: '2px 8px', borderRadius: 99,
+      fontSize: '0.69rem', padding: '2px 8px', borderRadius: 99,
       letterSpacing: '0.06em',
       background: accent ? 'var(--accent-dim)' : 'var(--surface2)',
       color: accent ? 'var(--accent)' : 'var(--text-dim)',
@@ -112,14 +112,14 @@ function ParamLine({
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, paddingLeft: indent }}>
-        <span style={{ fontSize: 10, fontFamily: 'monospace', color: 'var(--text)', minWidth: 120 }}>
+        <span style={{ fontSize: '0.77rem', fontFamily: 'monospace', color: 'var(--text)', minWidth: 120 }}>
           {name}
           {isRequired && <span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>}
         </span>
-        <span style={{ fontSize: 9, color: 'var(--accent)', letterSpacing: '0.04em' }}>{type}</span>
+        <span style={{ fontSize: '0.69rem', color: 'var(--accent)', letterSpacing: '0.04em' }}>{type}</span>
         {format && (
           <span style={{
-            fontSize: 8, padding: '1px 5px', borderRadius: 3,
+            fontSize: '0.62rem', padding: '1px 5px', borderRadius: 3,
             background: 'var(--surface)', color: 'var(--text-dim)',
             border: '1px solid var(--border)', letterSpacing: '0.04em',
           }}>
@@ -128,7 +128,7 @@ function ParamLine({
         )}
         {enumVals && (
           <span style={{
-            fontSize: 8, padding: '1px 5px', borderRadius: 3,
+            fontSize: '0.62rem', padding: '1px 5px', borderRadius: 3,
             background: 'var(--surface)', color: 'var(--text-dim)',
             border: '1px solid var(--border)', letterSpacing: '0.03em',
           }}>
@@ -136,7 +136,7 @@ function ParamLine({
           </span>
         )}
         {!!def.description && (
-          <span style={{ fontSize: 9, color: 'var(--text-dim)', flex: 1 }}>
+          <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', flex: 1 }}>
             — {String(def.description)}
           </span>
         )}
@@ -197,17 +197,17 @@ function ToolRow({ tool }: { tool: McpTool }) {
           <span style={{ width: 10, flexShrink: 0 }} />
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)', fontFamily: 'monospace', letterSpacing: '0.02em' }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)', fontFamily: 'monospace', letterSpacing: '0.02em' }}>
             {shortName}
           </div>
           {tool.description && (
-            <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 2, lineHeight: 1.4 }}>
+            <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', marginTop: 2, lineHeight: 1.4 }}>
               {tool.description}
             </div>
           )}
         </div>
         {hasParams && (
-          <span style={{ fontSize: 9, color: 'var(--text-dim)', flexShrink: 0 }}>
+          <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', flexShrink: 0 }}>
             {Object.keys(props).length} param{Object.keys(props).length !== 1 ? 's' : ''}
           </span>
         )}
@@ -262,7 +262,7 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
         <Button size="sm" variant="ghost" onClick={onClose} style={{ padding: '4px 6px' }}>
           <ArrowLeft size={11} />
         </Button>
-        <span style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
+        <span style={{ fontSize: '0.85rem', letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
           <span style={{ color: 'var(--accent)' }}>configs</span>
           {' / '}
           <span style={{ color: 'var(--text)' }}>{cfg.id}</span>
@@ -270,7 +270,7 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
         <div style={{ flex: 1 }} />
         {isExperimental(cfg.connector.type) && (
           <span style={{
-            fontSize: 9, padding: '2px 8px', borderRadius: 99, letterSpacing: '0.06em',
+            fontSize: '0.69rem', padding: '2px 8px', borderRadius: 99, letterSpacing: '0.06em',
             background: 'rgba(255,200,0,0.12)', color: 'rgba(255,200,0,0.85)',
             border: '1px solid rgba(255,200,0,0.2)',
           }}>
@@ -285,12 +285,12 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '60px 0', color: 'var(--text-dim)' }}>
             <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-            <span style={{ fontSize: 11 }}>Loading…</span>
+            <span style={{ fontSize: '0.85rem' }}>Loading…</span>
           </div>
         ) : error ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '60px 0', color: 'var(--red)' }}>
             <AlertCircle size={16} />
-            <span style={{ fontSize: 11 }}>{error}</span>
+            <span style={{ fontSize: '0.85rem' }}>{error}</span>
           </div>
         ) : detail && (
           <>
@@ -298,7 +298,7 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                 {connectorIcon(cfg.connector.type)}
-                <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '0.02em' }}>
+                <h2 style={{ fontSize: '1.23rem', fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '0.02em' }}>
                   {cfg.name}
                 </h2>
                 {cfg.auth && (
@@ -308,7 +308,7 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
                 )}
               </div>
               {cfg.description && (
-                <p style={{ fontSize: 11, color: 'var(--text-dim)', margin: 0, lineHeight: 1.6, letterSpacing: '0.02em' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', margin: 0, lineHeight: 1.6, letterSpacing: '0.02em' }}>
                   {cfg.description}
                 </p>
               )}
@@ -356,7 +356,7 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
             {/* Tools */}
             <Section title={`Tools (${detail.tools.length})`}>
               {detail.tools.length === 0 ? (
-                <div style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.03em' }}>
+                <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.03em' }}>
                   No tools registered yet — the server may still be connecting.
                 </div>
               ) : (
@@ -388,7 +388,7 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
                 }}
               >
                 <Code2 size={11} style={{ color: 'var(--text-dim)' }} />
-                <span style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
+                <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
                   {rawOpen ? 'Hide' : 'Show'} mcp.{cfg.id}.json
                 </span>
                 {rawOpen
@@ -400,7 +400,7 @@ export function ConfigDetailView({ cfg, onClose }: { cfg: ConfigSummary; onClose
                 <pre style={{
                   margin: 0, padding: '10px 12px', borderRadius: 5,
                   background: 'var(--surface2)', border: '1px solid var(--border)',
-                  fontSize: 10, color: 'var(--text-dim)', overflowX: 'auto',
+                  fontSize: '0.77rem', color: 'var(--text-dim)', overflowX: 'auto',
                   lineHeight: 1.6, fontFamily: 'monospace',
                 }}>
                   {JSON.stringify(cfg.raw, null, 2)}
@@ -427,12 +427,12 @@ function Row({
 }) {
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-      <span style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.06em', minWidth: 90, flexShrink: 0 }}>
+      <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.06em', minWidth: 90, flexShrink: 0 }}>
         {label}
       </span>
       {icon}
       <span style={{
-        fontSize: 10, color: valueColor ?? 'var(--text)',
+        fontSize: '0.77rem', color: valueColor ?? 'var(--text)',
         fontFamily: mono ? 'monospace' : 'inherit',
         letterSpacing: mono ? '0.02em' : undefined,
         wordBreak: 'break-all',

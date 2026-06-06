@@ -104,6 +104,7 @@ function parseToolRow(t: Record<string, unknown>): ToolRow {
     description: (t.description as string) || '',
     method: (t.method as ToolRow['method']) || 'GET',
     path: (t.path as string) || '',
+    baseUrl: (t.base_url as string) || '',
     command: (t.command as string) || '',
     output_as: (t.output_as as 'text' | 'json') || 'json',
     operation: (t.operation as ToolRow['operation']) || 'read',
@@ -260,6 +261,7 @@ function buildTool(t: ToolRow): Record<string, unknown> {
   }
   if (t.method) tool.method = t.method
   if (t.path) tool.path = t.path
+  if (t.baseUrl) tool.base_url = t.baseUrl
   if (t.command) tool.command = t.command
   if (t.output_as && t.output_as !== 'json') tool.output_as = t.output_as
   if (t.operation) tool.operation = t.operation
@@ -292,7 +294,7 @@ function buildConfig(id: string, s: EditorState): Record<string, unknown> {
 // ── Shared form helpers ────────────────────────────────────────────
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.07em',
+  fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.07em',
 }
 
 function inputCss(dirty = false, hasError = false): React.CSSProperties {
@@ -302,7 +304,7 @@ function inputCss(dirty = false, hasError = false): React.CSSProperties {
     borderLeft: dirty ? '3px solid var(--accent)' : undefined,
     borderRadius: 5,
     padding: '7px 10px',
-    fontSize: 11,
+    fontSize: '0.85rem',
     color: 'var(--text)',
     fontFamily: 'inherit',
     letterSpacing: '0.02em',
@@ -316,7 +318,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{
-        fontSize: 9, letterSpacing: '0.1em', color: 'var(--text-dim)',
+        fontSize: '0.69rem', letterSpacing: '0.1em', color: 'var(--text-dim)',
         borderBottom: '1px solid var(--border)', paddingBottom: 7,
         textTransform: 'uppercase',
       }}>
@@ -332,7 +334,7 @@ function FieldGroup({ label, children, hint }: { label: string; children: React.
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
       <label style={labelStyle}>{label}</label>
       {children}
-      {hint && <span style={{ fontSize: 9, color: 'var(--text-dim)', opacity: 0.7, lineHeight: 1.4 }}>{hint}</span>}
+      {hint && <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', opacity: 0.7, lineHeight: 1.4 }}>{hint}</span>}
     </div>
   )
 }
@@ -421,12 +423,12 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
         height: 42, background: 'var(--surface)', borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', padding: '0 16px', flexShrink: 0, gap: 10,
       }}>
-        <span style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
+        <span style={{ fontSize: '0.85rem', letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
           <span style={{ color: 'var(--accent)' }}>configs</span> / {config.id}
         </span>
         {isDirty && (
           <span style={{
-            fontSize: 8, padding: '2px 7px', borderRadius: 99,
+            fontSize: '0.62rem', padding: '2px 7px', borderRadius: 99,
             background: 'rgba(254,188,46,0.12)', color: 'var(--yellow)',
             border: '1px solid rgba(254,188,46,0.3)', letterSpacing: '0.07em',
           }}>
@@ -485,7 +487,7 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
                 display: 'flex', alignItems: 'center', height: 33,
                 padding: '0 12px', background: 'var(--surface3)',
                 border: '1px solid var(--border)', borderRadius: 5,
-                fontSize: 11, color: 'var(--text-dim)', letterSpacing: '0.04em',
+                fontSize: '0.85rem', color: 'var(--text-dim)', letterSpacing: '0.04em',
                 whiteSpace: 'nowrap',
               }}>
                 {config.id}
@@ -546,7 +548,7 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
                 <input type="checkbox" checked={state.grpcTls} onChange={(e) => set({ grpcTls: e.target.checked })} style={{ accentColor: 'var(--accent)' }} />
-                <span style={{ fontSize: 11, color: state.grpcTls !== initial.grpcTls ? 'var(--accent)' : 'var(--text)' }}>Enable TLS</span>
+                <span style={{ fontSize: '0.85rem', color: state.grpcTls !== initial.grpcTls ? 'var(--accent)' : 'var(--text)' }}>Enable TLS</span>
               </label>
             </div>
           )}
@@ -562,7 +564,7 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
                       border: `1px solid ${state.mcpTransport === t ? 'var(--accent)' : 'var(--border)'}`,
                     }}>
                       <input type="radio" name="mcpTransport" value={t} checked={state.mcpTransport === t} onChange={() => set({ mcpTransport: t })} style={{ accentColor: 'var(--accent)' }} />
-                      <span style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>{t}</span>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600 }}>{t}</span>
                     </label>
                   ))}
                 </div>
@@ -599,7 +601,7 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
                     }}>
                       <input type="radio" name="sqlDialect" value={d} checked={state.sqlDialect === d}
                         onChange={() => set({ sqlDialect: d, sqlConnMode: 'dsn' })} style={{ accentColor: 'var(--accent)' }} />
-                      <span style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>{d}</span>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600 }}>{d}</span>
                     </label>
                   ))}
                 </div>
@@ -616,7 +618,7 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
                       }}>
                         <input type="radio" name="sqlConnMode" value={v} checked={state.sqlConnMode === v}
                           onChange={() => set({ sqlConnMode: v })} style={{ accentColor: 'var(--accent)' }} />
-                        <span style={{ fontSize: 11, color: 'var(--text)', fontWeight: 600 }}>{lbl}</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text)', fontWeight: 600 }}>{lbl}</span>
                       </label>
                     ))}
                   </div>
@@ -657,11 +659,11 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
               {state.sqlDialect !== 'sqlite' && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}>
                   <input type="checkbox" checked={state.sqlSsl} onChange={(e) => set({ sqlSsl: e.target.checked })} style={{ accentColor: 'var(--accent)' }} />
-                  <span style={{ fontSize: 11, color: state.sqlSsl !== initial.sqlSsl ? 'var(--accent)' : 'var(--text)' }}>Enable SSL</span>
+                  <span style={{ fontSize: '0.85rem', color: state.sqlSsl !== initial.sqlSsl ? 'var(--accent)' : 'var(--text)' }}>Enable SSL</span>
                 </label>
               )}
               <details style={{ border: '1px solid var(--border)', borderRadius: 5, overflow: 'hidden' }}>
-                <summary style={{ padding: '7px 12px', cursor: 'pointer', fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.05em', background: 'var(--surface2)', userSelect: 'none' }}>
+                <summary style={{ padding: '7px 12px', cursor: 'pointer', fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.05em', background: 'var(--surface2)', userSelect: 'none' }}>
                   Advanced (pool & timeouts)
                 </summary>
                 <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -701,12 +703,12 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
             {ct === 'sql' && state.sqlDialect === 'sqlite' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6 }}>
                 <Info size={13} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5 }}>SQLite uses a local file — no credentials needed.</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.5 }}>SQLite uses a local file — no credentials needed.</span>
               </div>
             ) : ct === 'sql' && state.sqlConnMode === 'dsn' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6 }}>
                 <Info size={13} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5 }}>Credentials are embedded in the connection string env var.</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.5 }}>Credentials are embedded in the connection string env var.</span>
               </div>
             ) : ct === 'sql' ? (
               <AuthFormSection
@@ -758,11 +760,11 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <AlertTriangle size={18} style={{ color: 'var(--red)', flexShrink: 0, marginTop: 1 }} />
             <div>
-              <div style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '0.92rem', color: 'var(--text)', lineHeight: 1.5 }}>
                 Delete <strong>{config.name}</strong>?
               </div>
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 6, lineHeight: 1.6 }}>
-                This will remove <code style={{ background: 'var(--surface3)', padding: '1px 5px', borderRadius: 3, fontSize: 10 }}>mcp.{config.id}.json</code> from disk and unregister all its tools from the MCP server. This action cannot be undone.
+              <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', marginTop: 6, lineHeight: 1.6 }}>
+                This will remove <code style={{ background: 'var(--surface3)', padding: '1px 5px', borderRadius: 3, fontSize: '0.77rem' }}>mcp.{config.id}.json</code> from disk and unregister all its tools from the MCP server. This action cannot be undone.
               </div>
             </div>
           </div>
@@ -788,7 +790,7 @@ export function ConfigEditor({ config, updateConfig, deleteConfig, onClose }: Co
         <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <AlertTriangle size={18} style={{ color: 'var(--yellow)', flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontSize: 11, color: 'var(--text)', lineHeight: 1.7 }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text)', lineHeight: 1.7 }}>
               You have unsaved changes. If you leave now they will be lost. Do you want to discard them?
             </div>
           </div>

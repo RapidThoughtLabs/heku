@@ -62,7 +62,7 @@ export function LayerCard({ layer, index, gravity }: LayerCardProps) {
       >
         <span
           style={{
-            fontSize: 9,
+            fontSize: '0.69rem',
             fontFamily: "'JetBrains Mono', monospace",
             letterSpacing: '0.1em',
             color: 'var(--text-dim)',
@@ -81,7 +81,7 @@ export function LayerCard({ layer, index, gravity }: LayerCardProps) {
           <Badge variant="online">DISCOVERY ↑ ABOVE one.*</Badge>
         )}
 
-        <span style={{ fontSize: 11, color: 'var(--text)', letterSpacing: '0.04em', flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text)', letterSpacing: '0.04em', flex: 1, minWidth: 0 }}>
           {layer.name}
         </span>
 
@@ -91,7 +91,7 @@ export function LayerCard({ layer, index, gravity }: LayerCardProps) {
 
         <span
           style={{
-            fontSize: 9,
+            fontSize: '0.69rem',
             fontFamily: "'JetBrains Mono', monospace",
             color: 'var(--text-dim)',
             letterSpacing: '0.04em',
@@ -110,7 +110,7 @@ export function LayerCard({ layer, index, gravity }: LayerCardProps) {
       {layer.description && (
         <div
           style={{
-            fontSize: 10,
+            fontSize: '0.77rem',
             color: 'var(--text-dim)',
             padding: '6px 14px 0',
             letterSpacing: '0.02em',
@@ -128,7 +128,7 @@ export function LayerCard({ layer, index, gravity }: LayerCardProps) {
           margin: 0,
           padding: '10px 14px 14px',
           fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 11,
+          fontSize: '0.85rem',
           lineHeight: 1.7,
           color: 'var(--text-mid)',
           overflowX: 'auto',

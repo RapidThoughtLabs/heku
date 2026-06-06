@@ -65,7 +65,7 @@ export function ChatView() {
           gap: 10,
         }}
       >
-        <span style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
+        <span style={{ fontSize: '0.85rem', letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
           <span style={{ color: 'var(--accent)' }}>mcp.one</span> / chat
         </span>
 
@@ -79,7 +79,7 @@ export function ChatView() {
             borderRadius: 4,
             padding: '2px 8px',
             color: 'var(--text-dim)',
-            fontSize: 9,
+            fontSize: '0.69rem',
             fontFamily: "'JetBrains Mono', monospace",
             cursor: 'pointer',
             letterSpacing: '0.06em',
@@ -110,7 +110,7 @@ export function ChatView() {
                 borderRadius: 4,
                 padding: '2px 8px',
                 color: 'var(--text-dim)',
-                fontSize: 9,
+                fontSize: '0.69rem',
                 fontFamily: "'JetBrains Mono', monospace",
                 cursor: 'pointer',
                 letterSpacing: '0.06em',
@@ -149,7 +149,7 @@ export function ChatView() {
                       color: 'var(--accent)',
                       borderRadius: 3,
                       padding: '1px 5px',
-                      fontSize: 9,
+                      fontSize: '0.69rem',
                       fontFamily: "'JetBrains Mono', monospace",
                       letterSpacing: '0.04em',
                       whiteSpace: 'nowrap',
@@ -209,7 +209,7 @@ export function ChatView() {
             <Bot size={28} style={{ color: 'var(--accent)' }} />
             <div
               style={{
-                fontSize: 11,
+                fontSize: '0.85rem',
                 color: 'var(--text-dim)',
                 letterSpacing: '0.08em',
                 textAlign: 'center',
@@ -223,7 +223,7 @@ export function ChatView() {
             {isConnected && (
               <div
                 style={{
-                  fontSize: 9,
+                  fontSize: '0.69rem',
                   color: 'var(--text-dim)',
                   letterSpacing: '0.06em',
                   lineHeight: 2,

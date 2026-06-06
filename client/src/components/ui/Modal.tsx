@@ -68,7 +68,7 @@ export function Modal({ open, onClose, title, children, width = 560, height }: M
               flexShrink: 0,
             }}
           >
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em', flex: 1 }}>
+            <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.01em', flex: 1 }}>
               {title}
             </span>
             <Button variant="icon" size="xs" onClick={onClose} aria-label="Close">

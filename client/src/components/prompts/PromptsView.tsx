@@ -72,13 +72,13 @@ export function PromptsView() {
           gap: 10,
         }}
       >
-        <span style={{ fontSize: 11, letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
+        <span style={{ fontSize: '0.85rem', letterSpacing: '0.12em', color: 'var(--text-dim)' }}>
           <span style={{ color: 'var(--accent)' }}>mcp.one</span> / prompts
         </span>
         <div style={{ flex: 1 }} />
         <span
           style={{
-            fontSize: 9,
+            fontSize: '0.69rem',
             fontFamily: "'JetBrains Mono', monospace",
             letterSpacing: '0.08em',
             color: 'var(--accent)',

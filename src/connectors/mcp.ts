@@ -3,11 +3,14 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import type { McpConnectorConfig, ToolOverlay, RegisteredTool, ToolDef, ParamDef } from "../types.js";
+import { VERSION } from "../lib/version.js";
 import { schemaToParam } from "../lib/schema.js";
 import type { IConnector, ConnectorResult } from "./base.js";
 import { runInstall } from "../lib/install-runner.js";
 import { fingerprintInstall, readSentinel, writeSentinel } from "../lib/install-state.js";
 import { buildChildEnv } from "../lib/env-store.js";
+import { getServerSettings } from "../admin-api.js";
+import { setRuntimeState } from "../lifecycle/pipeline.js";
 
 /** ConfigIds the connector recently wrote to disk — watcher imports this to skip self-triggered hot-reloads. */
 export const recentlySelfWrote = new Set<string>();
@@ -32,12 +35,14 @@ export class McpConnector implements IConnector {
 
   async init(): Promise<void> {
     const results = await Promise.allSettled(
-      this.pendingConfigs.map(({ configId, config, filePath }) => this.spawnChild(configId, config, filePath)),
+      this.pendingConfigs.map(({ configId, config, filePath }) =>
+        this._spawnChild(configId, config, filePath),
+      ),
     );
 
     for (let i = 0; i < results.length; i++) {
       const r = results[i];
-      const { configId } = this.pendingConfigs[i];
+      const { configId } = this.pendingConfigs[i]!;
       if (r.status === "rejected") {
         console.error(`[mcp-connector] Failed to connect to "${configId}":`, r.reason);
       }
@@ -112,87 +117,17 @@ export class McpConnector implements IConnector {
     }));
   }
 
-  // ── Internal ──────────────────────────────────────────────────────
+  // ── Public lifecycle methods (used by the pipeline) ──────────────
 
-  private async spawnChild(configId: string, config: McpConnectorConfig, filePath?: string): Promise<void> {
-    if (config.transport === "stdio" && config.install_command) {
-      await this.ensureInstalled(configId, config);
-    }
+  /** Run the install step for a config (fingerprint-idempotent). Returns the log tail. */
+  async runInstallForConfig(configId: string, config: McpConnectorConfig): Promise<{ logTail: string[] }> {
+    if (!config.install_command) return { logTail: [] };
 
-    let transport;
-
-    if (config.transport === "stdio") {
-      transport = new StdioClientTransport({
-        command: config.command!,
-        args: config.args,
-        env: buildChildEnv(configId, config.env),
-      });
-    } else {
-      transport = new SSEClientTransport(new URL(config.url!));
-    }
-
-    const client = new Client({ name: "mcp-one", version: "0.1.0" }, {});
-    await client.connect(transport);
-
-    const toolsResult = await client.listTools();
-    const rawTools: ToolDef[] = toolsResult.tools.map((t) => ({
-      name: t.name,
-      description: t.description ?? "",
-      params: this.schemaToParams(t.inputSchema, configId),
-    }));
-
-    // Read existing overlays from disk so user edits survive reconnects
-    let existingOverlays: Record<string, ToolOverlay> = {};
-    if (filePath && fs.existsSync(filePath)) {
-      try {
-        const raw = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Record<string, unknown>;
-        if (raw.overlays && typeof raw.overlays === "object" && !Array.isArray(raw.overlays)) {
-          existingOverlays = raw.overlays as Record<string, ToolOverlay>;
-        }
-      } catch {
-        // ignore read/parse errors — start fresh
-      }
-    }
-
-    // Reconcile overlays against the current tool list.
-    // New tool → seed from upstream. Existing → preserve (user may have edited).
-    // Gone tool → its overlay is dropped (tools[] is source of truth for existence).
-    const reconciledOverlays: Record<string, ToolOverlay> = {};
-    for (const tool of rawTools) {
-      reconciledOverlays[tool.name] = existingOverlays[tool.name] ?? {
-        description: tool.description,
-        params: tool.params,
-      };
-    }
-
-    // Write tools[] + overlays back to disk
-    if (filePath) {
-      try {
-        let fileJson: Record<string, unknown> = {};
-        if (fs.existsSync(filePath)) {
-          fileJson = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Record<string, unknown>;
-        }
-        fileJson.tools    = rawTools;
-        fileJson.overlays = reconciledOverlays;
-
-        recentlySelfWrote.add(configId);
-        fs.writeFileSync(filePath, JSON.stringify(fileJson, null, 2) + "\n", "utf-8");
-      } catch (err) {
-        console.error(`[mcp-connector] Failed to persist overlays for "${configId}":`, (err as Error).message);
-        recentlySelfWrote.delete(configId);
-      }
-    }
-
-    this.children.set(configId, { client, configId, tools: rawTools, overlays: reconciledOverlays, transport: config.transport });
-    console.error(`[mcp-connector] Connected: ${configId} (${rawTools.length} tools)`);
-  }
-
-  private async ensureInstalled(configId: string, config: McpConnectorConfig): Promise<void> {
     const fp = fingerprintInstall(config);
     const sentinel = readSentinel(configId);
     if (sentinel?.fingerprint === fp) {
       console.error(`[mcp-install:${configId}] already installed (fingerprint match)`);
-      return;
+      return { logTail: sentinel.install_log_tail };
     }
 
     if (config.install_check_command) {
@@ -211,7 +146,7 @@ export class McpConnector implements IConnector {
           exit_code: 0,
         });
         console.error(`[mcp-install:${configId}] check command passed — skipping install`);
-        return;
+        return { logTail: [] };
       }
     }
 
@@ -243,6 +178,149 @@ export class McpConnector implements IConnector {
       exit_code: 0,
     });
     console.error(`[mcp-install:${configId}] install complete (${result.durationMs}ms)`);
+    return { logTail: result.logTail };
+  }
+
+  /** Connect (or reconnect) to an MCP server. Does NOT run install — caller's responsibility. */
+  async connectConfig(configId: string, config: McpConnectorConfig, filePath?: string): Promise<void> {
+    // Disconnect any existing connection first
+    await this.disconnectConfig(configId);
+
+    let transport;
+    if (config.transport === "stdio") {
+      transport = new StdioClientTransport({
+        command: config.command!,
+        args: config.args,
+        env: buildChildEnv(configId, config.env),
+      });
+    } else {
+      transport = new SSEClientTransport(new URL(config.url!));
+    }
+
+    const client = new Client({ name: "mcp-one", version: VERSION }, {});
+    await client.connect(transport);
+
+    const toolsResult = await client.listTools();
+    const rawTools: ToolDef[] = toolsResult.tools.map((t) => ({
+      name: t.name,
+      description: t.description ?? "",
+      params: this.schemaToParams(t.inputSchema, configId),
+    }));
+
+    // Read existing overlays so user edits survive reconnects
+    let existingOverlays: Record<string, ToolOverlay> = {};
+    if (filePath && fs.existsSync(filePath)) {
+      try {
+        const raw = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Record<string, unknown>;
+        if (raw.overlays && typeof raw.overlays === "object" && !Array.isArray(raw.overlays)) {
+          existingOverlays = raw.overlays as Record<string, ToolOverlay>;
+        }
+      } catch {
+        // ignore — start fresh
+      }
+    }
+
+    // Reconcile overlays
+    const reconciledOverlays: Record<string, ToolOverlay> = {};
+    for (const tool of rawTools) {
+      reconciledOverlays[tool.name] = existingOverlays[tool.name] ?? {
+        description: tool.description,
+        params: tool.params,
+      };
+    }
+
+    // Write tools[] + overlays back to disk
+    if (filePath) {
+      try {
+        let fileJson: Record<string, unknown> = {};
+        if (fs.existsSync(filePath)) {
+          fileJson = JSON.parse(fs.readFileSync(filePath, "utf-8")) as Record<string, unknown>;
+        }
+        fileJson.tools    = rawTools;
+        fileJson.overlays = reconciledOverlays;
+
+        recentlySelfWrote.add(configId);
+        fs.writeFileSync(filePath, JSON.stringify(fileJson, null, 2) + "\n", "utf-8");
+      } catch (err) {
+        console.error(`[mcp-connector] Failed to persist overlays for "${configId}":`, (err as Error).message);
+        recentlySelfWrote.delete(configId);
+      }
+    }
+
+    this.children.set(configId, {
+      client,
+      configId,
+      tools: rawTools,
+      overlays: reconciledOverlays,
+      transport: config.transport,
+    });
+    console.error(`[mcp-connector] Connected: ${configId} (${rawTools.length} tools)`);
+  }
+
+  /** Gracefully disconnect a single MCP child without touching the registry. */
+  async disconnectConfig(configId: string): Promise<void> {
+    const child = this.children.get(configId);
+    if (!child) return;
+    try {
+      await child.client.close();
+      console.error(`[mcp-connector] Disconnected: ${configId}`);
+    } catch {
+      // already dead
+    }
+    this.children.delete(configId);
+  }
+
+  // ── Internal ──────────────────────────────────────────────────────
+
+  /** Used by init() at startup: checks settings/active, runs install, connects. */
+  private async _spawnChild(configId: string, config: McpConnectorConfig, filePath?: string): Promise<void> {
+    const settings = getServerSettings();
+
+    // Skip inactive configs — park in installed state
+    if (config.active === false) {
+      setRuntimeState(configId, { id: configId, state: "installed", userStopped: false, parkReason: "inactive" });
+      console.error(`[mcp-connector] Skipping "${configId}": inactive`);
+      return;
+    }
+
+    // blockAutoInstall: skip install and park in idle
+    if (settings.blockAutoInstall && config.install_command && config.transport === "stdio") {
+      setRuntimeState(configId, {
+        id: configId,
+        state: "idle",
+        userStopped: false,
+        lastError: "auto-install blocked",
+        parkReason: "auto-install blocked",
+      });
+      console.error(`[mcp-connector] Skipping install "${configId}": blockAutoInstall=true`);
+      return;
+    }
+
+    // Run install if configured
+    if (config.transport === "stdio" && config.install_command) {
+      setRuntimeState(configId, { id: configId, state: "installing", userStopped: false });
+      try {
+        const { logTail } = await this.runInstallForConfig(configId, config);
+        setRuntimeState(configId, { state: "installed", installLogTail: logTail });
+      } catch (err) {
+        setRuntimeState(configId, { state: "error", lastError: (err as Error).message });
+        throw err;
+      }
+    } else {
+      setRuntimeState(configId, { id: configId, state: "installed", userStopped: false });
+    }
+
+    // blockAutoStart: install but park — don't spawn
+    if (settings.blockAutoStart) {
+      setRuntimeState(configId, { parkReason: "auto-start blocked" });
+      console.error(`[mcp-connector] Parking "${configId}": blockAutoStart=true`);
+      return;
+    }
+
+    // Connect
+    setRuntimeState(configId, { state: "starting" });
+    await this.connectConfig(configId, config, filePath);
+    setRuntimeState(configId, { state: "running" });
   }
 
   private schemaToParams(schema: unknown, configId: string = ""): ParamDef[] {

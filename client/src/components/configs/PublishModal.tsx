@@ -23,7 +23,7 @@ function Field({
 }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
+      <label style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
         {label}
       </label>
       <input
@@ -32,11 +32,11 @@ function Field({
         placeholder={placeholder}
         style={{
           background: 'var(--surface2)', border: '1px solid var(--border2)',
-          borderRadius: 4, padding: '7px 9px', fontSize: 11,
+          borderRadius: 4, padding: '7px 9px', fontSize: '0.85rem',
           color: 'var(--text)', fontFamily: 'inherit', outline: 'none', width: '100%',
         }}
       />
-      {hint && <span style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.03em' }}>{hint}</span>}
+      {hint && <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.03em' }}>{hint}</span>}
     </div>
   )
 }
@@ -104,15 +104,10 @@ export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
   const handlePublish = async () => {
     setError(null)
 
-    // MCP stdio configs must have both a start command and an install command before publishing
     const connector = (cfg.raw as Record<string, unknown>).connector as Record<string, unknown> | undefined
     if (connector?.type === 'mcp' && connector?.transport === 'stdio') {
       if (!connector?.command) {
         setError('MCP configs require a start command (connector.command) before publishing')
-        return
-      }
-      if (!connector?.install_command) {
-        setError('MCP configs require an install command (connector.install_command) before publishing')
         return
       }
     }
@@ -152,7 +147,7 @@ export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
       {phase === 'success' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '48px 20px' }}>
           <CheckCircle size={32} style={{ color: 'var(--accent)' }} />
-          <span style={{ fontSize: 13, color: 'var(--text)', letterSpacing: '0.04em' }}>{successLabel}</span>
+          <span style={{ fontSize: '1rem', color: 'var(--text)', letterSpacing: '0.04em' }}>{successLabel}</span>
         </div>
       )}
 
@@ -160,7 +155,7 @@ export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
         <>
           <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
             {authUsername && (
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.03em' }}>
+              <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.03em' }}>
                 Publishing as <code style={{ color: 'var(--accent)' }}>@{authUsername}</code>
               </div>
             )}
@@ -168,10 +163,10 @@ export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
             <Field label="Category" value={category} onChange={setCategory} placeholder="e.g. development, productivity, data" />
             <Field label="Tags" value={tagsRaw} onChange={setTagsRaw} placeholder="Comma-separated (optional)" />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <label style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Visibility</label>
+              <label style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Visibility</label>
               <div style={{ display: 'flex', gap: 12 }}>
                 {(['public', 'private'] as const).map((v) => (
-                  <label key={v} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 11, color: 'var(--text)' }}>
+                  <label key={v} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text)' }}>
                     <input type="radio" name="visibility" value={v} checked={visibility === v} onChange={() => setVisibility(v)} />
                     {v.charAt(0).toUpperCase() + v.slice(1)}
                   </label>
@@ -179,7 +174,7 @@ export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
               </div>
             </div>
             <Field label="Changelog note" value={message} onChange={setMessage} placeholder="Optional note for this release" />
-            {error && <div style={{ fontSize: 10, color: 'var(--red)', letterSpacing: '0.03em' }}>{error}</div>}
+            {error && <div style={{ fontSize: '0.77rem', color: 'var(--red)', letterSpacing: '0.03em' }}>{error}</div>}
           </div>
           <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <Button variant="ghost" size="sm" onClick={onClose} disabled={phase === 'submitting'}>Cancel</Button>

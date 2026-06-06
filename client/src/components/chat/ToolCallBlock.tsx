@@ -64,7 +64,7 @@ export function ToolCallBlock({ toolCall, result }: ToolCallBlockProps) {
           padding: '8px 12px',
           background: 'var(--surface2)',
           borderBottom: expanded ? '1px solid var(--border)' : 'none',
-          fontSize: 11,
+          fontSize: '0.85rem',
           width: '100%',
           cursor: isRunning ? 'default' : 'pointer',
           border: 'none',
@@ -102,7 +102,7 @@ export function ToolCallBlock({ toolCall, result }: ToolCallBlockProps) {
         <span
           style={{
             marginLeft: 'auto',
-            fontSize: 10,
+            fontSize: '0.77rem',
             letterSpacing: '0.06em',
             padding: '2px 8px',
             borderRadius: 99,
@@ -127,7 +127,7 @@ export function ToolCallBlock({ toolCall, result }: ToolCallBlockProps) {
           >
             <div
               style={{
-                fontSize: 9,
+                fontSize: '0.69rem',
                 letterSpacing: '0.12em',
                 color: 'var(--text-dim)',
                 marginBottom: 6,
@@ -139,7 +139,7 @@ export function ToolCallBlock({ toolCall, result }: ToolCallBlockProps) {
             <pre
               style={{
                 margin: 0,
-                fontSize: 10,
+                fontSize: '0.77rem',
                 color: 'var(--text-mid)',
                 lineHeight: 1.55,
                 whiteSpace: 'pre-wrap',
@@ -153,7 +153,7 @@ export function ToolCallBlock({ toolCall, result }: ToolCallBlockProps) {
           <div style={{ padding: '10px 14px' }}>
             <div
               style={{
-                fontSize: 9,
+                fontSize: '0.69rem',
                 letterSpacing: '0.12em',
                 color: isError ? 'var(--red)' : 'var(--text-dim)',
                 marginBottom: 6,
@@ -165,7 +165,7 @@ export function ToolCallBlock({ toolCall, result }: ToolCallBlockProps) {
             <pre
               style={{
                 margin: 0,
-                fontSize: 10,
+                fontSize: '0.77rem',
                 color: isError ? 'hsla(0,75%,72%,0.85)' : 'var(--text-mid)',
                 lineHeight: 1.55,
                 whiteSpace: 'pre-wrap',

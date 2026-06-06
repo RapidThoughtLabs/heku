@@ -10,6 +10,7 @@ export interface ToolRow {
   // HTTP
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   path: string
+  baseUrl: string
   // CLI
   command: string
   output_as: 'text' | 'json'
@@ -33,7 +34,7 @@ export function newTool(): ToolRow {
   return {
     id: Math.random().toString(36).slice(2),
     name: '', description: '',
-    method: 'GET', path: '',
+    method: 'GET', path: '', baseUrl: '',
     command: '', output_as: 'json',
     operation: 'read', path_template: '',
     service: '', rpc_method: '',
@@ -56,7 +57,7 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid var(--border)',
   borderRadius: 4,
   padding: '6px 9px',
-  fontSize: 11,
+  fontSize: '0.85rem',
   color: 'var(--text)',
   fontFamily: 'inherit',
   outline: 'none',
@@ -66,7 +67,7 @@ const inputStyle: React.CSSProperties = {
 }
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 9,
+  fontSize: '0.69rem',
   color: 'var(--text-dim)',
   letterSpacing: '0.07em',
 }
@@ -104,15 +105,15 @@ function ToolItem({
           ? <ChevronDown size={11} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
           : <ChevronRight size={11} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
         }
-        <span style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.06em', minWidth: 20 }}>
+        <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', letterSpacing: '0.06em', minWidth: 20 }}>
           #{index + 1}
         </span>
-        <span style={{ fontSize: 11, color: tool.name ? 'var(--text)' : 'var(--text-dim)', flex: 1, letterSpacing: '0.02em' }}>
+        <span style={{ fontSize: '0.85rem', color: tool.name ? 'var(--text)' : 'var(--text-dim)', flex: 1, letterSpacing: '0.02em' }}>
           {tool.name || 'unnamed_tool'}
         </span>
         {connectorType === 'http' && (
           <span style={{
-            fontSize: 9, padding: '2px 7px', borderRadius: 99,
+            fontSize: '0.69rem', padding: '2px 7px', borderRadius: 99,
             background: 'var(--accent-dim)', color: 'var(--accent)',
             letterSpacing: '0.06em', fontWeight: 600, flexShrink: 0,
           }}>
@@ -145,16 +146,27 @@ function ToolItem({
 
           {/* HTTP-specific */}
           {connectorType === 'http' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 10 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={labelStyle}>METHOD</label>
-                <select style={{ ...inputStyle, cursor: 'pointer' }} value={tool.method} onChange={(e) => set({ method: e.target.value as ToolRow['method'] })}>
-                  {HTTP_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-                </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: 10 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={labelStyle}>METHOD</label>
+                  <select style={{ ...inputStyle, cursor: 'pointer' }} value={tool.method} onChange={(e) => set({ method: e.target.value as ToolRow['method'] })}>
+                    {HTTP_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <label style={labelStyle}>PATH</label>
+                  <input style={inputStyle} value={tool.path} onChange={(e) => set({ path: e.target.value })} placeholder="/users/{owner}/repos" />
+                </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                <label style={labelStyle}>PATH</label>
-                <input style={inputStyle} value={tool.path} onChange={(e) => set({ path: e.target.value })} placeholder="/users/{owner}/repos" />
+                <label style={labelStyle}>BASE URL OVERRIDE <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: '0.02em' }}>— leave blank to inherit from connector</span></label>
+                <input
+                  style={inputStyle}
+                  value={tool.baseUrl}
+                  onChange={(e) => set({ baseUrl: e.target.value })}
+                  placeholder="https://billing.api.company.com"
+                />
               </div>
             </div>
           )}
@@ -232,7 +244,7 @@ function ToolItem({
                   onChange={(e) => set({ sql: e.target.value })}
                   placeholder="SELECT id, email FROM users WHERE active = true AND created_at > :since LIMIT :limit"
                 />
-                <span style={{ fontSize: 9, color: 'var(--text-dim)', opacity: 0.7, lineHeight: 1.4 }}>
+                <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', opacity: 0.7, lineHeight: 1.4 }}>
                   Use <code>:name</code> placeholders that map to params. Curly-brace {'{{name}}'} is NOT supported here.
                 </span>
               </div>
@@ -291,7 +303,7 @@ export function ToolBuilder({ tools, onChange, connectorType }: ToolBuilderProps
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
           padding: '9px 14px', background: 'transparent',
           border: '1px dashed var(--border2)', borderRadius: 6,
-          color: 'var(--text-dim)', fontSize: 10, cursor: 'pointer',
+          color: 'var(--text-dim)', fontSize: '0.77rem', cursor: 'pointer',
           letterSpacing: '0.05em', transition: 'all 0.12s', fontFamily: 'inherit',
         }}
         onMouseEnter={(e) => {

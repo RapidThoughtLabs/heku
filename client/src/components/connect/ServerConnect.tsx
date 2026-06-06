@@ -80,7 +80,7 @@ export function ServerConnect() {
         {/* Logo / title */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{
-            fontSize: 11,
+            fontSize: '0.85rem',
             letterSpacing: '0.25em',
             color: 'var(--accent)',
             fontWeight: 700,
@@ -89,7 +89,7 @@ export function ServerConnect() {
             MCP.ONE
           </div>
           <div style={{
-            fontSize: 22,
+            fontSize: '1.69rem',
             color: 'var(--text)',
             fontWeight: 700,
             letterSpacing: '-0.01em',
@@ -97,7 +97,7 @@ export function ServerConnect() {
           }}>
             Connect to a server
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.6 }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.6 }}>
             Enter the HTTP endpoint of your mcp-one instance.<br />
             Start one with <code style={{ color: 'var(--accent)', background: 'var(--accent-dim)', padding: '1px 5px', borderRadius: 3 }}>mcp-one start --http</code>
           </div>
@@ -108,7 +108,7 @@ export function ServerConnect() {
           <div style={{ marginBottom: 12 }}>
             <label style={{
               display: 'block',
-              fontSize: 10,
+              fontSize: '0.77rem',
               letterSpacing: '0.1em',
               color: 'var(--text-dim)',
               marginBottom: 6,
@@ -131,7 +131,7 @@ export function ServerConnect() {
                 border: `1px solid ${error ? 'var(--red)' : 'var(--border2)'}`,
                 borderRadius: 6,
                 color: 'var(--text)',
-                fontSize: 13,
+                fontSize: '1rem',
                 outline: 'none',
                 transition: 'border-color 0.15s',
               }}
@@ -153,7 +153,7 @@ export function ServerConnect() {
           {/* Error */}
           {error && (
             <div style={{
-              fontSize: 11,
+              fontSize: '0.85rem',
               color: 'var(--red)',
               marginBottom: 12,
               padding: '8px 10px',
@@ -176,7 +176,7 @@ export function ServerConnect() {
               color: loading ? 'var(--accent)' : 'var(--accent-txt)',
               border: 'none',
               borderRadius: 6,
-              fontSize: 12,
+              fontSize: '0.92rem',
               fontWeight: 700,
               letterSpacing: '0.05em',
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -192,7 +192,7 @@ export function ServerConnect() {
         {recents.length > 0 && (
           <div style={{ marginTop: 28 }}>
             <div style={{
-              fontSize: 10,
+              fontSize: '0.77rem',
               letterSpacing: '0.1em',
               color: 'var(--text-dim)',
               textTransform: 'uppercase',
@@ -214,7 +214,7 @@ export function ServerConnect() {
                     border: '1px solid transparent',
                     borderRadius: 4,
                     color: 'var(--text-mid)',
-                    fontSize: 12,
+                    fontSize: '0.92rem',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'background 0.1s, color 0.1s',
@@ -228,7 +228,7 @@ export function ServerConnect() {
                     e.currentTarget.style.color = 'var(--text-mid)'
                   }}
                 >
-                  <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>◆</span>
+                  <span style={{ color: 'var(--text-dim)', fontSize: '0.77rem' }}>◆</span>
                   {r}
                 </button>
               ))}

@@ -91,10 +91,10 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: ChatInputPr
           }}
         >
           <FileText size={11} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-          <span style={{ fontSize: 11, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {attached.name}
           </span>
-          <span style={{ fontSize: 10, color: 'var(--text-dim)', flexShrink: 0 }}>
+          <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', flexShrink: 0 }}>
             {attached.content.split('\n').length} lines
           </span>
           <button
@@ -109,7 +109,7 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: ChatInputPr
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
         {/* Hidden file input — .md only */}
         <input
           ref={fileInputRef}
@@ -123,7 +123,7 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: ChatInputPr
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || isStreaming}
-          title="Attach .md file"
+          title="Attach markdown file (.md only)"
           style={{
             background: 'none',
             border: '1px solid var(--border2)',
@@ -165,7 +165,7 @@ export function ChatInput({ onSend, onStop, isStreaming, disabled }: ChatInputPr
               borderRadius: 8,
               padding: '8px 14px',
               color: 'var(--text)',
-              fontSize: 12,
+              fontSize: '0.92rem',
               fontFamily: "'JetBrains Mono', monospace",
               outline: 'none',
               resize: 'none',

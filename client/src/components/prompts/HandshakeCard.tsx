@@ -95,14 +95,14 @@ export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
         }}
       >
         <Plug size={12} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
-        <span style={{ fontSize: 11, color: 'var(--text)', letterSpacing: '0.04em', flex: 1 }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text)', letterSpacing: '0.04em', flex: 1 }}>
           tools/list handshake
         </span>
         <Badge variant="offline">HANDSHAKE · tools/list</Badge>
         {isFallback && <Badge variant="warn">offline fallback</Badge>}
         <span
           style={{
-            fontSize: 9,
+            fontSize: '0.69rem',
             fontFamily: "'JetBrains Mono', monospace",
             color: 'var(--text-dim)',
             letterSpacing: '0.04em',
@@ -119,7 +119,7 @@ export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
       {/* Description */}
       <div
         style={{
-          fontSize: 10,
+          fontSize: '0.77rem',
           color: 'var(--text-dim)',
           padding: '6px 14px 0',
           letterSpacing: '0.02em',
@@ -127,7 +127,7 @@ export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
         }}
       >
         The tool inventory the LLM receives on connect. After lazy-discovery mode, only{' '}
-        <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10 }}>one.*</code>{' '}
+        <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.77rem' }}>one.*</code>{' '}
         tools are advertised — service tools are discovered on demand.
       </div>
 
@@ -138,7 +138,7 @@ export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
           margin: 0,
           padding: '10px 14px 14px',
           fontFamily: "'JetBrains Mono', monospace",
-          fontSize: 11,
+          fontSize: '0.85rem',
           lineHeight: 1.7,
           color: 'var(--text-mid)',
           overflowX: 'auto',

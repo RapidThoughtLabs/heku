@@ -1,6 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
+import { VERSION } from "../src/lib/version.js";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -144,7 +145,7 @@ export function createMcpClient() {
       return;
     }
 
-    client = new Client({ name: "mcp-one-api", version: "0.1.0" }, {});
+    client = new Client({ name: "mcp-one-api", version: VERSION }, {});
 
     client.onclose = () => {
       stopHttpToolPoll();

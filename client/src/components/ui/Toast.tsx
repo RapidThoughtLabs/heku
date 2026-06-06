@@ -58,7 +58,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
         border: '1px solid var(--border2)',
         borderRadius: 8,
         boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-        fontSize: 12,
+        fontSize: '0.92rem',
         color: 'var(--text-mid)',
         letterSpacing: '0.03em',
         lineHeight: 1.4,

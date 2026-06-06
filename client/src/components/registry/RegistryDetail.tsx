@@ -133,7 +133,7 @@ export function RegistryDetail({
           <ArrowLeft size={12} style={{ marginRight: 5 }} />
           Back
         </Button>
-        <span style={{ fontSize: 11, letterSpacing: '0.1em', color: 'var(--text-dim)' }}>
+        <span style={{ fontSize: '0.85rem', letterSpacing: '0.1em', color: 'var(--text-dim)' }}>
           <span style={{ color: 'var(--accent)' }}>registry</span> / {config.namespace} / {config.slug}
         </span>
       </div>
@@ -151,18 +151,18 @@ export function RegistryDetail({
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 2 }}>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+              <h2 style={{ margin: 0, fontSize: '1.23rem', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em' }}>
                 {config.name}
               </h2>
               {config.verified && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <ShieldCheck size={13} style={{ color: 'var(--accent)' }} />
-                  <span style={{ fontSize: 9, color: 'var(--accent)', letterSpacing: '0.06em', fontWeight: 600 }}>VERIFIED</span>
+                  <span style={{ fontSize: '0.69rem', color: 'var(--accent)', letterSpacing: '0.06em', fontWeight: 600 }}>VERIFIED</span>
                 </span>
               )}
               {config.deprecated && <Badge variant="warn">deprecated</Badge>}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.04em' }}>
               {config.namespace}/{config.slug}
             </div>
           </div>
@@ -202,35 +202,35 @@ export function RegistryDetail({
         </div>
 
         {config.description && (
-          <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--text-mid)', lineHeight: 1.6, letterSpacing: '0.01em' }}>
+          <p style={{ margin: '0 0 12px', fontSize: '0.92rem', color: 'var(--text-mid)', lineHeight: 1.6, letterSpacing: '0.01em' }}>
             {config.description}
           </p>
         )}
 
         {/* Stats + meta row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-dim)', fontSize: 10 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-dim)', fontSize: '0.77rem' }}>
             <Star size={10} /> {(config.stars ?? 0).toLocaleString()} stars
           </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-dim)', fontSize: 10 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-dim)', fontSize: '0.77rem' }}>
             <Download size={10} /> {(config.installs ?? 0).toLocaleString()} installs
           </span>
           <span style={{
-            fontSize: 9, padding: '1px 7px', borderRadius: 99,
+            fontSize: '0.69rem', padding: '1px 7px', borderRadius: 99,
             background: 'var(--surface2)', color: 'var(--text-dim)', letterSpacing: '0.06em',
           }}>
             {connectorLabel}
           </span>
           {config.category && (
             <span style={{
-              fontSize: 9, padding: '1px 7px', borderRadius: 99,
+              fontSize: '0.69rem', padding: '1px 7px', borderRadius: 99,
               background: 'var(--surface2)', color: 'var(--text-dim)', letterSpacing: '0.06em',
             }}>
               {config.category}
             </span>
           )}
           {config.latest_version && (
-            <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>
+            <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)' }}>
               v{config.latest_version.version}
               <span style={{ marginLeft: 6, color: 'var(--text-dim)', opacity: 0.6 }}>
                 · {new Date(config.latest_version.created_at).toLocaleDateString()}
@@ -239,7 +239,7 @@ export function RegistryDetail({
           )}
           {(config.tags?.length ?? 0) > 0 && config.tags!.map((tag) => (
             <span key={tag} style={{
-              fontSize: 9, padding: '1px 7px', borderRadius: 99,
+              fontSize: '0.69rem', padding: '1px 7px', borderRadius: 99,
               background: 'var(--accent-dim)', color: 'var(--accent)', letterSpacing: '0.06em',
             }}>
               {tag}
@@ -255,14 +255,14 @@ export function RegistryDetail({
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
               <span style={{
-                fontSize: 9, fontWeight: 700, letterSpacing: '0.08em',
+                fontSize: '0.69rem', fontWeight: 700, letterSpacing: '0.08em',
                 color: SEVERITY_COLORS[updateInfo.severity] ?? 'var(--yellow)', textTransform: 'uppercase',
               }}>
                 {updateInfo.severity} update available
               </span>
               {updateInfo.breaking && <Badge variant="error">breaking</Badge>}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
+            <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', lineHeight: 1.5 }}>
               {updateInfo.installed_version} → {updateInfo.latest_version}
               {updateInfo.changelog && <span style={{ marginLeft: 8 }}>· {updateInfo.changelog}</span>}
             </div>
@@ -282,7 +282,7 @@ export function RegistryDetail({
         }}>
           <div style={{
             padding: '10px 14px 8px',
-            fontSize: 9, letterSpacing: '0.14em', color: 'var(--text-dim)',
+            fontSize: '0.69rem', letterSpacing: '0.14em', color: 'var(--text-dim)',
             textTransform: 'uppercase', flexShrink: 0,
             display: 'flex', alignItems: 'center', gap: 5,
             borderBottom: '1px solid var(--border)',
@@ -291,7 +291,7 @@ export function RegistryDetail({
             Tools
             {!loadingTools && (
               <span style={{
-                fontSize: 9, padding: '1px 5px', borderRadius: 99,
+                fontSize: '0.69rem', padding: '1px 5px', borderRadius: 99,
                 background: 'var(--surface2)', color: 'var(--text-dim)',
                 letterSpacing: '0.04em', marginLeft: 3,
               }}>
@@ -301,14 +301,14 @@ export function RegistryDetail({
           </div>
 
           {loadingTools && (
-            <div style={{ padding: '16px 14px', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-dim)', fontSize: 11 }}>
+            <div style={{ padding: '16px 14px', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-dim)', fontSize: '0.85rem' }}>
               <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} />
               Loading…
             </div>
           )}
 
           {!loadingTools && tools.length === 0 && (
-            <div style={{ padding: '16px 14px', fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic' }}>
+            <div style={{ padding: '16px 14px', fontSize: '0.85rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
               No tools defined.
             </div>
           )}
@@ -330,7 +330,7 @@ export function RegistryDetail({
                 }}
               >
                 <span style={{
-                  fontSize: 10, fontFamily: 'var(--font-mono, monospace)',
+                  fontSize: '0.77rem', fontFamily: 'var(--font-mono, monospace)',
                   color: active ? 'var(--accent)' : 'var(--text)',
                   fontWeight: active ? 600 : 400,
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -339,7 +339,7 @@ export function RegistryDetail({
                 </span>
                 {paramCount > 0 && (
                   <span style={{
-                    fontSize: 9, color: 'var(--text-dim)', flexShrink: 0, marginLeft: 6,
+                    fontSize: '0.69rem', color: 'var(--text-dim)', flexShrink: 0, marginLeft: 6,
                   }}>
                     {paramCount}
                   </span>
@@ -352,7 +352,7 @@ export function RegistryDetail({
         {/* Right: tool detail */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 28px' }}>
           {!selectedToolData && !loadingTools && (
-            <div style={{ fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic' }}>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
               Select a tool from the list.
             </div>
           )}
@@ -360,7 +360,7 @@ export function RegistryDetail({
           {selectedToolData && (
             <>
               <div style={{
-                fontSize: 14, fontWeight: 700,
+                fontSize: '1.08rem', fontWeight: 700,
                 fontFamily: 'var(--font-mono, monospace)',
                 color: 'var(--accent)', marginBottom: 8, letterSpacing: '0.02em',
               }}>
@@ -368,15 +368,24 @@ export function RegistryDetail({
               </div>
 
               {selectedToolData.description && (
-                <p style={{ margin: '0 0 20px', fontSize: 12, color: 'var(--text-mid)', lineHeight: 1.65 }}>
+                <p style={{ margin: '0 0 20px', fontSize: '0.92rem', color: 'var(--text-mid)', lineHeight: 1.65 }}>
                   {selectedToolData.description}
                 </p>
+              )}
+
+              {selectedToolData.base_url && (
+                <div style={{ marginBottom: 20 }}>
+                  <span style={{ fontSize: '0.69rem', letterSpacing: '0.1em', color: 'var(--text-dim)', textTransform: 'uppercase' }}>Endpoint</span>
+                  <div style={{ marginTop: 4, fontSize: '0.8rem', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-mid)', background: 'var(--surface2)', padding: '4px 8px', borderRadius: 4, wordBreak: 'break-all' }}>
+                    {selectedToolData.base_url}
+                  </div>
+                </div>
               )}
 
               {(selectedToolData.params?.length ?? 0) > 0 ? (
                 <>
                   <div style={{
-                    fontSize: 9, letterSpacing: '0.14em', color: 'var(--text-dim)',
+                    fontSize: '0.69rem', letterSpacing: '0.14em', color: 'var(--text-dim)',
                     textTransform: 'uppercase', marginBottom: 14,
                   }}>
                     Parameters
@@ -389,14 +398,14 @@ export function RegistryDetail({
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                           <span style={{
-                            fontSize: 11, fontFamily: 'var(--font-mono, monospace)',
+                            fontSize: '0.85rem', fontFamily: 'var(--font-mono, monospace)',
                             fontWeight: 600, color: 'var(--text)',
                           }}>
                             {param.name}
                           </span>
                           {param.type && (
                             <span style={{
-                              fontSize: 9, fontFamily: 'var(--font-mono, monospace)',
+                              fontSize: '0.69rem', fontFamily: 'var(--font-mono, monospace)',
                               color: 'var(--text-dim)', background: 'var(--surface2)',
                               padding: '1px 5px', borderRadius: 3,
                             }}>
@@ -405,7 +414,7 @@ export function RegistryDetail({
                           )}
                           {param.required && (
                             <span style={{
-                              fontSize: 9, color: 'var(--red, #f87171)',
+                              fontSize: '0.69rem', color: 'var(--red, #f87171)',
                               letterSpacing: '0.06em', fontWeight: 600,
                             }}>
                               required
@@ -413,7 +422,7 @@ export function RegistryDetail({
                           )}
                         </div>
                         {param.description && (
-                          <div style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.55 }}>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', lineHeight: 1.55 }}>
                             {param.description}
                           </div>
                         )}
@@ -422,7 +431,7 @@ export function RegistryDetail({
                   </div>
                 </>
               ) : (
-                <div style={{ fontSize: 11, color: 'var(--text-dim)', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
                   No parameters.
                 </div>
               )}

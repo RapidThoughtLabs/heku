@@ -1,4 +1,4 @@
-import { MessageSquare, Settings2, ScrollText, Sparkles, Settings, Package, FlaskConical } from 'lucide-react'
+import { MessageSquare, Settings2, ScrollText, Sparkles, Settings, Package, FlaskConical, Lock } from 'lucide-react'
 import { useAppStore, type Page } from '@/stores/app-store'
 import { Badge } from '@/components/ui/Badge'
 
@@ -12,19 +12,7 @@ const NAV_ITEMS: { page: Page; icon: typeof MessageSquare; label: string; soon?:
 ]
 
 export function Sidebar() {
-  const { activePage, setActivePage, serverStatus, toolCount, openSettings, registryUpdateCount } = useAppStore()
-
-  const statusDotStyle = {
-    width: 7,
-    height: 7,
-    borderRadius: '50%',
-    flexShrink: 0,
-    ...(serverStatus === 'online'
-      ? { background: 'var(--accent)', animation: 'breathe 4s ease-in-out infinite' }
-      : serverStatus === 'connecting'
-      ? { background: 'var(--yellow)', animation: 'pulse 1.2s ease-in-out infinite' }
-      : { background: 'var(--red)' }),
-  }
+  const { activePage, setActivePage, openSettings, registryUpdateCount, configWriteLock } = useAppStore()
 
   return (
     <div
@@ -40,20 +28,41 @@ export function Sidebar() {
     >
       {/* Brand */}
       <div style={{ padding: '18px 18px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <div style={{ fontSize: 9, letterSpacing: '0.20em', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: 6 }}>
-          <span style={{ color: 'var(--accent)', fontWeight: 700 }}>RTL</span>://
-        </div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em' }}>
+        <a
+          href="https://www.rapidthoughtlabs.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-block',
+            fontSize: '0.69rem',
+            letterSpacing: '0.20em',
+            color: 'var(--text-dim)',
+            marginBottom: 6,
+            textDecoration: 'none',
+            cursor: 'pointer',
+            transition: 'color 0.15s ease, text-shadow 0.22s ease',
+          }}
+          onMouseEnter={(e) => {
+            const t = e.currentTarget
+            t.style.color = 'var(--accent)'
+            t.style.textShadow = '0 0 6px var(--accent), 0 0 14px var(--accent), 0 0 28px var(--accent)'
+          }}
+          onMouseLeave={(e) => {
+            const t = e.currentTarget
+            t.style.color = 'var(--text-dim)'
+            t.style.textShadow = ''
+          }}
+        >
+          <span style={{ color: 'var(--accent)', fontWeight: 700 }}>rtl</span>://
+        </a>
+        <div style={{ fontSize: '1.38rem', fontWeight: 500, fontFamily: "'DM Mono', monospace", color: 'var(--text)', letterSpacing: '-0.03em' }}>
           mcp<span style={{ color: 'var(--accent)' }}>.</span>one
-        </div>
-        <div style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.12em', marginTop: 5 }}>
-          one server. any protocol.
         </div>
       </div>
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
-        <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-dim)', padding: '14px 18px 5px' }}>
+        <div style={{ fontSize: '0.69rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-dim)', padding: '14px 18px 5px' }}>
           Navigate
         </div>
         {NAV_ITEMS.map(({ page, icon: Icon, label, soon }) => {
@@ -69,7 +78,7 @@ export function Sidebar() {
                 alignItems: 'center',
                 gap: 10,
                 padding: '9px 18px',
-                fontSize: 11,
+                fontSize: '0.85rem',
                 color: isActive ? 'var(--accent)' : 'var(--text-dim)',
                 cursor: soon ? 'default' : 'pointer',
                 transition: 'all 0.12s',
@@ -117,14 +126,16 @@ export function Sidebar() {
           flexShrink: 0,
         }}
       >
-        <div style={statusDotStyle} />
-        <span style={{ fontSize: 10, color: 'var(--text-dim)', letterSpacing: '0.06em', flex: 1 }}>
-          {serverStatus === 'online'
-            ? `${toolCount} tool${toolCount !== 1 ? 's' : ''} ready`
-            : serverStatus === 'connecting'
-            ? 'connecting...'
-            : 'server offline'}
+        <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.06em', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {window.location.host}
         </span>
+        {configWriteLock && (
+          <Lock
+            size={11}
+            title="Config write lock ON"
+            style={{ color: 'var(--yellow)', flexShrink: 0, marginRight: 4 }}
+          />
+        )}
         <button
           onClick={openSettings}
           title="Settings"
@@ -139,7 +150,7 @@ export function Sidebar() {
             border: 'none',
             borderRadius: '50%',
             color: 'var(--accent-txt)',
-            fontSize: 12,
+            fontSize: '0.92rem',
             cursor: 'pointer',
             flexShrink: 0,
             transition: 'box-shadow 0.22s ease, filter 0.18s ease, transform 0.28s ease',

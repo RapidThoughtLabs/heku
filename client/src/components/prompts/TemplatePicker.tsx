@@ -12,7 +12,7 @@ export function TemplatePicker({ templates, activeId, onSelect }: TemplatePicker
     <div style={{ width: 220, flexShrink: 0, borderRight: '1px solid var(--border)', overflowY: 'auto' }}>
       <div
         style={{
-          fontSize: 9,
+          fontSize: '0.69rem',
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
           color: 'var(--text-dim)',
@@ -58,8 +58,8 @@ export function TemplatePicker({ templates, activeId, onSelect }: TemplatePicker
               }
             }}
           >
-            <span style={{ fontSize: 11, letterSpacing: '0.04em' }}>{tpl.name}</span>
-            <span style={{ fontSize: 9, color: 'var(--text-dim)', lineHeight: 1.5, letterSpacing: '0.02em' }}>
+            <span style={{ fontSize: '0.85rem', letterSpacing: '0.04em' }}>{tpl.name}</span>
+            <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', lineHeight: 1.5, letterSpacing: '0.02em' }}>
               {tpl.description}
             </span>
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>

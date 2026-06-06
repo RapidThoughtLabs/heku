@@ -38,13 +38,16 @@ export function RegistryView() {
     results,
     featured,
     loading,
+    loadingMore,
     error,
     total,
+    hasMore,
     filters,
     isInstalled,
     getUpdateInfo,
     setFilter,
     clearFilters,
+    loadMore,
     checkUpdates,
     install,
     uninstall,
@@ -79,8 +82,10 @@ export function RegistryView() {
       results={results}
       featured={featured}
       loading={loading}
+      loadingMore={loadingMore}
       error={error}
       total={total}
+      hasMore={hasMore}
       filters={filters}
       selectedRegistry={selectedRegistry}
       availableSources={availableSources}
@@ -88,6 +93,7 @@ export function RegistryView() {
       onSetFilter={setFilter}
       onClearFilters={clearFilters}
       onRefetch={() => void checkUpdates()}
+      onLoadMore={loadMore}
       isInstalled={isInstalled}
       getUpdateInfo={getUpdateInfo}
       onSelect={handleSelect}

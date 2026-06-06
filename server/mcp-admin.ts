@@ -62,6 +62,9 @@ export function createAdminClient(mcp: McpClientInstance) {
     put<T = unknown>(path: string, body: unknown): Promise<T> {
       return request<T>(mcp, "PUT", path, body);
     },
+    patch<T = unknown>(path: string, body: unknown): Promise<T> {
+      return request<T>(mcp, "PATCH", path, body);
+    },
     delete<T = unknown>(path: string): Promise<T> {
       return request<T>(mcp, "DELETE", path);
     },
