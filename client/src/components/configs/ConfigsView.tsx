@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Plus, Settings2, AlertCircle, CheckCircle, RefreshCw, Loader2, ChevronDown, Pencil, KeyRound, ExternalLink, Trash2, Upload, Play, Pause, ToggleLeft, ToggleRight, Library } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Plus, Settings2, AlertCircle, CheckCircle, RefreshCw, Loader2, ChevronDown, Pencil, KeyRound, ExternalLink, Trash2, Upload, GitFork, GitPullRequest, Play, Pause, ToggleLeft, ToggleRight, Library } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useConfigs } from '@/hooks/useConfigs'
 import { useAppStore } from '@/stores/app-store'
@@ -7,9 +7,11 @@ import { ConfigDesigner } from './ConfigDesigner'
 import { ConfigEditor } from './ConfigEditor'
 import { ConfigDetailView } from './ConfigDetailView'
 import { PublishModal } from './PublishModal'
+import { SubmitModal } from './SubmitModal'
 import { api } from '@/lib/api'
 import { isExperimental } from '@/lib/connector-meta'
 import type { ConfigSummary } from '@/types/server'
+import type { ManifestEntry } from '@/types/registry'
 
 // ── Helpers ────────────────────────────────────────────────────────
 
@@ -131,14 +133,37 @@ function LifecycleBadge({ cfg }: { cfg: ConfigSummary }) {
   return null
 }
 
-function ConfigCard({ cfg, onEdit, onOpen, onRefetch }: { cfg: ConfigSummary; onEdit: () => void; onOpen: () => void; onRefetch: () => void }) {
+function manifestEntryForConfig(manifest: ManifestEntry[], cfgId: string): ManifestEntry | undefined {
+  return manifest.find((e) => {
+    const withoutNs = e.slug.replace(/^@[^/]+\//, '')
+    const colonIdx = withoutNs.indexOf(':')
+    if (colonIdx === -1) return false
+    return `${withoutNs.slice(0, colonIdx)}-${withoutNs.slice(colonIdx + 1)}` === cfgId
+  })
+}
+
+function ConfigCard({ cfg, onEdit, onOpen, onRefetch, loggedInUsername }: {
+  cfg: ConfigSummary
+  onEdit: () => void
+  onOpen: () => void
+  onRefetch: () => void
+  loggedInUsername: string | null
+}) {
   const [expanded, setExpanded] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [toggling, setToggling] = useState(false)
   const [starting, setStarting] = useState(false)
   const [stopping, setStopping] = useState(false)
   const [publishOpen, setPublishOpen] = useState(false)
+  const [submitOpen, setSubmitOpen] = useState(false)
+  const manifest = useAppStore((s) => s.registryManifest)
   const { deleteConfig } = useConfigs()
+
+  const manifestEntry = manifestEntryForConfig(manifest, cfg.id)
+  const originNamespace = manifestEntry
+    ? manifestEntry.slug.slice(1, manifestEntry.slug.indexOf('/'))
+    : null
+  const isOwnConfig = !manifestEntry || (loggedInUsername !== null && originNamespace === loggedInUsername)
   const hasAuth = !!cfg.auth
   const authOk = cfg.auth?.ok ?? true
   const missingVars = cfg.auth?.missingVars ?? []
@@ -321,10 +346,23 @@ function ConfigCard({ cfg, onEdit, onOpen, onRefetch }: { cfg: ConfigSummary; on
               <Pencil size={10} style={{ marginRight: 5 }} />
               Edit
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setPublishOpen(true)}>
-              <Upload size={10} style={{ marginRight: 5 }} />
-              Publish
-            </Button>
+            {isOwnConfig ? (
+              <Button size="sm" variant="ghost" onClick={() => setPublishOpen(true)}>
+                <Upload size={10} style={{ marginRight: 5 }} />
+                Publish
+              </Button>
+            ) : (
+              <>
+                <Button size="sm" variant="ghost" onClick={() => setSubmitOpen(true)}>
+                  <GitPullRequest size={10} style={{ marginRight: 5 }} />
+                  Submit
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setPublishOpen(true)}>
+                  <GitFork size={10} style={{ marginRight: 5 }} />
+                  Fork
+                </Button>
+              </>
+            )}
             {canStart && (
               <Button size="sm" variant="ghost" onClick={() => void handleStart()} disabled={starting}
                 style={{ color: 'var(--green)' }}
@@ -371,7 +409,10 @@ function ConfigCard({ cfg, onEdit, onOpen, onRefetch }: { cfg: ConfigSummary; on
               Delete
             </Button>
           </div>
-          <PublishModal open={publishOpen} onClose={() => setPublishOpen(false)} cfg={cfg} />
+          <PublishModal open={publishOpen} onClose={() => setPublishOpen(false)} cfg={cfg} mode={isOwnConfig ? 'publish' : 'fork'} />
+          {!isOwnConfig && manifestEntry && (
+            <SubmitModal open={submitOpen} onClose={() => setSubmitOpen(false)} cfg={cfg} target={manifestEntry.slug} />
+          )}
         </div>
       )}
     </div>
@@ -391,6 +432,15 @@ function ConfigsList({
 }) {
   const { configs, loading, error, refetch } = useConfigs()
   const { setActivePage } = useAppStore()
+  const [loggedInUsername, setLoggedInUsername] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.get<{ loggedIn: boolean; user?: { username: string } }>('/registry/auth/status')
+      .then((data) => {
+        if (data.loggedIn && data.user?.username) setLoggedInUsername(data.user.username)
+      })
+      .catch(() => {})
+  }, [])
 
 
   return (
@@ -448,7 +498,7 @@ function ConfigsList({
           </div>
         ) : (
           configs.map((cfg) => (
-            <ConfigCard key={cfg.id} cfg={cfg} onEdit={() => onEdit(cfg)} onOpen={() => onOpen(cfg)} onRefetch={refetch} />
+            <ConfigCard key={cfg.id} cfg={cfg} onEdit={() => onEdit(cfg)} onOpen={() => onOpen(cfg)} onRefetch={refetch} loggedInUsername={loggedInUsername} />
           ))
         )}
       </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Upload, CheckCircle, Loader2 } from 'lucide-react'
+import { Upload, GitFork, CheckCircle, Loader2 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { api, ApiRequestError } from '@/lib/api'
@@ -53,9 +53,11 @@ export interface PublishModalProps {
   open: boolean
   onClose: () => void
   cfg: ConfigSummary
+  mode?: 'publish' | 'fork'
 }
 
-export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
+export function PublishModal({ open, onClose, cfg, mode = 'publish' }: PublishModalProps) {
+  const isFork = mode === 'fork'
   const [phase, setPhase]           = useState<Phase>('form')
   const [authUsername, setAuthUsername] = useState<string | null>(null)
   const [description, setDescription] = useState(cfg.description ?? '')
@@ -143,7 +145,7 @@ export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
     : 'Published'
 
   return (
-    <Modal open={open} onClose={onClose} title={`Publish — ${cfg.name}`} width={520}>
+    <Modal open={open} onClose={onClose} title={`${isFork ? 'Fork' : 'Publish'} — ${cfg.name}`} width={520}>
       {phase === 'success' && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '48px 20px' }}>
           <CheckCircle size={32} style={{ color: 'var(--accent)' }} />
@@ -180,8 +182,10 @@ export function PublishModal({ open, onClose, cfg }: PublishModalProps) {
             <Button variant="ghost" size="sm" onClick={onClose} disabled={phase === 'submitting'}>Cancel</Button>
             <Button variant="primary" size="sm" onClick={() => void handlePublish()} disabled={phase === 'submitting'}>
               {phase === 'submitting'
-                ? <><Loader2 size={10} style={{ marginRight: 5, animation: 'spin 1s linear infinite' }} />Publishing…</>
-                : <><Upload size={10} style={{ marginRight: 5 }} />Publish</>
+                ? <><Loader2 size={10} style={{ marginRight: 5, animation: 'spin 1s linear infinite' }} />{isFork ? 'Forking…' : 'Publishing…'}</>
+                : isFork
+                  ? <><GitFork size={10} style={{ marginRight: 5 }} />Fork</>
+                  : <><Upload size={10} style={{ marginRight: 5 }} />Publish</>
               }
             </Button>
           </div>
