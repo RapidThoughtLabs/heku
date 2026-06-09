@@ -186,7 +186,7 @@ Built with React 19, TailwindCSS v4, Zustand, and the MCP SDK.
 
 ## Registry
 
-[**mcp.rapidthoughtlabs.space**](https://mcp.rapidthoughtlabs.space) is the default registry for sharing configs.
+[**app.rapidthoughtlabs.space**](https://app.rapidthoughtlabs.space) is the default registry for sharing configs.
 
 ```bash
 heku install @rtl/github
