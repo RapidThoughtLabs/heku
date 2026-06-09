@@ -30,7 +30,7 @@ export default defineConfig({
     js: `import { createRequire as __createRequire } from 'module'; const require = __createRequire(import.meta.url);`,
   },
   define: {
-    __MCPONE_VERSION__: JSON.stringify(pkg.version),
-    __MCPONE_NAME__: JSON.stringify(pkg.name),
+    __HEKU_VERSION__: JSON.stringify(pkg.version),
+    __HEKU_NAME__: JSON.stringify(pkg.name),
   },
 });

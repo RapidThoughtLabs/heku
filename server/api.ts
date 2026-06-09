@@ -27,7 +27,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
   });
 
   // ── POST /api/connect ─────────────────────────────────────────────
-  // Connect to a specific mcp-one HTTP endpoint
+  // Connect to a specific heku HTTP endpoint
 
   router.post("/connect", async (req, res) => {
     const { endpoint } = req.body as { endpoint?: string };
@@ -45,7 +45,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
   });
 
   // ── POST /api/disconnect ──────────────────────────────────────────
-  // Disconnect from current mcp-one instance
+  // Disconnect from current heku instance
 
   router.post("/disconnect", async (_req, res) => {
     await mcp.disconnect();
@@ -53,7 +53,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
   });
 
   // ── GET /api/server-settings ─────────────────────────────────────
-  // Read current hot reload + log level from the mcp-one admin API.
+  // Read current hot reload + log level from the heku admin API.
 
   router.get("/server-settings", async (_req, res) => {
     try {
@@ -61,7 +61,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(settings);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        // Return safe defaults when mcp-one is not connected
+        // Return safe defaults when heku is not connected
         res.json({ hotReload: true, logLevel: "info", manifestStyle: "flat", configWriteLock: false, unavailable: true });
         return;
       }
@@ -70,7 +70,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
   });
 
   // ── POST /api/server-settings ────────────────────────────────────
-  // Apply new hot reload / log level settings to the live mcp-one process.
+  // Apply new hot reload / log level settings to the live heku process.
 
   router.post("/server-settings", async (req, res) => {
     try {
@@ -78,7 +78,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -87,7 +87,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
   });
 
   // ── GET /api/configs ─────────────────────────────────────────────
-  // Proxy to mcp-one admin API — live tool counts included server-side.
+  // Proxy to heku admin API — live tool counts included server-side.
 
   router.get("/configs", async (_req, res) => {
     try {
@@ -113,7 +113,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
         config = await admin.get(`/configs/${id}`);
       } catch (err) {
         if (err instanceof AdminUnavailableError) {
-          res.status(503).json({ error: "mcp-one not connected" });
+          res.status(503).json({ error: "heku not connected" });
           return;
         }
         const status = (err as Error & { status?: number }).status;
@@ -155,7 +155,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -164,7 +164,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
   });
 
   // ── POST /api/configs ────────────────────────────────────────────
-  // Create a new config. Body uses base id; mcp-one compounds it with connector.type.
+  // Create a new config. Body uses base id; heku compounds it with connector.type.
 
   router.post("/configs", async (req, res) => {
     try {
@@ -174,7 +174,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.status(201).json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -193,7 +193,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -202,7 +202,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
   });
 
   // ── DELETE /api/configs/:id ──────────────────────────────────────
-  // Delete a config file via mcp-one admin API.
+  // Delete a config file via heku admin API.
 
   router.delete("/configs/:id", async (req, res) => {
     try {
@@ -212,7 +212,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -231,7 +231,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -250,7 +250,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -269,7 +269,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -287,7 +287,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;
@@ -328,7 +328,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
     const args = (body["arguments"] ?? {}) as Record<string, unknown>;
 
     // Build a caller label from optional agent headers forwarded by the UI.
-    // The mcp-one server will also see X-Source: dashboard from the bridge transport.
+    // The heku server will also see X-Source: dashboard from the bridge transport.
     const callerParts = ["dashboard"];
     const agentId = req.headers["x-agent-id"] as string | undefined;
     const chatId  = req.headers["x-chat-id"]  as string | undefined;
@@ -378,7 +378,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
   });
 
   // ── POST /api/credentials ────────────────────────────────────────
-  // Proxy credential writes to the mcp-one admin API so the local mcp-one
+  // Proxy credential writes to the heku admin API so the local heku
   // instance writes and reloads the .env file on its own filesystem.
 
   router.post("/credentials", async (req, res) => {
@@ -392,7 +392,7 @@ export function createApiRouter(mcp: McpClientInstance): Router {
       res.json(data);
     } catch (err) {
       if (err instanceof AdminUnavailableError) {
-        res.status(503).json({ error: "mcp-one not connected" });
+        res.status(503).json({ error: "heku not connected" });
         return;
       }
       const status = (err as Error & { status?: number }).status ?? 500;

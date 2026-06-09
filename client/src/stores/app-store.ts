@@ -28,7 +28,7 @@ interface AppState {
   openSettings: () => void
   closeSettings: () => void
 
-  // Server settings (fetched from mcp-one at runtime; reset on process restart)
+  // Server settings (fetched from heku at runtime; reset on process restart)
   hotReload: boolean
   logLevel: LogLevel
   manifestStyle: ManifestStyle
@@ -45,7 +45,7 @@ interface AppState {
   // Server version — populated from /api/health on first connect (console/bridge)
   serverVersion: string | null
   setServerVersion: (v: string | null) => void
-  // mcp-one MCP server version — populated from /api/server-settings
+  // heku MCP server version — populated from /api/server-settings
   mcpServerVersion: string | null
   setMcpServerVersion: (v: string | null) => void
 
@@ -152,7 +152,7 @@ export const useAppStore = create<AppState>((set) => ({
   bumpConfigsRevision: () => set((s) => ({ configsRevision: s.configsRevision + 1 })),
 
   // ── Registry page cache ──────────────────────────────────────────
-  registrySource:         localStorage.getItem('mcp-one:registry:selectedSource') ?? 'default',
+  registrySource:         localStorage.getItem('heku:registry:selectedSource') ?? 'default',
   registryResults:        [],
   registryFeatured:       [],
   registryTotal:          0,

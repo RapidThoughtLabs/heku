@@ -104,7 +104,7 @@ function makeServer(
   transportCtx?: Partial<CallerContext>,
 ): Server {
   const server = new Server(
-    { name: "mcp-one", version: VERSION },
+    { name: "heku", version: VERSION },
     { capabilities: { tools: {} } },
   );
 
@@ -158,7 +158,7 @@ function makeServer(
             {
               type: "text" as const,
               text: JSON.stringify({
-                error: `Config Write Lock is enabled — "${blocked}" is blocked. Disable it in mcp.one settings to make config changes.`,
+                error: `Config Write Lock is enabled — "${blocked}" is blocked. Disable it in heku settings to make config changes.`,
                 lockEnabled: true,
               }),
             },
@@ -257,7 +257,7 @@ export async function startServer(
   }
 
   // ── Transport 1: stdio (always on) ───────────────────────────────
-  // Claude Desktop / Cursor spawns mcp-one and talks via stdio.
+  // Claude Desktop / Cursor spawns heku and talks via stdio.
   // This never changes — zero breakage to existing integrations.
 
   const stdioServer = makeServer(registry, { transport: "stdio" });
@@ -266,7 +266,7 @@ export async function startServer(
   activeServers.add(stdioServer);
 
   console.error(
-    `[mcp-one] stdio  ready — ${registry.size()} tools from ${configs.length} config(s)`,
+    `[heku] stdio  ready — ${registry.size()} tools from ${configs.length} config(s)`,
   );
 
   // ── Transport 2: HTTP (opt-in via --http flag) ───────────────────
@@ -281,11 +281,11 @@ export async function startServer(
 
     // ── Health endpoint ─────────────────────────────────────────
     // The Express API bridge (server/mcp-client.ts) hits this first
-    // to detect whether an HTTP-mode mcp-one is already running.
+    // to detect whether an HTTP-mode heku is already running.
     app.get("/health", (_req, res) => {
       res.json({
         ok: true,
-        service: "mcp-one",
+        service: "heku",
         version: VERSION,
         toolCount: registry.size(),
         transport: "http+stdio",
@@ -306,7 +306,7 @@ export async function startServer(
         bringServerOnline: options.bringServerOnline,
         takeServerOffline: options.takeServerOffline,
       }));
-      console.error(`[mcp-one] admin  ready — http://localhost:${port}/admin/configs`);
+      console.error(`[heku] admin  ready — http://localhost:${port}/admin/configs`);
     }
 
     // ── MCP streamable-HTTP endpoint ─────────────────────────────
@@ -365,8 +365,8 @@ export async function startServer(
     });
 
     app.listen(port, () => {
-      console.error(`[mcp-one] http   ready — http://localhost:${port}/mcp`);
-      console.error(`[mcp-one] health        → http://localhost:${port}/health`);
+      console.error(`[heku] http   ready — http://localhost:${port}/mcp`);
+      console.error(`[heku] health        → http://localhost:${port}/health`);
     });
   }
 

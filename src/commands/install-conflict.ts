@@ -53,7 +53,7 @@ function tierFooter(
     case "unrelated":
       if (authVars.size > 0) {
         return dim(
-          `  ↳ Auth env vars may differ. Run ${bold(`mcp-one auth setup ${incoming.qualified_slug}`)} after install if needed.`,
+          `  ↳ Auth env vars may differ. Run ${bold(`heku auth setup ${incoming.qualified_slug}`)} after install if needed.`,
         );
       }
       return dim(`  ↳ No auth configured on the existing config.`);

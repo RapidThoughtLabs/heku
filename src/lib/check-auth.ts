@@ -35,7 +35,7 @@ export interface AuthVarStatus {
 
 /**
  * Returns per-variable presence status for every env var an auth block references.
- * Used by `mcp-one auth status` to display a per-variable health table.
+ * Used by `heku auth status` to display a per-variable health table.
  */
 export function getAuthVarStatuses(auth: AuthConfig, configId: string): AuthVarStatus[] {
   switch (auth.type) {
@@ -56,7 +56,7 @@ export function getAuthVarStatuses(auth: AuthConfig, configId: string): AuthVarS
 
 /**
  * Returns the names of all env vars referenced by an auth block — whether set or not.
- * Used by `mcp-one auth setup` to know which vars to prompt for.
+ * Used by `heku auth setup` to know which vars to prompt for.
  */
 export function getAuthVarNames(auth: AuthConfig): string[] {
   switch (auth.type) {

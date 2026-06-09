@@ -3,15 +3,15 @@ import type { McpConfig } from "./types.js";
 /** Built-in self-management config — always present, cannot be deleted or overridden from disk. */
 export const INTERNAL_CONFIG: McpConfig = {
   id: "one",
-  name: "mcp.one Self-Management",
+  name: "heku Self-Management",
   description:
-    "Create configs, add tools, install from registry, manage auth — mcp.one's own management interface for LLM agents.",
+    "Create configs, add tools, install from registry, manage auth — heku's own management interface for LLM agents.",
   connector: { type: "internal" },
   tools: [
     {
       name: "create_config",
       description:
-        "Create a new mcp.one config file for any connector type (http, cli, file, grpc, graphql, mcp, sql, mongodb). The config is hot-reloaded automatically — for GraphQL/gRPC/MCP connectors, pass tools: [] and tools are auto-discovered from the endpoint or proto file. For sql/mongodb, each tool must declare a named query or operation.",
+        "Create a new heku config file for any connector type (http, cli, file, grpc, graphql, mcp, sql, mongodb). The config is hot-reloaded automatically — for GraphQL/gRPC/MCP connectors, pass tools: [] and tools are auto-discovered from the endpoint or proto file. For sql/mongodb, each tool must declare a named query or operation.",
       params: [
         { name: "id",          type: "string",  required: true,  description: "Config ID — becomes the filename mcp.{id}.json and the tool namespace prefix" },
         { name: "name",        type: "string",  required: true,  description: "Human-readable name for this config" },
@@ -91,7 +91,7 @@ export const INTERNAL_CONFIG: McpConfig = {
     },
     {
       name: "delete_config",
-      description: "Delete a config file and unregister all its tools. Cannot delete the 'one' self-management config — use self_config: false in mcp-one.config.json instead.",
+      description: "Delete a config file and unregister all its tools. Cannot delete the 'one' self-management config — use self_config: false in heku.config.json instead.",
       params: [
         { name: "config_id", type: "string", required: true, description: "Config ID to delete" },
       ],
@@ -150,7 +150,7 @@ export const INTERNAL_CONFIG: McpConfig = {
     },
     {
       name: "registry_search",
-      description: "Search the mcp.one registry for published configs by keyword, tags, category, or connector type.",
+      description: "Search the heku registry for published configs by keyword, tags, category, or connector type.",
       params: [
         { name: "query",          type: "string",  required: false, description: "Search query string" },
         { name: "tags",           type: "string",  required: false, description: "Comma-separated tag filter (e.g. 'productivity,git')" },
@@ -173,7 +173,7 @@ export const INTERNAL_CONFIG: McpConfig = {
       name: "registry_install",
       description: "Install a config from the registry into the local mcp-configs directory. The config is hot-reloaded and its tools become immediately available.",
       params: [
-        { name: "target",   type: "string",  required: true,  description: "Registry slug in format namespace/slug or namespace/slug@version (e.g. 'mcp-one/github' or 'mcp-one/slack@1.2.0')" },
+        { name: "target",   type: "string",  required: true,  description: "Registry slug in format namespace/slug or namespace/slug@version (e.g. '@rtl/github' or '@rtl/slack@1.2.0')" },
         { name: "force",    type: "boolean", required: false, description: "Reinstall even if already installed (default: false)" },
         { name: "registry", type: "string",  required: false, description: "Registry source name (default: 'default')" },
       ],
@@ -203,7 +203,7 @@ export const INTERNAL_CONFIG: McpConfig = {
     },
     {
       name: "server_status",
-      description: "Get mcp.one server health information: uptime, total tool count, loaded configs, and config directory path.",
+      description: "Get heku server health information: uptime, total tool count, loaded configs, and config directory path.",
       params: [],
     },
   ],

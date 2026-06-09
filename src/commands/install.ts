@@ -1,5 +1,5 @@
 /**
- * mcp-one install <target>
+ * heku install <target>
  *
  * Installs a config from the registry into mcp-configs/.
  *
@@ -118,7 +118,7 @@ async function resolveMeta(
         if (examples.length > 0) {
           console.error(`  Pick one, e.g.:`);
           for (const ex of examples.slice(0, 3)) {
-            console.error(`    mcp-one install ${ex}`);
+            console.error(`    heku install ${ex}`);
           }
         }
         process.exit(1);
@@ -187,17 +187,17 @@ export async function run(args: string[]): Promise<void> {
 
   if (!target) {
     console.error(
-      red("✗") + ` Usage: ${bold("mcp-one install <target>")}` +
+      red("✗") + ` Usage: ${bold("heku install <target>")}` +
       `\n  Examples:` +
-      `\n    mcp-one install @rtl/context7-api` +
-      `\n    mcp-one install @rtl/github:http` +
-      `\n    mcp-one install @rtl/github:http@1.2.0` +
+      `\n    heku install @rtl/context7-api` +
+      `\n    heku install @rtl/github:http` +
+      `\n    heku install @rtl/github:http@1.2.0` +
       `\n  Flags: ${bold("--force")} (reinstall same namespace)  ${bold("--replace")} (replace cross-namespace conflict)`,
     );
     process.exit(1);
   }
 
-  // Resolve config directory (respects mcp-one.config.json config_dir)
+  // Resolve config directory (respects heku.config.json config_dir)
   const systemConfig = loadSystemConfig(process.cwd());
   const configDir    = resolveConfigDir(undefined, systemConfig);
 
@@ -311,7 +311,7 @@ export async function run(args: string[]): Promise<void> {
     if (err instanceof RegistryError) {
       if (err.status === 410) {
         console.error(red("✗") + `  Version was yanked: ${err.message}`);
-        console.error(`  Run ${bold("mcp-one list")} to check for updates.`);
+        console.error(`  Run ${bold("heku list")} to check for updates.`);
       } else {
         console.error(red("✗") + `  ${err.message}`);
       }
@@ -354,7 +354,7 @@ export async function run(args: string[]): Promise<void> {
   if (sameSlugEntry && force) {
     console.log(dim("  Reinstalled — server will hot-reload it automatically."));
   } else {
-    console.log(dim("  Restart or reload mcp-one to activate the new config."));
+    console.log(dim("  Restart or reload heku to activate the new config."));
   }
   console.log();
 }

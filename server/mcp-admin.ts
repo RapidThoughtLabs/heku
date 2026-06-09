@@ -9,7 +9,7 @@ export class AdminUnavailableError extends Error {
 
 function getAdminBase(mcp: McpClientInstance): string {
   const { endpoint } = mcp.getStatus();
-  if (!endpoint) throw new AdminUnavailableError("mcp-one not connected");
+  if (!endpoint) throw new AdminUnavailableError("heku not connected");
   // Derive admin base from MCP endpoint: http://host:port/mcp → http://host:port/admin
   const url = new URL(endpoint);
   url.pathname = "/admin";
@@ -37,13 +37,13 @@ async function request<T>(
   try {
     res = await fetch(url, init);
   } catch (err) {
-    throw new AdminUnavailableError(`Cannot reach mcp-one admin API: ${(err as Error).message}`);
+    throw new AdminUnavailableError(`Cannot reach heku admin API: ${(err as Error).message}`);
   }
 
   const data = await res.json() as T;
   if (!res.ok) {
     const errMsg = (data as Record<string, unknown>)["error"] as string | undefined;
-    const err = new Error(errMsg ?? `mcp-one admin returned ${res.status}`);
+    const err = new Error(errMsg ?? `heku admin returned ${res.status}`);
     (err as Error & { status: number }).status = res.status;
     throw err;
   }

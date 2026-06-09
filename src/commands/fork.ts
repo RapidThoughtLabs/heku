@@ -1,5 +1,5 @@
 /**
- * mcp-one fork <namespace/slug>
+ * heku fork <namespace/slug>
  *
  * Forks a published config into the authenticated user's namespace.
  * Implemented via POST /publish with a cross-namespace target — the registry
@@ -17,7 +17,7 @@ export async function run(args: string[]): Promise<void> {
   const target = args.find((a) => !a.startsWith("--") && a !== args[registryFlag + 1]);
 
   if (!target) {
-    console.error(red("✗") + ` Usage: ${bold("mcp-one fork <namespace/slug>")}`);
+    console.error(red("✗") + ` Usage: ${bold("heku fork <namespace/slug>")}`);
     process.exit(1);
   }
 
@@ -34,7 +34,7 @@ export async function run(args: string[]): Promise<void> {
   if (!creds) {
     console.error(
       red("✗") +
-      ` Not logged in. Run: ${bold("mcp-one login")}` +
+      ` Not logged in. Run: ${bold("heku login")}` +
       (registryName !== "default" ? ` --registry ${registryName}` : ""),
     );
     process.exit(1);
@@ -80,7 +80,7 @@ export async function run(args: string[]): Promise<void> {
     const registryUrl = getRegistryUrlSafe(registryName);
     console.log(dim(`  ${registryUrl}/${result.config.namespace}/${result.config.slug}`));
     console.log();
-    console.log(dim("  The fork starts at v1.0.0. Use `mcp-one publish` to push changes."));
+    console.log(dim("  The fork starts at v1.0.0. Use `heku publish` to push changes."));
     console.log();
 
   } catch (err) {

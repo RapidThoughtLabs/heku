@@ -105,7 +105,7 @@ export async function run(args: string[]): Promise<void> {
   if (systemConfig.rate_limits && Object.keys(systemConfig.rate_limits).length > 0) {
     configureLimiter(systemConfig.rate_limits);
     console.error(
-      `[mcp-one] Rate limits active for: ${Object.keys(systemConfig.rate_limits).join(", ")}`,
+      `[heku] Rate limits active for: ${Object.keys(systemConfig.rate_limits).join(", ")}`,
     );
   }
 
@@ -174,7 +174,7 @@ export async function run(args: string[]): Promise<void> {
   ).length;
 
   log.raw("");
-  const verStr = `mcp.one  v${VERSION}`;
+  const verStr = `heku  v${VERSION}`;
   const bannerWidth = 41;
   const pad = Math.max(0, bannerWidth - verStr.length);
   const lpad = Math.floor(pad / 2);
@@ -284,7 +284,7 @@ export async function run(args: string[]): Promise<void> {
     const before = allConfigs.length;
     allConfigs.splice(0, allConfigs.length, ...allConfigs.filter((c) => c.id !== "one"));
     if (allConfigs.length < before) {
-      log.info("server", "self_config: false — mcp.one self-management disabled");
+      log.info("server", "self_config: false — heku self-management disabled");
     }
   } else if (systemConfig.self_config && typeof systemConfig.self_config === "object") {
     const sc = systemConfig.self_config as { allow?: string[]; deny?: string[] };

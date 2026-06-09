@@ -7,7 +7,7 @@
  * the helper that splits a compound id back into its parts.
  *
  * The loader's broader whitelist (src/loader.ts) also includes "internal",
- * which is reserved for mcp.one itself and never appears as a filename suffix.
+ * which is reserved for heku itself and never appears as a filename suffix.
  */
 
 export const CONNECTOR_TYPES = ["http", "cli", "file", "grpc", "graphql", "mcp", "sql", "mongodb"] as const;

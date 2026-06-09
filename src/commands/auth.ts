@@ -98,8 +98,8 @@ async function runStatus(configs: McpConfig[]): Promise<void> {
       `\n  ${totalMissing} env var(s) missing across ${missingConfigs.length} config(s).`,
     );
     const hint = missingConfigs.length === 1
-      ? `mcp-one auth setup ${missingConfigs[0]}`
-      : "mcp-one auth setup";
+      ? `heku auth setup ${missingConfigs[0]}`
+      : "heku auth setup";
     console.log(`  Run: ${bold(hint)}\n`);
   }
 }
@@ -269,7 +269,7 @@ async function runSetup(args: string[], configs: McpConfig[], configDir: string)
     const found = configs.find((c) => c.id === serviceArg);
     if (!found) {
       console.error(
-        `[mcp-one] Config not found: "${serviceArg}"\n` +
+        `[heku] Config not found: "${serviceArg}"\n` +
         `  Available: ${configs.map((c) => c.id).join(", ")}`,
       );
       process.exit(1);
@@ -307,8 +307,8 @@ export async function run(args: string[]): Promise<void> {
 
   if (configs.length === 0) {
     console.error(
-      `[mcp-one] No configs found in: ${configDir}\n` +
-      `  Place mcp.*.json files there, or set config_dir in mcp-one.config.json`,
+      `[heku] No configs found in: ${configDir}\n` +
+      `  Place mcp.*.json files there, or set config_dir in heku.config.json`,
     );
     process.exit(1);
   }
@@ -325,8 +325,8 @@ export async function run(args: string[]): Promise<void> {
     case undefined:
     default:
       console.error(
-        `[mcp-one] Unknown auth subcommand: "${subcommand ?? ""}".\n` +
-        `  Usage: mcp-one auth status | mcp-one auth setup [service]`,
+        `[heku] Unknown auth subcommand: "${subcommand ?? ""}".\n` +
+        `  Usage: heku auth status | heku auth setup [service]`,
       );
       process.exit(1);
   }

@@ -313,7 +313,7 @@ export function startWatcher(
     console.error("[watcher] FS error:", err);
   });
 
-  console.error(`[mcp-one] Watching ${configDir} for config changes`);
+  console.error(`[heku] Watching ${configDir} for config changes`);
   return {
     pause(): void {
       paused = true;

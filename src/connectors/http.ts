@@ -6,7 +6,7 @@ import type { IConnector, ConnectorResult } from "./base.js";
 // ── Constants ─────────────────────────────────────────────────────
 
 const DEFAULT_TIMEOUT_MS = 30_000;
-const USER_AGENT = "mcp-one/0.1.0";
+const USER_AGENT = "heku/0.1.0";
 
 // ── Types ─────────────────────────────────────────────────────────
 

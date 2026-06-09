@@ -4,7 +4,7 @@
  * Every exported function accepts an optional `registryName` parameter
  * (defaults to "default") so multi-registry support is first-class.
  *
- * Auth tokens are loaded from ~/.mcp-one/credentials.json keyed by registry
+ * Auth tokens are loaded from ~/.heku/credentials.json keyed by registry
  * name.  On 401 the client silently refreshes and retries once.
  */
 
@@ -112,7 +112,7 @@ async function registryFetch(
     throw new RegistryError(
       401,
       "unauthorized",
-      `Not logged in to registry "${registryName}". Run: mcp-one login${registryName !== "default" ? ` --registry ${registryName}` : ""}`,
+      `Not logged in to registry "${registryName}". Run: heku login${registryName !== "default" ? ` --registry ${registryName}` : ""}`,
     );
   }
 
@@ -393,7 +393,7 @@ export async function fetchVersionPayload(
     throw new RegistryError(
       410,
       "yanked",
-      `Version ${version} of ${namespace}/${slug} was yanked for security reasons. Run: mcp-one update`,
+      `Version ${version} of ${namespace}/${slug} was yanked for security reasons. Run: heku update`,
     );
   }
   if (!res.ok) {

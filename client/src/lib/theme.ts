@@ -1,8 +1,8 @@
 import type { AccentColor, ThemeMode } from '@/stores/app-store'
 
-const STORAGE_KEY_MODE = 'mcp-one:theme-mode'
-const STORAGE_KEY_ACCENT = 'mcp-one:accent'
-const STORAGE_KEY_FONT_SIZE = 'mcp-one:font-size'
+const STORAGE_KEY_MODE = 'heku:theme-mode'
+const STORAGE_KEY_ACCENT = 'heku:accent'
+const STORAGE_KEY_FONT_SIZE = 'heku:font-size'
 
 export function loadTheme(): { mode: ThemeMode; accent: AccentColor; fontSize: number } {
   const mode = (localStorage.getItem(STORAGE_KEY_MODE) as ThemeMode) || 'dark'

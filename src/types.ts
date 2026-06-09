@@ -3,9 +3,9 @@
 export interface BearerAuth {
   type: "bearer";
   token_env: string;
-  /** Optional URL where the user can obtain/manage this token. Shown during `mcp-one auth setup`. */
+  /** Optional URL where the user can obtain/manage this token. Shown during `heku auth setup`. */
   auth_url?: string;
-  /** Optional service-specific hint (e.g. required scopes). Shown during `mcp-one auth setup`. */
+  /** Optional service-specific hint (e.g. required scopes). Shown during `heku auth setup`. */
   description?: string;
 }
 
@@ -13,9 +13,9 @@ export interface BasicAuth {
   type: "basic";
   username_env: string;
   token_env: string;
-  /** Optional URL where the user can obtain/manage these credentials. Shown during `mcp-one auth setup`. */
+  /** Optional URL where the user can obtain/manage these credentials. Shown during `heku auth setup`. */
   auth_url?: string;
-  /** Optional service-specific hint. Shown during `mcp-one auth setup`. */
+  /** Optional service-specific hint. Shown during `heku auth setup`. */
   description?: string;
 }
 
@@ -23,18 +23,18 @@ export interface ApiKeyAuth {
   type: "api_key";
   key_env: string;
   header_name: string;
-  /** Optional URL where the user can obtain/manage this API key. Shown during `mcp-one auth setup`. */
+  /** Optional URL where the user can obtain/manage this API key. Shown during `heku auth setup`. */
   auth_url?: string;
-  /** Optional service-specific hint. Shown during `mcp-one auth setup`. */
+  /** Optional service-specific hint. Shown during `heku auth setup`. */
   description?: string;
 }
 
 export interface OAuth2StaticAuth {
   type: "oauth2_static";
   token_env: string;
-  /** Optional URL where the user can obtain/manage this token. Shown during `mcp-one auth setup`. */
+  /** Optional URL where the user can obtain/manage this token. Shown during `heku auth setup`. */
   auth_url?: string;
-  /** Optional service-specific hint. Shown during `mcp-one auth setup`. */
+  /** Optional service-specific hint. Shown during `heku auth setup`. */
   description?: string;
 }
 

@@ -79,7 +79,7 @@ export async function execute(
         data: {
           error: `Auth not configured for service "${err.configId}"`,
           missing_env_vars: err.missingVars,
-          fix: `Run: mcp-one auth setup ${err.configId}`,
+          fix: `Run: heku auth setup ${err.configId}`,
         },
       };
     }

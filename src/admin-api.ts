@@ -39,7 +39,7 @@ export interface AdminContext {
   watcher: { pause(): void; resume(): void; isPaused(): boolean } | null;
   onManifestStyleChanged?: () => void;
   notifyToolsChanged?: () => Promise<void>;
-  // pipeline integration (optional — absent when mcp-one runs without HTTP/bridge)
+  // pipeline integration (optional — absent when heku runs without HTTP/bridge)
   getRuntime?: (configId: string) => ConfigRuntime | undefined;
   bringServerOnline?: (ctx: LifecycleCtx) => void;
   takeServerOffline?: (configId: string, reason: "user-stop" | "config-deleted") => void;

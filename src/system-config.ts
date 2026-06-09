@@ -27,11 +27,11 @@ export interface SystemConfig {
 
 // ── Loader ─────────────────────────────────────────────────────────
 
-const SYSTEM_CONFIG_FILE = "mcp-one.config.json";
+const SYSTEM_CONFIG_FILE = "heku.config.json";
 
 /**
  * Loads system config with precedence: CWD → home dir → empty defaults.
- * Reading from home dir first means `mcp-one start` launched from any
+ * Reading from home dir first means `heku start` launched from any
  * directory still finds the user's global config.
  */
 export function loadSystemConfig(cwd: string = process.cwd()): SystemConfig {
@@ -90,7 +90,7 @@ export function loadSystemConfig(cwd: string = process.cwd()): SystemConfig {
       }
     }
 
-    console.error(`[mcp-one] Loaded system config: ${SYSTEM_CONFIG_FILE}`);
+    console.error(`[heku] Loaded system config: ${SYSTEM_CONFIG_FILE}`);
     return config;
   } catch (err) {
     console.error(`[system-config] Failed to parse ${SYSTEM_CONFIG_FILE}:`, (err as Error).message);

@@ -1,5 +1,5 @@
 /**
- * mcp-one publish [file]
+ * heku publish [file]
  *
  * Publishes a local McpConfig JSON file to the registry.
  * The registry decides the action (created / versioned / forked) based on whether
@@ -163,7 +163,7 @@ export async function run(args: string[]): Promise<void> {
   if (!creds) {
     console.error(
       red("✗") +
-      ` Not logged in. Run: ${bold("mcp-one login")}` +
+      ` Not logged in. Run: ${bold("heku login")}` +
       (registryName !== "default" ? ` --registry ${registryName}` : ""),
     );
     process.exit(1);
@@ -187,7 +187,7 @@ export async function run(args: string[]): Promise<void> {
         .map((f) => path.join(configDir, f));
     }
     if (candidates.length === 0) {
-      console.error(red("✗") + ` No config file found. Try: ${bold("mcp-one publish <name>")}`);
+      console.error(red("✗") + ` No config file found. Try: ${bold("heku publish <name>")}`);
       process.exit(1);
     }
     if (candidates.length > 1) {
@@ -195,7 +195,7 @@ export async function run(args: string[]): Promise<void> {
         red("✗") +
         ` Multiple configs found — specify which one:\n` +
         candidates.map((c) => `  ${dim(path.basename(c, ".json").replace(/^mcp\./, ""))}`).join("\n") +
-        `\n\n  Usage: ${bold("mcp-one publish <name>")}`,
+        `\n\n  Usage: ${bold("heku publish <name>")}`,
       );
       process.exit(1);
     }

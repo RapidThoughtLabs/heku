@@ -18,7 +18,7 @@ function authBadge(config: McpConfig): string {
     : red("❌ missing");
 }
 
-// ── Table view — mcp-one list ─────────────────────────────────────
+// ── Table view — heku list ─────────────────────────────────────
 
 function renderTable(configs: McpConfig[]): void {
   const rows = configs.map((c) => ({
@@ -48,12 +48,12 @@ function renderTable(configs: McpConfig[]): void {
   });
   if (unconfigured.length > 0) {
     console.log(
-      `\n  ${unconfigured.length} config(s) need auth setup. Run: ${bold("mcp-one auth setup")}`,
+      `\n  ${unconfigured.length} config(s) need auth setup. Run: ${bold("heku auth setup")}`,
     );
   }
 }
 
-// ── Detail view — mcp-one list <service> ─────────────────────────
+// ── Detail view — heku list <service> ─────────────────────────
 
 function renderDetail(config: McpConfig): void {
   const auth     = getConfigAuth(config);
@@ -98,7 +98,7 @@ function renderDetail(config: McpConfig): void {
       `\n  ${red("Missing:")} ${missing.join(", ")}`,
     );
     console.log(
-      `  Run: ${bold(`mcp-one auth setup ${config.id}`)}`,
+      `  Run: ${bold(`heku auth setup ${config.id}`)}`,
     );
   }
 
@@ -120,8 +120,8 @@ export async function run(args: string[]): Promise<void> {
 
   if (configs.length === 0) {
     console.error(
-      `[mcp-one] No configs found in: ${configDir}\n` +
-      `  Place mcp.*.json files there, or set config_dir in mcp-one.config.json`,
+      `[heku] No configs found in: ${configDir}\n` +
+      `  Place mcp.*.json files there, or set config_dir in heku.config.json`,
     );
     process.exit(1);
   }
@@ -138,7 +138,7 @@ export async function run(args: string[]): Promise<void> {
   const config = configs.find((c) => c.id === serviceArg);
   if (!config) {
     console.error(
-      `[mcp-one] Config not found: "${serviceArg}"\n` +
+      `[heku] Config not found: "${serviceArg}"\n` +
       `  Available: ${configs.map((c) => c.id).join(", ")}`,
     );
     process.exit(1);

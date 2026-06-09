@@ -145,7 +145,7 @@ export function createMcpClient() {
       return;
     }
 
-    client = new Client({ name: "mcp-one-api", version: VERSION }, {});
+    client = new Client({ name: "heku-api", version: VERSION }, {});
 
     client.onclose = () => {
       stopHttpToolPoll();
@@ -174,7 +174,7 @@ export function createMcpClient() {
 
     status = "connected";
     reconnectDelay = 1_000;
-    addLog("info", "mcp", `Connected to mcp-one at ${baseUrl} ✓`);
+    addLog("info", "mcp", `Connected to heku at ${baseUrl} ✓`);
 
     await fetchTools();
 
@@ -224,7 +224,7 @@ export function createMcpClient() {
 
     listTools: (): McpTool[] => [...tools],
 
-    /** Force an immediate tool list refresh from mcp-one. */
+    /** Force an immediate tool list refresh from heku. */
     refreshTools: async (): Promise<void> => {
       await fetchTools();
     },
@@ -253,7 +253,7 @@ export function createMcpClient() {
 
     addLog,
 
-    /** Connect to a specific mcp-one HTTP endpoint. Replaces any existing connection. */
+    /** Connect to a specific heku HTTP endpoint. Replaces any existing connection. */
     connectToEndpoint: async (endpoint: string): Promise<void> => {
       active = false;
       await cleanupConnection();

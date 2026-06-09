@@ -1,8 +1,8 @@
-# mcp.one
+# heku
 
 > One server. Any REST API. Any LLM.
 
-**mcp.one** is a single dynamic [Model Context Protocol](https://modelcontextprotocol.io) server that turns JSON config files into working API tools. No code to write — drop a config, and your LLM gets the tools instantly.
+**heku** is a single dynamic [Model Context Protocol](https://modelcontextprotocol.io) server that turns JSON config files into working API tools. No code to write — drop a config, and your LLM gets the tools instantly.
 
 Stop building one MCP server per API. Build one config.
 
@@ -25,14 +25,14 @@ Stop building one MCP server per API. Build one config.
 Requires **Node.js ≥ 20**.
 
 ```bash
-npx mcp-one start
+npx @rapidthoughtlabs/heku start
 ```
 
 Or install globally:
 
 ```bash
-npm install -g mcp-one
-mcp-one start
+npm install -g @rapidthoughtlabs/heku
+heku start
 ```
 
 ---
@@ -67,13 +67,13 @@ Create a config in `mcp-configs/mcp.github.json`:
 Set your token:
 
 ```bash
-mcp-one auth setup github
+heku auth setup github
 ```
 
 Start the server:
 
 ```bash
-mcp-one start
+heku start
 ```
 
 Your LLM now has a `github.list_repos` tool. That's it.
@@ -89,40 +89,40 @@ Your LLM now has a `github.list_repos` tool. That's it.
 | `graphql` | GraphQL APIs — introspection-based auto-discovery, or define operations manually |
 | `cli` | Wrap any shell command as a tool with templated args/stdin |
 | `file` | Filesystem operations: read, write, append, delete, list |
-| `mcp` | Spawn another MCP server (stdio or SSE) and proxy its tools through mcp.one |
-| `internal` | mcp.one's own management surface — create configs, install from registry, set auth |
+| `mcp` | Spawn another MCP server (stdio or SSE) and proxy its tools through heku |
+| `internal` | heku's own management surface — create configs, install from registry, set auth |
 
 ---
 
 ## CLI commands
 
 ```text
-mcp-one start [config-dir]      Start the MCP server (stdio by default)
-                                Flags: --http, --port <n>, --debug
+heku start [config-dir]      Start the MCP server (stdio by default)
+                             Flags: --http, --port <n>, --debug
 
-mcp-one list [service]          List loaded configs + auth status
-mcp-one auth                    Check or set up credentials interactively
-mcp-one auth status             Show per-service auth health
-mcp-one auth setup [service]    Walk through env-var setup, write to .env
+heku list [service]          List loaded configs + auth status
+heku auth                    Check or set up credentials interactively
+heku auth status             Show per-service auth health
+heku auth setup [service]    Walk through env-var setup, write to .env
 
-mcp-one login                   Authenticate with the registry
-mcp-one logout                  Clear stored registry credentials
+heku login                   Authenticate with the registry
+heku logout                  Clear stored registry credentials
 
-mcp-one install <target>        Install a config from the registry
-                                Target: @ns/slug or @ns/slug@version
-mcp-one uninstall <target>      Remove an installed registry config
-mcp-one publish [file]          Publish a local config to the registry
-mcp-one fork <namespace/slug>   Fork a published config into your namespace
+heku install <target>        Install a config from the registry
+                             Target: @ns/slug or @ns/slug@version
+heku uninstall <target>      Remove an installed registry config
+heku publish [file]          Publish a local config to the registry
+heku fork <namespace/slug>   Fork a published config into your namespace
 
-mcp-one discover                Scan Claude Desktop / Cursor for MCP servers
-mcp-one update                  Update mcp-one to the latest version
-mcp-one help                    Show usage
+heku discover                Scan Claude Desktop / Cursor for MCP servers
+heku update                  Update heku to the latest version
+heku help                    Show usage
 ```
 
 Run with `--http` to start the console UI alongside the stdio server:
 
 ```bash
-mcp-one start --http --port 3456
+heku start --http --port 3456
 ```
 
 ---
@@ -148,7 +148,7 @@ Configs live in `mcp-configs/mcp.{id}.json`:
 
 ### Auth types
 
-All credentials read from environment variables — `mcp-one auth setup` writes them to `.env`:
+All credentials read from environment variables — `heku auth setup` writes them to `.env`:
 
 - **`bearer`** — `Authorization: Bearer {token}`
 - **`basic`** — base64(username:token)
@@ -157,7 +157,7 @@ All credentials read from environment variables — `mcp-one auth setup` writes 
 
 ### System config (optional)
 
-Drop `mcp-one.config.json` in your config directory:
+Drop `heku.config.json` in your config directory:
 
 ```json
 {
@@ -173,7 +173,7 @@ Drop `mcp-one.config.json` in your config directory:
 
 ## Console UI
 
-The dashboard is a React + Vite app that talks to the mcp.one server:
+The dashboard is a React + Vite app that talks to the heku server:
 
 - **Chat** — test tools through a model of your choice
 - **Configs** — visual editor for connector and tool definitions
@@ -189,9 +189,9 @@ Built with React 19, TailwindCSS v4, Zustand, and the MCP SDK.
 [**mcp.rapidthoughtlabs.space**](https://mcp.rapidthoughtlabs.space) is the default registry for sharing configs.
 
 ```bash
-mcp-one install @mcp-one/github
-mcp-one install @mcp-one/slack@1.2.0
-mcp-one publish my-config.json
+heku install @rtl/github
+heku install @rtl/slack@1.2.0
+heku publish my-config.json
 ```
 
 Use `--registry` to point at a different one.
@@ -201,8 +201,8 @@ Use `--registry` to point at a different one.
 ## Development
 
 ```bash
-git clone https://github.com/RapidThoughtLabs/mcp.one
-cd mcp.one
+git clone https://github.com/RapidThoughtLabs/heku
+cd heku
 npm install
 
 npm run dev          # client (5173) + console server (3456) in parallel

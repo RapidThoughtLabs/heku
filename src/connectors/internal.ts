@@ -1,5 +1,5 @@
 /**
- * InternalConnector — exposes mcp.one's own management capabilities as MCP tools.
+ * InternalConnector — exposes heku's own management capabilities as MCP tools.
  *
  * Unlike all other connectors (HTTP/CLI/gRPC/etc.) which call external systems,
  * the internal connector calls TypeScript functions directly. It holds live
@@ -8,7 +8,7 @@
  * Tools are declared explicitly in mcp-configs/mcp.one.json (id: "one").
  * Tool names are dispatched via a handler map in execute().
  *
- * Safety: the self_config setting in mcp-one.config.json controls which tools
+ * Safety: the self_config setting in heku.config.json controls which tools
  * are exposed. Enforcement happens in start.ts before registration.
  */
 

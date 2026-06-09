@@ -41,7 +41,7 @@ export async function run(): Promise<void> {
   const hasExpectedBinOnPath = expectedBinDir ? pathEntries.includes(expectedBinDir) : false;
 
   console.log();
-  console.log(bold("mcp-one doctor"));
+  console.log(bold("heku doctor"));
   console.log(dim(`Version: ${VERSION}`));
   console.log();
 
@@ -55,7 +55,7 @@ export async function run(): Promise<void> {
   if (isWindows()) {
     if (!expectedBinDir) {
       console.log(`${yellow("⚠")}  Could not determine npm global bin directory (APPDATA missing).`);
-      console.log(dim("  If `mcp-one` is not recognized, add your npm global prefix to PATH and restart the terminal."));
+      console.log(dim("  If `heku` is not recognized, add your npm global prefix to PATH and restart the terminal."));
     } else if (hasExpectedBinOnPath) {
       console.log(`${green("✓")}  npm global bin is on PATH: ${dim(expectedBinDir)}`);
     } else {
@@ -66,13 +66,13 @@ export async function run(): Promise<void> {
       console.log(dim("    # then close & reopen your terminal"));
     }
   } else {
-    console.log(dim("  Run `which mcp-one` to confirm the command resolves on your PATH."));
+    console.log(dim("  Run `which heku` to confirm the command resolves on your PATH."));
   }
 
   console.log();
   console.log(bold("Try"));
-  console.log(`  ${dim("$")} ${bold("mcp-one start")}`);
-  console.log(`  ${dim("$")} ${bold("mcp-one start --http")}`);
+  console.log(`  ${dim("$")} ${bold("heku start")}`);
+  console.log(`  ${dim("$")} ${bold("heku start --http")}`);
   console.log();
 }
 

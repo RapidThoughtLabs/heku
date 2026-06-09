@@ -47,7 +47,7 @@ async function runLogin(args: string[]): Promise<void> {
     console.log(
       green("✓") +
         ` Already logged in${creds.username ? ` as ${bold("@" + creds.username)}` : ""}. ` +
-        dim("Run `mcp-one login logout` to switch accounts."),
+        dim("Run `heku login logout` to switch accounts."),
     );
     return;
   }
@@ -118,7 +118,7 @@ async function runLogin(args: string[]): Promise<void> {
       (tokenRes.user.display_name ? ` (${tokenRes.user.display_name})` : ""),
   );
   console.log(
-    dim(`  Credentials saved to ~/.mcp-one/credentials.json`),
+    dim(`  Credentials saved to ~/.heku/credentials.json`),
   );
   console.log();
 }

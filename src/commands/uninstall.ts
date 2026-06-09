@@ -1,5 +1,5 @@
 /**
- * mcp-one uninstall <target>
+ * heku uninstall <target>
  *
  * Removes a registry-installed config from mcp-configs/ and the local manifest.
  *
@@ -81,7 +81,7 @@ async function resolveInstalledEntry(
     const entry = getInstalledEntry(qualified, registry);
     if (!entry) {
       console.error(red("✗") + `  "${qualified}" is not installed.`);
-      console.error(`  Run ${bold("mcp-one list")} to see installed configs.`);
+      console.error(`  Run ${bold("heku list")} to see installed configs.`);
       process.exit(1);
     }
     return entry;
@@ -92,7 +92,7 @@ async function resolveInstalledEntry(
 
   if (entries.length === 0) {
     console.error(red("✗") + `  "${displayTarget}" is not installed.`);
-    console.error(`  Run ${bold("mcp-one list")} to see installed configs.`);
+    console.error(`  Run ${bold("heku list")} to see installed configs.`);
     process.exit(1);
   }
 
@@ -114,7 +114,7 @@ async function resolveInstalledEntry(
     console.error(`  Installed: ${entries.map((e) => e.slug).join(", ")}`);
     console.error(`  Pick one, e.g.:`);
     for (const e of entries.slice(0, 3)) {
-      console.error(`    mcp-one uninstall ${e.slug}`);
+      console.error(`    heku uninstall ${e.slug}`);
     }
     process.exit(1);
   }
@@ -135,10 +135,10 @@ export async function run(args: string[]): Promise<void> {
 
   if (!target) {
     console.error(
-      red("✗") + ` Usage: ${bold("mcp-one uninstall <target>")}` +
+      red("✗") + ` Usage: ${bold("heku uninstall <target>")}` +
       `\n  Examples:` +
-      `\n    mcp-one uninstall @rtl/context7-api` +
-      `\n    mcp-one uninstall @rtl/github:http`,
+      `\n    heku uninstall @rtl/context7-api` +
+      `\n    heku uninstall @rtl/github:http`,
     );
     process.exit(1);
   }

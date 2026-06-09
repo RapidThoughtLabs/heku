@@ -81,27 +81,27 @@ switch (command) {
 
 function printUsage(): void {
   console.log(`
-  mcp-one — one server. any REST API. any LLM.
+  heku — one server. any REST API. any LLM.
 
   Usage:
-    mcp-one start [config-dir]           Start the MCP server (stdio)
-    mcp-one start --http                 Start with stdio + HTTP transport
-    mcp-one start --http --port <n>      HTTP on a custom port (default 3333)
-    mcp-one list                         List all configs with auth status
-    mcp-one list <service>               Show tools for a specific config
-    mcp-one auth status                  Show auth health for all configs
-    mcp-one auth setup [service]         Interactive credential setup wizard
-    mcp-one install <target>             Install a config from the registry
-    mcp-one uninstall <target>           Remove an installed registry config
-    mcp-one login                        Log in to the mcp.rtl.space registry
-    mcp-one logout                       Log out of the registry
-    mcp-one publish [file]               Publish a config to the registry
-    mcp-one fork <namespace/slug>        Fork a registry config into your namespace
-    mcp-one update                       Update mcp-one to the latest version
-    mcp-one help                         Show this message
+    heku start [config-dir]           Start the MCP server (stdio)
+    heku start --http                 Start with stdio + HTTP transport
+    heku start --http --port <n>      HTTP on a custom port (default 3333)
+    heku list                         List all configs with auth status
+    heku list <service>               Show tools for a specific config
+    heku auth status                  Show auth health for all configs
+    heku auth setup [service]         Interactive credential setup wizard
+    heku install <target>             Install a config from the registry
+    heku uninstall <target>           Remove an installed registry config
+    heku login                        Log in to the mcp.rtl.space registry
+    heku logout                       Log out of the registry
+    heku publish [file]               Publish a config to the registry
+    heku fork <namespace/slug>        Fork a registry config into your namespace
+    heku update                       Update heku to the latest version
+    heku help                         Show this message
 
   HTTP mode:
-    When --http is set, mcp-one binds a second transport at /mcp on the
+    When --http is set, heku binds a second transport at /mcp on the
     given port (default 3333) alongside stdio. The UI dashboard and any
     HTTP MCP client can connect there. Claude Desktop continues to use
     stdio as normal — zero config change required.

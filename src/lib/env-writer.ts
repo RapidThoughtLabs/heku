@@ -72,7 +72,7 @@ export function writeConfigEnv(
 
   if (toAppend.length > 0) {
     if (isNewFile) {
-      result = `# mcp-one secrets for ${configId} — do not commit\n`;
+      result = `# heku secrets for ${configId} — do not commit\n`;
     } else {
       result += "\n";
     }

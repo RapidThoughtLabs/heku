@@ -2,7 +2,7 @@ import os from "node:os";
 import path from "node:path";
 
 export function stateDir(): string {
-  return process.env.MCP_ONE_STATE_DIR ?? path.join(os.homedir(), ".mcp-one", "state");
+  return process.env.HEKU_STATE_DIR ?? path.join(os.homedir(), ".heku", "state");
 }
 
 export function installSentinelDir(): string {

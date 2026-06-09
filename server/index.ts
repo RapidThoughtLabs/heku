@@ -8,7 +8,7 @@ import { VERSION } from "../src/lib/version.js";
 
 export async function startBridge(options: {
   port?: number;
-  /** If provided, auto-connect to this mcp-one endpoint on startup. */
+  /** If provided, auto-connect to this heku endpoint on startup. */
   endpoint?: string;
 }): Promise<{ shutdown: () => Promise<void> }> {
   const port = options.port ?? 3456;
@@ -39,7 +39,7 @@ export async function startBridge(options: {
   app.use("/api/registry", createRegistryRouter());
 
   app.get("/", (_req, res) => {
-    res.json({ service: "mcp-one-api", version: VERSION });
+    res.json({ service: "heku-api", version: VERSION });
   });
 
   const server = app.listen(port, '0.0.0.0', () => {

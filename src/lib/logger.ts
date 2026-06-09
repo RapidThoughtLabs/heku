@@ -1,9 +1,9 @@
 /**
- * Structured logging for mcp.one
+ * Structured logging for heku
  *
  * Three output channels:
  *  1. Console (stderr) — default shows info+warn+error; --debug shows all
- *  2. File (JSONL)     — always writes everything to ~/.mcp-one/logs/session-<ts>.jsonl
+ *  2. File (JSONL)     — always writes everything to ~/.heku/logs/session-<ts>.jsonl
  *  3. In-memory ring   — last N entries for the /api/logs endpoint to poll
  */
 
@@ -54,7 +54,7 @@ const LEVEL_LABEL: Record<LogLevel, string> = {
 
 const RING_BUFFER_SIZE = 5000;
 const MAX_SESSION_FILES = 20;
-const LOGS_DIR = path.join(os.homedir(), ".mcp-one", "logs");
+const LOGS_DIR = path.join(os.homedir(), ".heku", "logs");
 
 // ── Logger class ─────────────────────────────────────────────────────
 

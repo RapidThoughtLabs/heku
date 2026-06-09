@@ -4,7 +4,7 @@
  * All registry logic (credentials, manifest, HTTP calls, ETag verification)
  * lives in src/registry/ — this file is a thin Express adapter only.
  *
- * No duplication. The same modules power the mcp-one CLI commands.
+ * No duplication. The same modules power the heku CLI commands.
  */
 
 import fs from "node:fs";
@@ -13,7 +13,7 @@ import { Router } from "express";
 
 // ── Import from the single source of truth ────────────────────────
 // tsx (dev) resolves .js → .ts automatically.
-// These are the exact same modules used by `mcp-one search`, `mcp-one install`, etc.
+// These are the exact same modules used by `heku search`, `heku install`, etc.
 
 import {
   loadManifest,
@@ -46,8 +46,8 @@ import { resolveConfigDir } from "../src/lib/resolve-config-dir.js";
 
 // ── Install helper ────────────────────────────────────────────────
 // Must use resolveConfigDir — the same precedence logic the CLI uses — so
-// install/uninstall via the UI touches the same directory that `mcp-one start`
-// watches (defaults to ~/mcp-configs, or config_dir from mcp-one.config.json).
+// install/uninstall via the UI touches the same directory that `heku start`
+// watches (defaults to ~/mcp-configs, or config_dir from heku.config.json).
 
 function getMcpConfigsDir(): string {
   const systemConfig = loadSystemConfig(process.cwd());
@@ -79,7 +79,7 @@ export function createRegistryRouter(): Router {
   }
 
   // ── GET /api/registry/sources ─────────────────────────────────────
-  // Returns all configured registry sources from ~/.mcp-one/registries.json
+  // Returns all configured registry sources from ~/.heku/registries.json
   router.get("/sources", (_req, res) => {
     res.json(loadRegistries());
   });
@@ -312,7 +312,7 @@ export function createRegistryRouter(): Router {
     }
 
     if (!isLoggedIn(registry)) {
-      res.status(401).json({ error: "Not logged in. Run: mcp-one login" });
+      res.status(401).json({ error: "Not logged in. Run: heku login" });
       return;
     }
 
@@ -334,7 +334,7 @@ export function createRegistryRouter(): Router {
     }
 
     if (!isLoggedIn(registry)) {
-      res.status(401).json({ error: "Not logged in. Run: mcp-one login" });
+      res.status(401).json({ error: "Not logged in. Run: heku login" });
       return;
     }
 

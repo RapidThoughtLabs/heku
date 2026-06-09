@@ -183,7 +183,7 @@ export async function handleDeleteConfig(
   if (configId === SELF_ID) {
     return {
       success: false,
-      data: { error: `Cannot delete the self-management config. Set self_config: false in mcp-one.config.json to disable it.` },
+      data: { error: `Cannot delete the self-management config. Set self_config: false in heku.config.json to disable it.` },
     };
   }
 

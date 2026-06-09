@@ -67,7 +67,7 @@ export const useLlmStore = create<LlmState>()(
       ],
     }),
     {
-      name: 'mcp-one-llm',
+      name: 'heku-llm',
       partialize: (s) => ({
         activeProvider: s.activeProvider,
         customModels: s.customModels,

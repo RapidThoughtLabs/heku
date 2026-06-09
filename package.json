@@ -1,12 +1,18 @@
 {
-  "name": "mcp-one",
-  "version": "0.1.0",
+  "name": "@rapidthoughtlabs/heku",
+  "version": "0.2.0",
   "description": "A single dynamic MCP server that turns JSON configs into working API tools",
   "type": "module",
   "main": "dist/cli.js",
   "bin": {
-    "mcp-one": "dist/cli.js"
+    "heku": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "concurrently --names \"client,server\" --prefix-colors \"cyan,yellow\" \"npm run dev:client\" \"npm run dev:server\"",

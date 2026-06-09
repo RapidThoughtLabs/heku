@@ -2,7 +2,7 @@
  * Registry credential storage, OAuth browser flow, multi-registry config,
  * and local installed-config manifest.
  *
- * Directory layout under ~/.mcp-one/
+ * Directory layout under ~/.heku/
  *   registries.json       — named registry sources
  *   credentials.json      — tokens keyed by registry name
  *   installed.json        — manifest of installed configs (slug + version + registry)
@@ -16,10 +16,10 @@ import crypto from "node:crypto";
 
 // ── Paths ────────────────────────────────────────────────────────
 
-export const MCP_ONE_DIR   = path.join(os.homedir(), ".mcp-one");
-const REGISTRIES_FILE      = path.join(MCP_ONE_DIR, "registries.json");
-const CREDENTIALS_FILE     = path.join(MCP_ONE_DIR, "credentials.json");
-const MANIFEST_FILE        = path.join(MCP_ONE_DIR, "installed.json");
+export const HEKU_DIR   = path.join(os.homedir(), ".heku");
+const REGISTRIES_FILE      = path.join(HEKU_DIR, "registries.json");
+const CREDENTIALS_FILE     = path.join(HEKU_DIR, "credentials.json");
+const MANIFEST_FILE        = path.join(HEKU_DIR, "installed.json");
 
 // ── Registry sources ─────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ export function loadRegistries(): RegistrySource[] {
 }
 
 export function saveRegistries(registries: RegistrySource[]): void {
-  fs.mkdirSync(MCP_ONE_DIR, { recursive: true });
+  fs.mkdirSync(HEKU_DIR, { recursive: true });
   fs.writeFileSync(REGISTRIES_FILE, JSON.stringify(registries, null, 2) + "\n", "utf-8");
 }
 
@@ -61,7 +61,7 @@ export function getRegistry(name = "default"): RegistrySource {
   const found = registries.find((r) => r.name === name);
   if (!found) {
     throw new Error(
-      `Unknown registry "${name}". Run: mcp-one registry list`,
+      `Unknown registry "${name}". Run: heku registry list`,
     );
   }
   return found;
@@ -104,7 +104,7 @@ function loadCredentialStore(): CredentialStore {
 }
 
 function saveCredentialStore(store: CredentialStore): void {
-  fs.mkdirSync(MCP_ONE_DIR, { recursive: true });
+  fs.mkdirSync(HEKU_DIR, { recursive: true });
   fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(store, null, 2) + "\n", {
     encoding: "utf-8",
     mode: 0o600, // owner-only
@@ -113,8 +113,8 @@ function saveCredentialStore(store: CredentialStore): void {
 
 export function loadCredentials(registry = "default"): Credentials | null {
   // Env var takes precedence (CI/CD) — only applies to the default registry
-  if (registry === "default" && process.env.MCP_ONE_TOKEN) {
-    const token = process.env.MCP_ONE_TOKEN;
+  if (registry === "default" && process.env.HEKU_TOKEN) {
+    const token = process.env.HEKU_TOKEN;
     // API keys are prefixed mcp1_ — no refresh token needed
     return { access_token: token };
   }
@@ -250,7 +250,7 @@ export function loadManifest(): Manifest {
 }
 
 export function saveManifest(manifest: Manifest): void {
-  fs.mkdirSync(MCP_ONE_DIR, { recursive: true });
+  fs.mkdirSync(HEKU_DIR, { recursive: true });
   fs.writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2) + "\n", "utf-8");
 }
 

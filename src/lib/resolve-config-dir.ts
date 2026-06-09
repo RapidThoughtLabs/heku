@@ -4,8 +4,8 @@ import type { SystemConfig } from "../system-config.js";
 
 /**
  * Resolves the config directory with this precedence:
- *   1. cliOverride (e.g. positional arg to `mcp-one start ./my-dir`)
- *   2. systemConfig.config_dir from mcp-one.config.json
+ *   1. cliOverride (e.g. positional arg to `heku start ./my-dir`)
+ *   2. systemConfig.config_dir from heku.config.json
  *   3. Default: ~/mcp-configs  (home-relative so all invocations share one location)
  *
  * `list` and `auth` commands always pass undefined for cliOverride —

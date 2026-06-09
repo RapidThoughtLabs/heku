@@ -57,12 +57,12 @@ function validateAuth(auth: unknown, file: string): AuthConfig {
     throw new Error(`[${file}] auth.type must be one of: ${VALID_AUTH_TYPES.join(", ")}. Got: ${JSON.stringify(a.type)}`);
   }
 
-  // Optional auth_url (shown to user during `mcp-one auth setup`)
+  // Optional auth_url (shown to user during `heku auth setup`)
   const auth_url = typeof a.auth_url === "string" && a.auth_url.length > 0
     ? a.auth_url
     : undefined;
 
-  // Optional description — service-specific hint shown during `mcp-one auth setup`
+  // Optional description — service-specific hint shown during `heku auth setup`
   const description = typeof a.description === "string" && a.description.length > 0
     ? a.description
     : undefined;

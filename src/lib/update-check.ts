@@ -15,7 +15,7 @@ import path from "node:path";
 import os from "node:os";
 import { VERSION, PKG_NAME } from "./version.js";
 
-const CACHE_FILE = path.join(os.homedir(), ".mcp-one", "update-check.json");
+const CACHE_FILE = path.join(os.homedir(), ".heku", "update-check.json");
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface CacheData {

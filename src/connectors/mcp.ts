@@ -197,7 +197,7 @@ export class McpConnector implements IConnector {
       transport = new SSEClientTransport(new URL(config.url!));
     }
 
-    const client = new Client({ name: "mcp-one", version: VERSION }, {});
+    const client = new Client({ name: "heku", version: VERSION }, {});
     await client.connect(transport);
 
     const toolsResult = await client.listTools();

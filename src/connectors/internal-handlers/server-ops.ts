@@ -28,7 +28,7 @@ export async function handleServerStatus(
   return {
     success: true,
     data: {
-      service:    "mcp-one",
+      service:    "heku",
       version:    VERSION,
       uptime_ms:  uptimeMs,
       uptime:     formatUptime(uptimeMs),

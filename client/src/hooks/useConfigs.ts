@@ -40,7 +40,7 @@ export function useConfigs(): UseConfigsResult {
     void fetchConfigs()
   }, [fetchConfigs])
 
-  // Re-fetch when mcp-one discovers new tools (e.g. after GraphQL introspection)
+  // Re-fetch when heku discovers new tools (e.g. after GraphQL introspection)
   // so toolCount shown on config cards reflects the runtime count, not the file count.
   useEffect(() => {
     if (prevToolCountRef.current !== null && prevToolCountRef.current !== toolCount) {
