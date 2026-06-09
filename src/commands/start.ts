@@ -174,16 +174,19 @@ export async function run(args: string[]): Promise<void> {
   ).length;
 
   log.raw("");
-  const verStr = `heku  v${VERSION}`;
-  const bannerWidth = 41;
-  const pad = Math.max(0, bannerWidth - verStr.length);
-  const lpad = Math.floor(pad / 2);
-  const rpad = pad - lpad;
-  const verLine = `│${" ".repeat(lpad)}${verStr}${" ".repeat(rpad)}│`;
-  log.raw("┌─────────────────────────────────────────┐");
-  log.raw(verLine);
-  log.raw("│  one server. any protocol. any LLM.    │");
-  log.raw("└─────────────────────────────────────────┘");
+  log.raw("      ___           ___           ___           ___     ");
+  log.raw("     /__/\\         /  /\\         /__/|         /__/\\    ");
+  log.raw("     \\  \\:\\       /  /:/_       |  |:|         \\  \\:\\   ");
+  log.raw("      \\__\\:\\     /  /:/ /\\      |  |:|          \\  \\:\\  ");
+  log.raw("  ___ /  /::\\   /  /:/ /:/_   __|  |:|      ___  \\  \\:\\ ");
+  log.raw(" /__/\\  /:/\\:\\ /__/:/ /:/ /\\ /__/\\_|:|____ /__/\\  \\__\\:\\");
+  log.raw(" \\  \\:\\/:/__\\/ \\  \\:\\/:/ /:/ \\  \\:\\/:::::/ \\  \\:\\ /  /:/");
+  log.raw("  \\  \\::/       \\  \\::/ /:/   \\  \\::/~~~~   \\  \\:\\  /:/ ");
+  log.raw("   \\  \\:\\        \\  \\:\\/:/     \\  \\:\\        \\  \\:\\/:/  ");
+  log.raw("    \\  \\:\\        \\  \\::/       \\  \\:\\        \\  \\::/   ");
+  log.raw("     \\__\\/         \\__\\/         \\__\\/         \\__\\/    ");
+  log.raw("");
+  log.raw(`  v${VERSION}  ·  one server. any protocol. any LLM.`);
   log.raw("");
 
   const summaryParts = [`${allConfigs.length} config(s)`, `${nonDiscoverableToolCount} tool(s)`];
