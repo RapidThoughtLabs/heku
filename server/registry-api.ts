@@ -32,6 +32,7 @@ import {
   recentConfigs,
   fetchVersionPayload,
   getConfigMeta,
+  listVersions,
   checkUpdates,
   whoami,
   publish,
@@ -197,7 +198,7 @@ export function createRegistryRouter(): Router {
     const connectorType = colonIdx !== -1 ? rest.slice(colonIdx + 1) : undefined;
 
     const meta = await getConfigMeta(namespace, slug, connectorType, registry);
-    res.json({ category: meta.category, tags: meta.tags });
+    res.json({ category: meta.category, tags: meta.tags, latest_version: meta.latest_version ?? null });
   }));
 
   // ── POST /api/registry/check-updates ─────────────────────────────
@@ -350,6 +351,14 @@ export function createRegistryRouter(): Router {
     const connector_type = (req.query["connector_type"] as string | undefined);
     const { payload }    = await fetchVersionPayload(namespace, slug, connector_type, undefined, registry);
     res.json(payload);
+  }));
+
+  // ── GET /api/registry/versions/:namespace/:slug ──────────────────
+  router.get("/versions/:namespace/:slug", wrap(async (req, res) => {
+    const { namespace, slug } = req.params as { namespace: string; slug: string };
+    const registry = (req.query["registry"] as string | undefined) ?? "default";
+    const versions = await listVersions(namespace, slug, registry);
+    res.json(versions);
   }));
 
   // ── DELETE /api/registry/uninstall/:id ───────────────────────────

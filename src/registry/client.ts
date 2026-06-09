@@ -355,6 +355,14 @@ export interface VersionMeta {
   message: string;
   download_count: number;
   created_at: string;
+  change_kind?: "initial" | "payload" | "metadata" | "both";
+  metadata_snapshot?: {
+    name: string;
+    description: string;
+    category: string;
+    visibility: string;
+    tags: string[];
+  };
 }
 
 export async function listVersions(
@@ -453,6 +461,7 @@ export async function checkUpdates(
 export interface PublishPayload {
   target?: string;          // "@namespace/slug" — omit for new configs
   slug?: string;            // required when target absent
+  version?: string;         // required for existing configs; must be > current latest
   name?: string;            // required on first create
   description?: string;
   category?: string;

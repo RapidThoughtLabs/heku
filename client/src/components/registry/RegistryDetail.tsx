@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Star, Download, ShieldCheck, Loader2, Package, Wrench } from 'lucide-react'
+import { ArrowLeft, Star, Download, ShieldCheck, Loader2, Package, Wrench, History, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { toast } from '@/components/ui/Toast'
 import { api, ApiRequestError } from '@/lib/api'
-import type { RegistryConfigMeta, RegistryUpdateInfo, ConfigPayload, ConfigPayloadTool } from '@/types/registry'
+import type { RegistryConfigMeta, RegistryUpdateInfo, ConfigPayload, ConfigPayloadTool, VersionMeta } from '@/types/registry'
 
 const CONNECTOR_LABELS: Record<string, string> = {
   http: 'HTTP', cli: 'CLI', file: 'File', grpc: 'gRPC', graphql: 'GraphQL', mcp: 'MCP',
@@ -14,6 +14,13 @@ const SEVERITY_COLORS: Record<string, string> = {
   patch: 'var(--accent)',
   minor: 'var(--yellow)',
   major: 'var(--red)',
+}
+
+const CHANGE_KIND_COLORS: Record<string, string> = {
+  initial:  'var(--text-dim)',
+  payload:  'var(--accent)',
+  metadata: 'var(--yellow)',
+  both:     'var(--green, #4ade80)',
 }
 
 interface RegistryDetailProps {
@@ -46,6 +53,19 @@ export function RegistryDetail({
   const [tools, setTools] = useState<ConfigPayloadTool[]>([])
   const [loadingTools, setLoadingTools] = useState(true)
   const [selectedTool, setSelectedTool] = useState<string | null>(null)
+  const [versions, setVersions] = useState<VersionMeta[]>([])
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [expandedVersion, setExpandedVersion] = useState<string | null>(null)
+
+  useEffect(() => {
+    setVersions([])
+    setHistoryOpen(false)
+    setExpandedVersion(null)
+    api.get<VersionMeta[]>(
+      `/registry/versions/${encodeURIComponent(config.namespace)}/${encodeURIComponent(config.slug)}` +
+      `?registry=${encodeURIComponent(registry)}`
+    ).then(setVersions).catch(() => {})
+  }, [config.namespace, config.slug, registry])
 
   useEffect(() => {
     setLoadingTools(true)
@@ -269,6 +289,97 @@ export function RegistryDetail({
           </div>
         )}
       </div>
+
+      {/* Version history — collapsible */}
+      {versions.length > 0 && (
+        <div style={{ flexShrink: 0, borderBottom: '1px solid var(--border)' }}>
+          <button
+            onClick={() => setHistoryOpen((o) => !o)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 6,
+              padding: '9px 24px', background: 'transparent', border: 'none',
+              cursor: 'pointer', color: 'var(--text-dim)', fontSize: '0.69rem',
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+            }}
+          >
+            <History size={9} />
+            Version history
+            <span style={{
+              fontSize: '0.69rem', padding: '1px 5px', borderRadius: 99,
+              background: 'var(--surface2)', color: 'var(--text-dim)', letterSpacing: '0.04em', marginLeft: 2,
+            }}>
+              {versions.length}
+            </span>
+            <span style={{ marginLeft: 'auto' }}>
+              {historyOpen ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+            </span>
+          </button>
+
+          {historyOpen && (
+            <div style={{ maxHeight: 240, overflowY: 'auto', paddingBottom: 6 }}>
+              {versions.map((v) => {
+                const isExpanded = expandedVersion === v.id
+                const kindColor = CHANGE_KIND_COLORS[v.change_kind ?? 'initial'] ?? 'var(--text-dim)'
+                return (
+                  <div key={v.id}>
+                    <button
+                      onClick={() => setExpandedVersion(isExpanded ? null : v.id)}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '7px 24px', background: isExpanded ? 'var(--surface2)' : 'transparent',
+                        border: 'none', cursor: 'pointer', textAlign: 'left',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.77rem', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text)', minWidth: 52 }}>
+                        v{v.version}
+                      </span>
+                      {v.change_kind && (
+                        <span style={{
+                          fontSize: '0.62rem', padding: '1px 6px', borderRadius: 99,
+                          border: `1px solid ${kindColor}`, color: kindColor,
+                          letterSpacing: '0.06em', flexShrink: 0,
+                        }}>
+                          {v.change_kind}
+                        </span>
+                      )}
+                      <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {v.message}
+                      </span>
+                      <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', flexShrink: 0 }}>
+                        {new Date(v.created_at).toLocaleDateString()}
+                      </span>
+                    </button>
+
+                    {isExpanded && v.metadata_snapshot && (
+                      <div style={{
+                        margin: '0 24px 6px', padding: '8px 12px', borderRadius: 5,
+                        background: 'var(--surface2)', fontSize: '0.77rem', color: 'var(--text-dim)',
+                        display: 'flex', flexDirection: 'column', gap: 4,
+                      }}>
+                        {v.metadata_snapshot.name && (
+                          <div><span style={{ color: 'var(--text-dim)' }}>name: </span><span style={{ color: 'var(--text)' }}>{v.metadata_snapshot.name}</span></div>
+                        )}
+                        {v.metadata_snapshot.description && (
+                          <div><span style={{ color: 'var(--text-dim)' }}>description: </span><span style={{ color: 'var(--text)' }}>{v.metadata_snapshot.description}</span></div>
+                        )}
+                        {v.metadata_snapshot.category && (
+                          <div><span style={{ color: 'var(--text-dim)' }}>category: </span><span style={{ color: 'var(--text)' }}>{v.metadata_snapshot.category}</span></div>
+                        )}
+                        {v.metadata_snapshot.visibility && (
+                          <div><span style={{ color: 'var(--text-dim)' }}>visibility: </span><span style={{ color: 'var(--text)' }}>{v.metadata_snapshot.visibility}</span></div>
+                        )}
+                        {(v.metadata_snapshot.tags?.length ?? 0) > 0 && (
+                          <div><span style={{ color: 'var(--text-dim)' }}>tags: </span><span style={{ color: 'var(--text)' }}>{v.metadata_snapshot.tags.join(', ')}</span></div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Tools master/detail split — fills remaining height */}
       <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>

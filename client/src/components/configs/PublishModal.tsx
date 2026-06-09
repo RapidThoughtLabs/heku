@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/Button'
 import { api, ApiRequestError } from '@/lib/api'
 import type { ConfigSummary } from '@/types/server'
 
+function patchBump(v: string): string {
+  const parts = v.split('.')
+  if (parts.length !== 3) return v
+  const patch = parseInt(parts[2] ?? '0', 10)
+  return `${parts[0]}.${parts[1]}.${isNaN(patch) ? 1 : patch + 1}`
+}
+
 function buildPublishPayload(cfg: ConfigSummary): Record<string, unknown> {
   const raw = cfg.raw as Record<string, unknown>
   // Drop registry_overlays — legacy accidental field replaced by overlays
@@ -65,6 +72,9 @@ export function PublishModal({ open, onClose, cfg, mode = 'publish' }: PublishMo
   const [tagsRaw, setTagsRaw]       = useState('')
   const [visibility, setVisibility] = useState<'public' | 'private'>('public')
   const [message, setMessage]       = useState('')
+  const [version, setVersion]       = useState('')
+  const [versionError, setVersionError] = useState<string | null>(null)
+  const [isExistingConfig, setIsExistingConfig] = useState(false)
   const [error, setError]           = useState<string | null>(null)
   const [result, setResult]         = useState<PublishResult | null>(null)
 
@@ -78,13 +88,17 @@ export function PublishModal({ open, onClose, cfg, mode = 'publish' }: PublishMo
       })
       .catch(() => {})
 
-    api.get<{ category: string; tags: string[] }>(`/registry/config-meta?config_id=${encodeURIComponent(cfg.id)}`)
-      .then((data) => {
-        if (cancelled) return
-        if (data.category) setCategory(data.category)
-        if (data.tags?.length) setTagsRaw(data.tags.join(', '))
-      })
-      .catch(() => {}) // non-critical — config may not be from registry
+    api.get<{ category: string; tags: string[]; latest_version: { version: string } | null }>(
+      `/registry/config-meta?config_id=${encodeURIComponent(cfg.id)}`
+    ).then((data) => {
+      if (cancelled) return
+      if (data.category) setCategory(data.category)
+      if (data.tags?.length) setTagsRaw(data.tags.join(', '))
+      if (data.latest_version) {
+        setIsExistingConfig(true)
+        setVersion(patchBump(data.latest_version.version))
+      }
+    }).catch(() => {}) // non-critical — config may not be from registry
 
     return () => { cancelled = true }
   }, [open, cfg.id])
@@ -97,6 +111,9 @@ export function PublishModal({ open, onClose, cfg, mode = 'publish' }: PublishMo
       setTagsRaw('')
       setVisibility('public')
       setMessage('')
+      setVersion('')
+      setVersionError(null)
+      setIsExistingConfig(false)
       setError(null)
       setResult(null)
     }
@@ -105,6 +122,7 @@ export function PublishModal({ open, onClose, cfg, mode = 'publish' }: PublishMo
 
   const handlePublish = async () => {
     setError(null)
+    setVersionError(null)
 
     const connector = (cfg.raw as Record<string, unknown>).connector as Record<string, unknown> | undefined
     if (connector?.type === 'mcp' && connector?.transport === 'stdio') {
@@ -127,14 +145,26 @@ export function PublishModal({ open, onClose, cfg, mode = 'publish' }: PublishMo
         tags,
         visibility,
         message:     message.trim() || undefined,
+        version:     isExistingConfig ? version.trim() || undefined : undefined,
         payload:     buildPublishPayload(cfg),
       })
       setResult(data)
       setPhase('success')
       setTimeout(onClose, 2000)
     } catch (err) {
-      setError(err instanceof ApiRequestError ? (err.data?.error ?? err.message) : (err as Error).message)
       setPhase('form')
+      if (err instanceof ApiRequestError) {
+        const code = err.data?.error
+        if (code === 'no_changes') {
+          setError('Nothing changed — no publish needed.')
+        } else if (code === 'version_required' || code === 'version_not_forward') {
+          setVersionError(err.data?.message ?? err.message)
+        } else {
+          setError(err.data?.error ?? err.message)
+        }
+      } else {
+        setError((err as Error).message)
+      }
     }
   }
 
@@ -159,6 +189,19 @@ export function PublishModal({ open, onClose, cfg, mode = 'publish' }: PublishMo
             {authUsername && (
               <div style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.03em' }}>
                 Publishing as <code style={{ color: 'var(--accent)' }}>@{authUsername}</code>
+              </div>
+            )}
+            {isExistingConfig && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <Field
+                  label="Version"
+                  value={version}
+                  onChange={(v) => { setVersion(v); setVersionError(null) }}
+                  placeholder="e.g. 1.0.1"
+                />
+                {versionError && (
+                  <span style={{ fontSize: '0.77rem', color: 'var(--red)', letterSpacing: '0.03em' }}>{versionError}</span>
+                )}
               </div>
             )}
             <Field label="Description" value={description} onChange={setDescription} placeholder="What does this config do?" />

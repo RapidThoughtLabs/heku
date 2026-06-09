@@ -134,6 +134,23 @@ export interface ConfigPayloadOverlay {
   params?: Record<string, { description?: string }>
 }
 
+export interface VersionMeta {
+  id: string
+  version: string
+  status: string
+  message: string
+  download_count: number
+  created_at: string
+  change_kind?: 'initial' | 'payload' | 'metadata' | 'both'
+  metadata_snapshot?: {
+    name: string
+    description: string
+    category: string
+    visibility: string
+    tags: string[]
+  }
+}
+
 export interface ConfigPayload {
   id?: string
   name?: string
