@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-11
+
+### Added
+- **`heku update`** now updates registry-installed configs to their latest versions (instead of updating the heku binary). Accepts an optional target: `heku update github-http`, `heku update linear:graphql`, or `heku update @ns/linear` (all connector variants). Local credentials (`connector.env`) and overlays are preserved on update.
+- **`one.registry_update`** MCP tool — same update logic callable by an LLM agent. Updates one config by `config_id` or all installed configs when no argument is passed.
+- **`one.list_configs`** now returns `[{ id, name, description }]` objects instead of a flat array of IDs, so agents can identify the right config without an extra round-trip.
+
+### Changed
+- Publish modal always shows the version field. New (unpublished) configs show an empty field with a "not published yet" hint; existing configs are pre-filled with the next patch version and show the current published version as a hint.
+- Flat manifest (`search`, `list_configs`, `list_tools`, `invoke`) no longer prefixes tool descriptions with `[one]` — it was noise when only four tools are shown. Namespaced mode is unchanged.
+- Discovery tool descriptions updated with explicit workflow steps and call examples for users without custom system prompts.
+
 ## [0.2.0] - 2026-06-09
 
 ### Changed
@@ -35,7 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial public release on npm as `@rapidthoughtlabs/mcpone`.
 - Single dynamic MCP server that turns JSON configs into working API tools.
 
-[Unreleased]: https://github.com/RapidThoughtLabs/heku/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/RapidThoughtLabs/heku/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/RapidThoughtLabs/heku/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/RapidThoughtLabs/heku/compare/v0.1.0...v0.1.2
 [0.1.0]: https://github.com/RapidThoughtLabs/heku/releases/tag/v0.1.0
