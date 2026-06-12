@@ -1,5 +1,5 @@
 /**
- * Registry API client for mcp.one.space (and any other registry source).
+ * Registry API client for mcp.rtl.space (and any other registry source).
  *
  * Every exported function accepts an optional `registryName` parameter
  * (defaults to "default") so multi-registry support is first-class.

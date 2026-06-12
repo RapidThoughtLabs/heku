@@ -5,7 +5,7 @@
  * the internal connector calls TypeScript functions directly. It holds live
  * references to the ToolRegistry and notifyToolsChanged injected at startup.
  *
- * Tools are declared explicitly in mcp-configs/mcp.one.json (id: "one").
+ * Tools are declared explicitly via INTERNAL_CONFIG (id: "heku").
  * Tool names are dispatched via a handler map in execute().
  *
  * Safety: the self_config setting in heku.config.json controls which tools

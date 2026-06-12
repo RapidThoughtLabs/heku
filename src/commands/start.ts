@@ -113,10 +113,10 @@ export async function run(args: string[]): Promise<void> {
 
   log.info("server", `Loading configs from: ${configDir}`);
 
-  // "one" is reserved — the internal config is embedded and always takes precedence
+  // "heku" is reserved — the internal config is embedded and always takes precedence
   const handAuthored = loadConfigs(configDir).filter((c) => {
-    if (c.id === "one") {
-      log.warn("server", `mcp.one.json in ${configDir} is ignored — internal config is built-in`);
+    if (c.id === "heku") {
+      log.warn("server", `mcp.heku.json in ${configDir} is ignored — internal config is built-in`);
       return false;
     }
     return true;
@@ -128,7 +128,7 @@ export async function run(args: string[]): Promise<void> {
   ];
 
   if (handAuthored.length === 0) {
-    log.info("server", `No user configs yet — drop mcp.*.json files in ${configDir} or call one.registry_install`);
+    log.info("server", `No user configs yet — drop mcp.*.json files in ${configDir} or call heku.registry_install`);
   }
 
   // Queue MCP, GraphQL, and gRPC configs for discovery during initAll()
@@ -280,18 +280,18 @@ export async function run(args: string[]): Promise<void> {
   // ── Start MCP server ─────────────────────────────────────────────
 
   // ── Apply self_config filtering before registering ───────────────
-  // Controls which mcp.one.json tools are exposed to LLMs.
+  // Controls which mcp.heku.json tools are exposed to LLMs.
 
   if (systemConfig.self_config === false) {
-    // Kill-switch: remove mcp.one.json entirely
+    // Kill-switch: remove mcp.heku.json entirely
     const before = allConfigs.length;
-    allConfigs.splice(0, allConfigs.length, ...allConfigs.filter((c) => c.id !== "one"));
+    allConfigs.splice(0, allConfigs.length, ...allConfigs.filter((c) => c.id !== "heku"));
     if (allConfigs.length < before) {
       log.info("server", "self_config: false — heku self-management disabled");
     }
   } else if (systemConfig.self_config && typeof systemConfig.self_config === "object") {
     const sc = systemConfig.self_config as { allow?: string[]; deny?: string[] };
-    const oneConfig = allConfigs.find((c) => c.id === "one");
+    const oneConfig = allConfigs.find((c) => c.id === "heku");
     if (oneConfig) {
       if (sc.allow) {
         oneConfig.tools = oneConfig.tools.filter((t) => sc.allow!.includes(t.name));

@@ -184,7 +184,7 @@ export async function handleListTools(
 ): Promise<ConnectorResult> {
   const filterById = args.config_id as string | undefined;
 
-  const scopeId = filterById ?? "one";
+  const scopeId = filterById ?? "heku";
   const tools = ctx.registry.list()
     .filter((rt) => rt.configId === scopeId)
     .map((rt) => ({

@@ -16,9 +16,9 @@ export interface SystemConfig {
   /** Per-service rate limits keyed by config id */
   rate_limits?: Record<string, RateLimitConfig>;
   /**
-   * Controls which self-management tools in mcp.one.json are exposed.
+   * Controls which self-management tools in mcp.heku.json are exposed.
    * - true or undefined: all tools (default)
-   * - false: disable mcp.one.json entirely (filter it out)
+   * - false: disable mcp.heku.json entirely (filter it out)
    * - { allow: string[] }: only these tool names are exposed
    * - { deny: string[] }: all tools except these are exposed
    */

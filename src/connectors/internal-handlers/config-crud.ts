@@ -15,7 +15,7 @@ import { loadManifest, removeFromManifest } from "../../registry/auth.js";
 import type { ConnectorResult } from "../base.js";
 import type { InternalContext } from "../internal.js";
 
-const SELF_ID = RESERVED_IDS[0]!; // "one" — protected from deletion/overwrite
+const SELF_ID = RESERVED_IDS[0]!; // "heku" — protected from deletion/overwrite
 
 function configFilePath(configDir: string, id: string): string {
   return path.join(configDir, `mcp.${id}.json`);

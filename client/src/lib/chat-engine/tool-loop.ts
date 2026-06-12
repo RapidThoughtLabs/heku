@@ -1,11 +1,11 @@
 /**
  * Agentic tool loop.
  *
- * All tools are equal — one.list_configs, github.create_issue, one.create_config
+ * All tools are equal — heku.list_configs, github.create_issue, heku.create_config
  * all go through the same executor.callTool path. No client-side interception.
  *
- * Progressive discovery happens naturally: the LLM calls one.list_configs,
- * gets the catalog, then calls one.list_tools to see specific tools, then calls them.
+ * Progressive discovery happens naturally: the LLM calls heku.list_configs,
+ * gets the catalog, then calls heku.list_tools to see specific tools, then calls them.
  */
 
 import { streamChatCompletion } from './llm-client'
@@ -97,8 +97,8 @@ export async function runToolLoop(
   const history = [...messages]
   let iteration = 0
 
-  // one.* tool list is stable for the lifetime of a turn — fetch once.
-  // Service tools are discovered via one.search/one.get_tool and called
+  // heku.* tool list is stable for the lifetime of a turn — fetch once.
+  // Service tools are discovered via heku.search/heku.get_tool and called
   // directly; they never appear in the function list.
   const tools = await executor.getTools()
 

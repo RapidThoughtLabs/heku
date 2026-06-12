@@ -64,8 +64,8 @@ export class ToolRegistry {
 
 // ── Manifest view helpers ─────────────────────────────────────────
 
-const DISCOVERY_FLAT = new Set(["one.search", "one.list_tools", "one.list_configs", "one.invoke"]);
-const DISCOVERY_TRIO = new Set(["one.search", "one.list_tools", "one.list_configs"]);
+const DISCOVERY_FLAT = new Set(["heku.search", "heku.list_tools", "heku.list_configs", "heku.invoke"]);
+const DISCOVERY_TRIO = new Set(["heku.search", "heku.list_tools", "heku.list_configs"]);
 
 function buildManifestView(style: ManifestStyle, registry: ToolRegistry) {
   if (style === "namespaced") {
@@ -77,22 +77,22 @@ function buildManifestView(style: ManifestStyle, registry: ToolRegistry) {
   }
   return {
     visible: registry.list().filter((rt) => DISCOVERY_FLAT.has(`${rt.configId}.${rt.tool.name}`)),
-    rewrite: (qualified: string) => qualified.replace(/^one\./, ""),
-    resolve: (incoming: string) => (incoming.includes(".") ? incoming : `one.${incoming}`),
+    rewrite: (qualified: string) => qualified.replace(/^heku\./, ""),
+    resolve: (incoming: string) => (incoming.includes(".") ? incoming : `heku.${incoming}`),
   };
 }
 
 // ── Config Write Lock ─────────────────────────────────────────────
 
 const BLOCKED_WHEN_LOCKED = new Set([
-  "one.create_config", "one.update_config", "one.delete_config",
-  "one.add_tool",      "one.remove_tool",   "one.update_tool",
-  "one.registry_install", "one.registry_update", "one.auth_set",
+  "heku.create_config", "heku.update_config", "heku.delete_config",
+  "heku.add_tool",      "heku.remove_tool",   "heku.update_tool",
+  "heku.registry_install", "heku.registry_update", "heku.auth_set",
 ]);
 
 function blockedTool(qualifiedName: string, args: Record<string, unknown>): string | null {
   if (BLOCKED_WHEN_LOCKED.has(qualifiedName)) return qualifiedName;
-  if (qualifiedName === "one.invoke") {
+  if (qualifiedName === "heku.invoke") {
     const target = args["tool"];
     if (typeof target === "string" && BLOCKED_WHEN_LOCKED.has(target)) return target;
   }
@@ -298,7 +298,7 @@ export async function startServer(
 
     // ── Admin REST API ──────────────────────────────────────────────
     // Console config CRUD — humans editing JSON. Full replace-style PUT.
-    // Separate from the MCP tools (one.*) which are narrow/additive for LLMs.
+    // Separate from the MCP tools (heku.*) which are narrow/additive for LLMs.
     if (options.configDir) {
       app.use("/admin", createAdminRouter({
         configDir: options.configDir,

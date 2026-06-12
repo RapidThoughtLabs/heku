@@ -2,8 +2,8 @@
  * invoke handler — proxy-execute any registered tool by qualified name.
  *
  * This is the execution bridge for the discover → execute workflow:
- *   one.search("weather") → finds open-meteo-http.get_forecast
- *   one.invoke({ tool: "open-meteo-http.get_forecast", args: { ... } }) → live data
+ *   heku.search("weather") → finds open-meteo-http.get_forecast
+ *   heku.invoke({ tool: "open-meteo-http.get_forecast", args: { ... } }) → live data
  *
  * The handler resolves the target tool from the registry and delegates to
  * execute(), which routes through the correct connector (http, cli, mcp, etc.).
@@ -34,7 +34,7 @@ export async function handleInvoke(
       success: false,
       data: {
         error: `Tool "${toolName}" not found`,
-        hint: "Use one.search or one.list_tools to find available tool names",
+        hint: "Use heku.search or heku.list_tools to find available tool names",
         available_count: available.length,
       },
     };

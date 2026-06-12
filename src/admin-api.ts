@@ -75,8 +75,52 @@ export function getServerSettings() {
   return { ...serverSettings };
 }
 
+const DISCOVERY_FLAT_SET = new Set(["heku.search", "heku.list_tools", "heku.list_configs", "heku.invoke"]);
+const DISCOVERY_TRIO_SET = new Set(["heku.search", "heku.list_tools", "heku.list_configs"]);
+
 export function createAdminRouter(ctx: AdminContext): Router {
   const router = Router();
+
+  // ── GET /admin/tools-manifest?style=flat|namespaced ───────────────
+  // Returns the tools/list handshake in the requested manifest style.
+
+  router.get("/tools-manifest", (req, res) => {
+    const styleParam = (req.query as { style?: string }).style;
+    const style: ManifestStyle =
+      styleParam === "namespaced" || styleParam === "flat"
+        ? styleParam
+        : serverSettings.manifestStyle;
+
+    const tools = ctx.registry.list();
+
+    if (style === "namespaced") {
+      const visible = tools.filter((rt) =>
+        DISCOVERY_TRIO_SET.has(`${rt.configId}.${rt.tool.name}`),
+      );
+      res.json(
+        visible.map((rt) => ({
+          name: `${rt.configId}.${rt.tool.name}`,
+          description: rt.tool.description,
+          inputSchema: buildInputSchema(rt.tool.params ?? []),
+          configId: rt.configId,
+        })),
+      );
+      return;
+    }
+
+    // flat
+    const visible = tools.filter((rt) =>
+      DISCOVERY_FLAT_SET.has(`${rt.configId}.${rt.tool.name}`),
+    );
+    res.json(
+      visible.map((rt) => ({
+        name: rt.tool.name,
+        description: rt.tool.description,
+        inputSchema: buildInputSchema(rt.tool.params ?? []),
+        configId: rt.configId,
+      })),
+    );
+  });
 
   // ── GET /admin/server-settings ───────────────────────────────────
   // Returns current runtime server settings (hot reload + log level).

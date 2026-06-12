@@ -10,6 +10,7 @@ import { useLlmStore } from '@/stores/llm-store'
 import { PROVIDER_DEFAULTS, type ProviderName } from '@/lib/chat-engine'
 import { applyTheme, applyFontSize } from '@/lib/theme'
 import { toast } from '@/components/ui/Toast'
+import { api } from '@/lib/api'
 
 type Tab = 'appearance' | 'server' | 'mcp' | 'llm' | 'about'
 
@@ -141,7 +142,7 @@ function AppearanceTab() {
 function ManifestStylePreview({ style, selected }: { style: ManifestStyle; selected: boolean }) {
   const tools = style === 'flat'
     ? ['search()', 'list_configs()', 'list_tools()', 'invoke()']
-    : ['one.search()', 'one.list_configs()', 'one.list_tools()']
+    : ['heku.search()', 'heku.list_configs()', 'heku.list_tools()']
 
   const label = style === 'flat' ? 'Flat' : 'Namespaced'
   const desc = style === 'flat' ? 'Claude / Cursor (regex-safe)' : 'Bespoke / Enterprise'
@@ -176,9 +177,8 @@ function ServerTab() {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/api/server-settings')
-      .then((r) => r.json())
-      .then((data: { hotReload?: boolean; logLevel?: LogLevel; configWriteLock?: boolean; unavailable?: boolean; configDir?: string; mcpServerVersion?: string }) => {
+    api.get<{ hotReload?: boolean; logLevel?: LogLevel; configWriteLock?: boolean; unavailable?: boolean; configDir?: string; mcpServerVersion?: string }>('/server-settings')
+      .then((data) => {
         if (typeof data.hotReload === 'boolean') setHotReload(data.hotReload)
         if (data.logLevel) setLogLevel(data.logLevel)
         if (typeof data.configWriteLock === 'boolean') setConfigWriteLock(data.configWriteLock)
@@ -192,12 +192,7 @@ function ServerTab() {
 
   const applySettings = async (patch: { hotReload?: boolean; logLevel?: LogLevel; configWriteLock?: boolean }) => {
     try {
-      const res = await fetch('/api/server-settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(patch),
-      })
-      if (!res.ok) throw new Error('Failed')
+      await api.post('/server-settings', patch)
     } catch {
       toast.error('Could not apply setting — heku may not be connected')
     }
@@ -288,9 +283,8 @@ function RuntimeTab() {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/api/server-settings')
-      .then((r) => r.json())
-      .then((data: { manifestStyle?: ManifestStyle; blockAutoInstall?: boolean; blockAutoStart?: boolean; unavailable?: boolean }) => {
+    api.get<{ manifestStyle?: ManifestStyle; blockAutoInstall?: boolean; blockAutoStart?: boolean; unavailable?: boolean }>('/server-settings')
+      .then((data) => {
         if (data.manifestStyle) setManifestStyle(data.manifestStyle)
         if (typeof data.blockAutoInstall === 'boolean') setBlockAutoInstall(data.blockAutoInstall)
         if (typeof data.blockAutoStart === 'boolean') setBlockAutoStart(data.blockAutoStart)
@@ -302,12 +296,7 @@ function RuntimeTab() {
 
   const applySettings = async (patch: { manifestStyle?: ManifestStyle; blockAutoInstall?: boolean; blockAutoStart?: boolean }) => {
     try {
-      const res = await fetch('/api/server-settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(patch),
-      })
-      if (!res.ok) throw new Error('Failed')
+      await api.post('/server-settings', patch)
     } catch {
       toast.error('Could not apply setting — heku may not be connected')
     }
@@ -565,9 +554,8 @@ function AboutTab() {
 
   useEffect(() => {
     if (mcpServerVersion) return
-    fetch('/api/server-settings')
-      .then((r) => r.json())
-      .then((data: { mcpServerVersion?: string }) => {
+    api.get<{ mcpServerVersion?: string }>('/server-settings')
+      .then((data) => {
         if (data.mcpServerVersion) setMcpServerVersion(data.mcpServerVersion)
       })
       .catch(() => {})

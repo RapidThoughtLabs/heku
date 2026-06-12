@@ -6,13 +6,15 @@ import { countTokens, formatTokenCount } from './lib/token-count'
 
 interface ComposedPromptCardProps {
   composedText: string
-  handshakeTokens: number
+  flatHandshakeTokens: number
+  namespacedHandshakeTokens: number
 }
 
-export function ComposedPromptCard({ composedText, handshakeTokens }: ComposedPromptCardProps) {
+export function ComposedPromptCard({ composedText, flatHandshakeTokens, namespacedHandshakeTokens }: ComposedPromptCardProps) {
   const preRef = useRef<HTMLPreElement>(null)
   const promptTokens = countTokens(composedText)
-  const totalTokens = promptTokens + handshakeTokens
+  const flatTotal = promptTokens + flatHandshakeTokens
+  const namespacedTotal = promptTokens + namespacedHandshakeTokens
 
   async function handleCopy() {
     try {
@@ -57,31 +59,54 @@ export function ComposedPromptCard({ composedText, handshakeTokens }: ComposedPr
 
         <div
           style={{
-            fontSize: '0.69rem',
-            fontFamily: "'JetBrains Mono', monospace",
-            color: 'var(--accent)',
-            letterSpacing: '0.04em',
-            background: 'var(--accent-dim)',
-            padding: '2px 8px',
-            borderRadius: 3,
-            whiteSpace: 'nowrap',
+            display: 'flex',
+            gap: 6,
+            alignItems: 'center',
+            flexWrap: 'wrap',
           }}
-          title={`prompt ${formatTokenCount(promptTokens)} + tools ${formatTokenCount(handshakeTokens)}`}
         >
-          Σ {formatTokenCount(totalTokens)} tok
+          <span
+            style={{
+              fontSize: '0.69rem',
+              fontFamily: "'JetBrains Mono', monospace",
+              color: 'var(--text-dim)',
+              letterSpacing: '0.04em',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            prompt {formatTokenCount(promptTokens)}
+          </span>
+          <span style={{ fontSize: '0.69rem', color: 'var(--border)' }}>+</span>
+          <span
+            style={{
+              fontSize: '0.69rem',
+              fontFamily: "'JetBrains Mono', monospace",
+              color: 'var(--accent)',
+              background: 'var(--accent-dim)',
+              padding: '1px 6px',
+              borderRadius: 3,
+              whiteSpace: 'nowrap',
+            }}
+            title="Total tokens (flat style)"
+          >
+            Σ flat {formatTokenCount(flatTotal)}
+          </span>
+          <span
+            style={{
+              fontSize: '0.69rem',
+              fontFamily: "'JetBrains Mono', monospace",
+              color: 'var(--text-dim)',
+              background: 'var(--bg)',
+              padding: '1px 6px',
+              borderRadius: 3,
+              border: '1px solid var(--border)',
+              whiteSpace: 'nowrap',
+            }}
+            title="Total tokens (namespaced style)"
+          >
+            Σ ns {formatTokenCount(namespacedTotal)}
+          </span>
         </div>
-
-        <span
-          style={{
-            fontSize: '0.69rem',
-            fontFamily: "'JetBrains Mono', monospace",
-            color: 'var(--text-dim)',
-            letterSpacing: '0.04em',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          prompt {formatTokenCount(promptTokens)} + tools {formatTokenCount(handshakeTokens)}
-        </span>
 
         <Button size="xs" variant="ghost" onClick={handleCopy} title="Copy composed prompt">
           <Copy size={11} />

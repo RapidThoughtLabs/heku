@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { api } from '@/lib/api'
+import { useAppStore } from '@/stores/app-store'
 import {
   composeSystemPrompt,
   buildConfigCatalog,
@@ -21,7 +22,11 @@ function gravityFor(layer: PromptLayer, index: number): GravityKind {
 export function PromptsView() {
   const [activeTemplateId, setActiveTemplateId] = useState('default')
   const [composedText, setComposedText] = useState('')
-  const [handshakeTokens, setHandshakeTokens] = useState(0)
+  const [flatHandshakeTokens, setFlatHandshakeTokens] = useState(0)
+  const [namespacedHandshakeTokens, setNamespacedHandshakeTokens] = useState(0)
+
+  const toolCount = useAppStore((s) => s.toolCount)
+  const configsRevision = useAppStore((s) => s.configsRevision)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pf = promptData as any
@@ -46,7 +51,7 @@ export function PromptsView() {
 
   useEffect(() => {
     void buildComposed(activeTemplateId)
-  }, [activeTemplateId, buildComposed])
+  }, [activeTemplateId, buildComposed, toolCount, configsRevision])
 
   const activeTemplate = pf.templates.find((t: { id: string }) => t.id === activeTemplateId) ?? pf.templates[0]
 
@@ -112,10 +117,11 @@ export function PromptsView() {
         >
           <ComposedPromptCard
             composedText={composedText}
-            handshakeTokens={handshakeTokens}
+            flatHandshakeTokens={flatHandshakeTokens}
+            namespacedHandshakeTokens={namespacedHandshakeTokens}
           />
 
-          <HandshakeCard onTokenCount={setHandshakeTokens} />
+          <HandshakeCard onTokenCounts={(flat, ns) => { setFlatHandshakeTokens(flat); setNamespacedHandshakeTokens(ns) }} />
 
           {activeLayers.map((layer, i) => (
             <LayerCard

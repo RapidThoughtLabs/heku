@@ -20,10 +20,10 @@ const DEBOUNCE_MS = 300;
 
 // ── Internal helpers ───────────────────────────────────────────────
 
-/** Returns true if the path looks like a mcp.*.json config file (excluding the reserved mcp.one.json). */
+/** Returns true if the path looks like a mcp.*.json config file (excluding the reserved mcp.heku.json). */
 function isMcpConfigFile(filePath: string): boolean {
   const base = path.basename(filePath);
-  return base.startsWith("mcp.") && base.endsWith(".json") && base !== "mcp.one.json";
+  return base.startsWith("mcp.") && base.endsWith(".json") && base !== "mcp.heku.json";
 }
 
 /** Returns true if the path looks like a per-config secrets file (mcp.*.env). */

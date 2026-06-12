@@ -78,7 +78,7 @@ export function LayerCard({ layer, index, gravity }: LayerCardProps) {
           <Badge variant="online">LAYER 1 · FOUNDATION</Badge>
         )}
         {gravity === 'discovery' && (
-          <Badge variant="online">DISCOVERY ↑ ABOVE one.*</Badge>
+          <Badge variant="online">DISCOVERY ↑ ABOVE heku.*</Badge>
         )}
 
         <span style={{ fontSize: '0.85rem', color: 'var(--text)', letterSpacing: '0.04em', flex: 1, minWidth: 0 }}>

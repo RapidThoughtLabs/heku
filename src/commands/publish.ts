@@ -183,7 +183,7 @@ export async function run(args: string[]): Promise<void> {
     let candidates: string[] = [];
     if (fs.existsSync(configDir)) {
       candidates = fs.readdirSync(configDir)
-        .filter((f) => f.startsWith("mcp.") && f.endsWith(".json") && f !== "mcp.one.json")
+        .filter((f) => f.startsWith("mcp.") && f.endsWith(".json") && f !== "mcp.heku.json")
         .map((f) => path.join(configDir, f));
     }
     if (candidates.length === 0) {

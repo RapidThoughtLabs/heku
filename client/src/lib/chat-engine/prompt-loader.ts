@@ -16,7 +16,13 @@ export interface ConfigCatalogEntry {
 /** Format config catalog for injection into system prompt */
 export function buildConfigCatalog(configs: ConfigCatalogEntry[]): string {
   if (configs.length === 0) return '(no configs installed yet)'
-  return configs.map((c) => `- ${c.id}`).join('\n')
+  return configs.map((c) => {
+    const label = c.name && c.name !== c.id ? `${c.id} (${c.name})` : c.id
+    let entry = `- ${label}`
+    if (c.description) entry += ` — ${c.description}`
+    entry += ` [${c.connector_type}, ${c.tool_count} tools]`
+    return entry
+  }).join('\n')
 }
 
 /** Compose a system prompt from layers defined in a template */

@@ -1,7 +1,7 @@
 import { CONNECTOR_TYPES } from "./connector-types.js";
 import { resolveEnv } from "./env-store.js";
 
-export const RESERVED_IDS = ["one"];
+export const RESERVED_IDS = ["heku"];
 
 export interface AuthStatus {
   type: string;

@@ -2,7 +2,7 @@ import type { McpConfig } from "./types.js";
 
 /** Built-in self-management config — always present, cannot be deleted or overridden from disk. */
 export const INTERNAL_CONFIG: McpConfig = {
-  id: "one",
+  id: "heku",
   name: "heku Self-Management",
   description:
     "Create configs, add tools, install from registry, manage auth — heku's own management interface for LLM agents.",
@@ -41,7 +41,7 @@ export const INTERNAL_CONFIG: McpConfig = {
       description:
         "Find tools by name or intent across all configs (or within a specific one). " +
         "Returns matching tools with full schemas grouped by quality: exact → partial → description → related. " +
-        "Covers both native `one.*` self-management tools and all loaded service tools. " +
+        "Covers both native `heku.*` self-management tools and all loaded service tools. " +
         "Narrow by config: `github-http` returns only github-http tools; `github` matches github-http and github-cli. " +
         "Once you have a tool name, call `invoke` with `config_id.tool_name` to execute it.",
       params: [
@@ -64,13 +64,13 @@ export const INTERNAL_CONFIG: McpConfig = {
       description:
         "Execute any registered tool by its qualified name (`config_id.tool_name`). " +
         "Workflow: (1) list_configs → pick a config id, (2) search or list_tools → get the tool name and required args, (3) invoke → run it. " +
-        "Examples: `github-http.create_issue`, `linear-graphql.create_issue`, `one.server_status`.",
+        "Examples: `github-http.create_issue`, `linear-graphql.create_issue`, `heku.server_status`.",
       params: [
         {
           name: "tool",
           type: "string",
           required: true,
-          description: "Qualified tool name in the format config_id.tool_name (e.g. 'open-meteo-http.get_forecast', 'github-http.create_issue', 'one.server_status')"
+          description: "Qualified tool name in the format config_id.tool_name (e.g. 'open-meteo-http.get_forecast', 'github-http.create_issue', 'heku.server_status')"
         },
         {
           name: "args",
@@ -92,7 +92,7 @@ export const INTERNAL_CONFIG: McpConfig = {
     },
     {
       name: "delete_config",
-      description: "Delete a config file and unregister all its tools. Cannot delete the 'one' self-management config — use self_config: false in heku.config.json instead.",
+      description: "Delete a config file and unregister all its tools. Cannot delete the 'heku' self-management config — use self_config: false in heku.config.json instead.",
       params: [
         { name: "config_id", type: "string", required: true, description: "Config ID to delete" },
       ],
@@ -133,11 +133,11 @@ export const INTERNAL_CONFIG: McpConfig = {
       name: "list_tools",
       description:
         "Returns tools with full schemas ready to call. " +
-        "No args: returns only the native `one.*` self-management surface. " +
+        "No args: returns only the native `heku.*` self-management surface. " +
         "With config_id: returns all tools in that config. " +
-        "For targeted lookup by name or intent, use `one.search` instead.",
+        "For targeted lookup by name or intent, use `heku.search` instead.",
       params: [
-        { name: "config_id", type: "string", required: false, description: "Config ID to list tools for. Omit to list only native one.* tools." },
+        { name: "config_id", type: "string", required: false, description: "Config ID to list tools for. Omit to list only native heku.* tools." },
       ],
     },
     {

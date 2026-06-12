@@ -311,11 +311,26 @@ export function createApiRouter(mcp: McpClientInstance): Router {
     }
   });
 
-  // ── GET /api/tools/manifest ──────────────────────────────────────
-  // The DISCOVERY_TRIO advertised to LLMs via MCP tools/list.
+  // ── GET /api/tools/manifest?style=flat|namespaced ───────────────
+  // The DISCOVERY_TRIO/FLAT advertised to LLMs via MCP tools/list.
   // Used by the chat agent and the handshake preview card.
+  // With ?style=, returns that specific style from the heku admin API.
 
-  router.get("/tools/manifest", (_req, res) => {
+  router.get("/tools/manifest", async (req, res) => {
+    const style = (req.query as { style?: string }).style;
+    if (style === "flat" || style === "namespaced") {
+      try {
+        const tools = await admin.get(`/tools-manifest?style=${style}`);
+        res.json(tools);
+      } catch (err) {
+        if (err instanceof AdminUnavailableError) {
+          res.json([]);
+          return;
+        }
+        res.status(500).json({ error: (err as Error).message });
+      }
+      return;
+    }
     res.json(mcp.listTools());
   });
 

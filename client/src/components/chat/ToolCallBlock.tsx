@@ -12,7 +12,7 @@ function formatJson(value: unknown): string {
 }
 
 function isDiscoveryTool(name: string): boolean {
-  return name.startsWith('one.')
+  return name.startsWith('heku.')
 }
 
 export function ToolCallBlock({ toolCall, result }: ToolCallBlockProps) {

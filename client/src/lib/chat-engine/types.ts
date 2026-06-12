@@ -31,7 +31,7 @@ export type MessageRole = 'system' | 'user' | 'assistant' | 'tool'
 
 export interface ToolCallRequest {
   id: string
-  name: string      // e.g. "github.list_repos" or "one.list_configs"
+  name: string      // e.g. "github.list_repos" or "heku.list_configs"
   arguments: string // JSON string
 }
 

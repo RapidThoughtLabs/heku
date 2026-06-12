@@ -7,12 +7,17 @@ import { api } from '@/lib/api'
 import type { McpTool } from '@/types/server'
 import { countJsonTokens, formatTokenCount } from './lib/token-count'
 
-// Static fallback: what one.* tools look like if server is offline
-const FALLBACK_TOOLS: McpTool[] = [
-  { name: 'one.list_configs', description: '[one] List all installed MCP configs with their connector types and tool counts', inputSchema: { type: 'object', properties: {} }, configId: 'one' },
-  { name: 'one.list_tools', description: '[one] List all tools for a specific config', inputSchema: { type: 'object', properties: { config_id: { type: 'string' } }, required: ['config_id'] }, configId: 'one' },
-  { name: 'one.get_tool', description: '[one] Get the full schema for a specific tool by its qualified name', inputSchema: { type: 'object', properties: { qualified_name: { type: 'string' } }, required: ['qualified_name'] }, configId: 'one' },
-  { name: 'one.search', description: '[one] Search for tools across all installed configs by intent or keyword', inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] }, configId: 'one' },
+const FALLBACK_NAMESPACED: McpTool[] = [
+  { name: 'heku.list_configs', description: '[heku] List all installed MCP configs with their connector types and tool counts', inputSchema: { type: 'object', properties: {} }, configId: 'heku' },
+  { name: 'heku.list_tools', description: '[heku] List all tools for a specific config', inputSchema: { type: 'object', properties: { config_id: { type: 'string' } }, required: ['config_id'] }, configId: 'heku' },
+  { name: 'heku.search', description: '[heku] Search for tools across all installed configs by intent or keyword', inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] }, configId: 'heku' },
+]
+
+const FALLBACK_FLAT: McpTool[] = [
+  { name: 'list_configs', description: '[heku] List all installed MCP configs with their connector types and tool counts', inputSchema: { type: 'object', properties: {} }, configId: 'heku' },
+  { name: 'list_tools', description: '[heku] List all tools for a specific config', inputSchema: { type: 'object', properties: { config_id: { type: 'string' } }, required: ['config_id'] }, configId: 'heku' },
+  { name: 'search', description: '[heku] Search for tools across all installed configs by intent or keyword', inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] }, configId: 'heku' },
+  { name: 'invoke', description: '[heku] Directly invoke any heku tool by its qualified name', inputSchema: { type: 'object', properties: { tool: { type: 'string' }, arguments: { type: 'object' } }, required: ['tool'] }, configId: 'heku' },
 ]
 
 function toHandshakeShape(tools: McpTool[]) {
@@ -27,40 +32,54 @@ function toHandshakeShape(tools: McpTool[]) {
 }
 
 interface HandshakeCardProps {
-  onTokenCount?: (n: number) => void
+  onTokenCounts?: (flat: number, namespaced: number) => void
 }
 
-export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
-  const [tools, setTools] = useState<McpTool[]>([])
+export function HandshakeCard({ onTokenCounts }: HandshakeCardProps) {
+  const [flatTools, setFlatTools] = useState<McpTool[]>([])
+  const [namespacedTools, setNamespacedTools] = useState<McpTool[]>([])
   const [loading, setLoading] = useState(true)
   const [isFallback, setIsFallback] = useState(false)
+  const [activeTab, setActiveTab] = useState<'flat' | 'namespaced'>('flat')
   const preRef = useRef<HTMLPreElement>(null)
 
   useEffect(() => {
-    api.get<McpTool[]>('/tools/manifest')
-      .then((manifest) => {
-        setTools(manifest.length > 0 ? manifest : FALLBACK_TOOLS)
-        setIsFallback(manifest.length === 0)
+    Promise.all([
+      api.get<McpTool[]>('/tools/manifest?style=flat'),
+      api.get<McpTool[]>('/tools/manifest?style=namespaced'),
+    ])
+      .then(([flat, namespaced]) => {
+        const flatResult = flat.length > 0 ? flat : FALLBACK_FLAT
+        const namespacedResult = namespaced.length > 0 ? namespaced : FALLBACK_NAMESPACED
+        setFlatTools(flatResult)
+        setNamespacedTools(namespacedResult)
+        setIsFallback(flat.length === 0 && namespaced.length === 0)
       })
       .catch(() => {
-        setTools(FALLBACK_TOOLS)
+        setFlatTools(FALLBACK_FLAT)
+        setNamespacedTools(FALLBACK_NAMESPACED)
         setIsFallback(true)
       })
       .finally(() => setLoading(false))
   }, [])
 
-  const handshakeJson = toHandshakeShape(tools)
-  const jsonText = JSON.stringify(handshakeJson, null, 2)
-  const tokenCount = countJsonTokens(handshakeJson)
+  const flatHandshake = toHandshakeShape(flatTools)
+  const namespacedHandshake = toHandshakeShape(namespacedTools)
+  const flatTokens = countJsonTokens(flatHandshake)
+  const namespacedTokens = countJsonTokens(namespacedHandshake)
 
   useEffect(() => {
-    onTokenCount?.(tokenCount)
-  }, [tokenCount, onTokenCount])
+    onTokenCounts?.(flatTokens, namespacedTokens)
+  }, [flatTokens, namespacedTokens, onTokenCounts])
+
+  const activeTools = activeTab === 'flat' ? flatHandshake : namespacedHandshake
+  const activeTokens = activeTab === 'flat' ? flatTokens : namespacedTokens
+  const jsonText = JSON.stringify(activeTools, null, 2)
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(jsonText)
-      toast.success('Copied · tools/list')
+      toast.success(`Copied · tools/list (${activeTab})`)
     } catch {
       const pre = preRef.current
       if (pre) {
@@ -72,6 +91,19 @@ export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
       }
     }
   }
+
+  const tabStyle = (tab: 'flat' | 'namespaced'): React.CSSProperties => ({
+    padding: '3px 10px',
+    fontSize: '0.77rem',
+    fontFamily: "'JetBrains Mono', monospace",
+    letterSpacing: '0.06em',
+    cursor: 'pointer',
+    border: 'none',
+    borderRadius: 3,
+    background: activeTab === tab ? 'var(--accent)' : 'transparent',
+    color: activeTab === tab ? 'var(--bg)' : 'var(--text-dim)',
+    transition: 'all 0.12s',
+  })
 
   return (
     <div
@@ -95,11 +127,20 @@ export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
         }}
       >
         <Plug size={12} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
-        <span style={{ fontSize: '0.85rem', color: 'var(--text)', letterSpacing: '0.04em', flex: 1 }}>
+        <span style={{ fontSize: '0.85rem', color: 'var(--text)', letterSpacing: '0.04em' }}>
           tools/list handshake
         </span>
         <Badge variant="offline">HANDSHAKE · tools/list</Badge>
         {isFallback && <Badge variant="warn">offline fallback</Badge>}
+
+        {/* Tab switcher */}
+        <div style={{ display: 'flex', gap: 3, background: 'var(--bg)', padding: 2, borderRadius: 4, border: '1px solid var(--border)' }}>
+          <button style={tabStyle('flat')} onClick={() => setActiveTab('flat')}>flat</button>
+          <button style={tabStyle('namespaced')} onClick={() => setActiveTab('namespaced')}>namespaced</button>
+        </div>
+
+        <div style={{ flex: 1 }} />
+
         <span
           style={{
             fontSize: '0.69rem',
@@ -109,9 +150,9 @@ export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
             whiteSpace: 'nowrap',
           }}
         >
-          {formatTokenCount(tokenCount)} tok
+          {formatTokenCount(activeTokens)} tok
         </span>
-        <Button size="xs" variant="ghost" onClick={handleCopy} title="Copy handshake JSON">
+        <Button size="xs" variant="ghost" onClick={handleCopy} title={`Copy ${activeTab} handshake JSON`}>
           <Copy size={11} />
         </Button>
       </div>
@@ -126,9 +167,31 @@ export function HandshakeCard({ onTokenCount }: HandshakeCardProps) {
           lineHeight: 1.5,
         }}
       >
-        The tool inventory the LLM receives on connect. After lazy-discovery mode, only{' '}
-        <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.77rem' }}>one.*</code>{' '}
-        tools are advertised — service tools are discovered on demand.
+        {activeTab === 'flat'
+          ? <>Flat style: meta-tools are advertised without prefix — used by Claude, Cursor, and other clients that disallow dots in tool names.</>
+          : <>Namespaced style: meta-tools use the <code style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.77rem' }}>heku.*</code> prefix — standard for bespoke and enterprise clients.</>
+        }
+      </div>
+
+      {/* Token comparison badge */}
+      <div
+        style={{
+          display: 'flex',
+          gap: 10,
+          padding: '6px 14px 0',
+          fontSize: '0.69rem',
+          fontFamily: "'JetBrains Mono', monospace",
+          color: 'var(--text-dim)',
+          letterSpacing: '0.04em',
+        }}
+      >
+        <span style={{ color: activeTab === 'flat' ? 'var(--accent)' : 'var(--text-dim)' }}>
+          flat: {formatTokenCount(flatTokens)} tok ({flatTools.length} tools)
+        </span>
+        <span>·</span>
+        <span style={{ color: activeTab === 'namespaced' ? 'var(--accent)' : 'var(--text-dim)' }}>
+          namespaced: {formatTokenCount(namespacedTokens)} tok ({namespacedTools.length} tools)
+        </span>
       </div>
 
       {/* JSON body */}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ChevronRight, ChevronDown, FileText } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import type { ChatMessage as ChatMessageType, ToolCallResult } from '@/lib/chat-engine'
 import { ToolCallBlock } from './ToolCallBlock'
 
@@ -161,11 +162,119 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
             padding: '6px 0 6px 21px',
             borderLeft: hasToolCalls ? '2px solid var(--border)' : 'none',
             marginLeft: hasToolCalls ? 2 : 0,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
           }}
         >
-          {msg.content}
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => (
+                <p style={{ margin: '0 0 0.6em', lineHeight: 1.7, wordBreak: 'break-word' }}>{children}</p>
+              ),
+              h1: ({ children }) => (
+                <h1 style={{ fontSize: '1.2em', fontWeight: 600, margin: '0.8em 0 0.4em', color: 'var(--text)' }}>{children}</h1>
+              ),
+              h2: ({ children }) => (
+                <h2 style={{ fontSize: '1.1em', fontWeight: 600, margin: '0.8em 0 0.4em', color: 'var(--text)' }}>{children}</h2>
+              ),
+              h3: ({ children }) => (
+                <h3 style={{ fontSize: '1em', fontWeight: 600, margin: '0.6em 0 0.3em', color: 'var(--text)' }}>{children}</h3>
+              ),
+              ul: ({ children }) => (
+                <ul style={{ margin: '0.3em 0 0.6em', paddingLeft: '1.4em', lineHeight: 1.7 }}>{children}</ul>
+              ),
+              ol: ({ children }) => (
+                <ol style={{ margin: '0.3em 0 0.6em', paddingLeft: '1.4em', lineHeight: 1.7 }}>{children}</ol>
+              ),
+              li: ({ children }) => (
+                <li style={{ margin: '0.15em 0', wordBreak: 'break-word' }}>{children}</li>
+              ),
+              code: ({ children, className }) => {
+                const isBlock = className?.startsWith('language-')
+                if (isBlock) {
+                  return (
+                    <code
+                      style={{
+                        display: 'block',
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: '0.85em',
+                        background: 'var(--bg)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 4,
+                        padding: '8px 12px',
+                        margin: '0.4em 0',
+                        overflowX: 'auto',
+                        whiteSpace: 'pre',
+                        wordBreak: 'normal',
+                      }}
+                    >
+                      {children}
+                    </code>
+                  )
+                }
+                return (
+                  <code
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '0.85em',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 3,
+                      padding: '1px 5px',
+                    }}
+                  >
+                    {children}
+                  </code>
+                )
+              },
+              pre: ({ children }) => (
+                <pre
+                  style={{
+                    margin: '0.4em 0',
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 4,
+                    padding: '8px 12px',
+                    overflowX: 'auto',
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: '0.85em',
+                    lineHeight: 1.6,
+                    whiteSpace: 'pre',
+                  }}
+                >
+                  {children}
+                </pre>
+              ),
+              blockquote: ({ children }) => (
+                <blockquote
+                  style={{
+                    borderLeft: '3px solid var(--accent)',
+                    margin: '0.4em 0',
+                    paddingLeft: '0.8em',
+                    color: 'var(--text-dim)',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {children}
+                </blockquote>
+              ),
+              strong: ({ children }) => (
+                <strong style={{ fontWeight: 600, color: 'var(--text)' }}>{children}</strong>
+              ),
+              em: ({ children }) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
+              hr: () => <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0.8em 0' }} />,
+              a: ({ children, href }) => (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--accent)', textDecoration: 'underline' }}
+                >
+                  {children}
+                </a>
+              ),
+            }}
+          >
+            {msg.content}
+          </ReactMarkdown>
           {msg.isStreaming && (
             <span
               style={{
