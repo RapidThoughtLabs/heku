@@ -22,13 +22,13 @@ const TABS: { id: Tab; icon: typeof Palette; label: string }[] = [
   { id: 'about', icon: Info, label: 'About' },
 ]
 
-const ACCENTS: { value: AccentColor; hsl: string; label: string }[] = [
-  { value: 'purple', hsl: 'hsl(270, 70%, 68%)', label: 'Purple' },
-  { value: 'lime', hsl: 'hsl(86, 84%, 62%)', label: 'Lime' },
-  { value: 'blue', hsl: 'hsl(210, 80%, 62%)', label: 'Blue' },
-  { value: 'cyan', hsl: 'hsl(186, 80%, 52%)', label: 'Cyan' },
-  { value: 'pink', hsl: 'hsl(330, 80%, 68%)', label: 'Pink' },
-  { value: 'yellow', hsl: 'hsl(45, 92%, 56%)', label: 'Yellow' },
+const ACCENTS: { value: AccentColor; dark: string; light: string; label: string }[] = [
+  { value: 'plasma', dark: '#926dff', light: '#512da6', label: 'Plasma' },
+  { value: 'surge',  dark: '#00d49f', light: '#006f4b', label: 'Surge'  },
+  { value: 'frost',  dark: '#00bbf1', light: '#005b84', label: 'Frost'  },
+  { value: 'void',   dark: '#0077ff', light: '#0038b0', label: 'Void'   },
+  { value: 'dusk',   dark: '#ff992b', light: '#9d5300', label: 'Dusk'   },
+  { value: 'ember',  dark: '#f84b9f', light: '#9d0f5d', label: 'Ember'  },
 ]
 
 function SettingRow({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
@@ -85,33 +85,39 @@ function AppearanceTab() {
       </SettingRow>
 
       <SettingRow label="Accent color" sub="Choose your accent color">
-        <div style={{ display: 'flex', gap: 8 }}>
-          {ACCENTS.map((a) => (
-            <button
-              key={a.value}
-              title={a.label}
-              onClick={() => handleAccent(a.value)}
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                cursor: 'pointer',
-                border: `2px solid ${accent === a.value ? 'var(--text)' : 'transparent'}`,
-                background: a.hsl,
-                transition: 'all 0.15s',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.15)'; e.currentTarget.style.filter = 'brightness(1.2)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.filter = '' }}
-            >
-              {accent === a.value && (
-                <span style={{ fontSize: '0.77rem', fontWeight: 700, color: 'rgba(0,0,0,0.6)' }}>✓</span>
-              )}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {ACCENTS.map((a) => {
+            const hex = mode === 'dark' ? a.dark : a.light
+            const isActive = accent === a.value
+            return (
+              <button
+                key={a.value}
+                title={a.label}
+                onClick={() => handleAccent(a.value)}
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  border: `2px solid ${isActive ? 'var(--text)' : 'transparent'}`,
+                  background: hex,
+                  transition: 'all 0.15s',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  outline: isActive ? `3px solid ${hex}40` : 'none',
+                  outlineOffset: 1,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.18)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = '' }}
+              >
+                {isActive && (
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: 'rgba(255,255,255,0.85)', lineHeight: 1 }}>✓</span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </SettingRow>
 

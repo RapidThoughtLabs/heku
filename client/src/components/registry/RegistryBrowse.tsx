@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Search, RefreshCw, Loader2, PackageSearch, SlidersHorizontal, X, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { RegistryCard } from './RegistryCard'
+import { useAppStore } from '@/stores/app-store'
 import type { RegistryConfigMeta, RegistryUpdateInfo, RegistrySource } from '@/types/registry'
 import type { RegistryFilters } from '@/hooks/useRegistry'
 
@@ -53,6 +54,7 @@ export function RegistryBrowse({
   getUpdateInfo,
   onSelect,
 }: RegistryBrowseProps) {
+  const { accent } = useAppStore()
   const [searchInput, setSearchInput] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
@@ -146,7 +148,7 @@ export function RegistryBrowse({
         <Button
           size="sm"
           variant="primary"
-          onClick={() => window.open('https://app.rapidthoughtlabs.space', '_blank')}
+          onClick={() => window.open(`https://app.rapidthoughtlabs.space/?accent=${accent}`, '_blank')}
           title="Open heku hub"
         >
           <ExternalLink size={10} style={{ marginRight: 5 }} />

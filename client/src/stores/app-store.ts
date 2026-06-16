@@ -3,7 +3,7 @@ import type { ConfigSummary, McpTool } from '@/types/server'
 import type { RegistryConfigMeta, RegistryFilters, RegistryUpdateInfo, ManifestEntry, RegistrySource } from '@/types/registry'
 
 export type Page = 'demo' | 'configs' | 'registry' | 'experimental' | 'logs' | 'prompts'
-export type AccentColor = 'purple' | 'lime' | 'blue' | 'cyan' | 'pink' | 'yellow'
+export type AccentColor = 'plasma' | 'surge' | 'frost' | 'void' | 'dusk' | 'ember'
 export type ThemeMode = 'dark' | 'light'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 export type ManifestStyle = 'flat' | 'namespaced'
@@ -105,7 +105,7 @@ export const useAppStore = create<AppState>((set) => ({
   setActivePage: (page) => set({ activePage: page }),
 
   mode: 'dark',
-  accent: 'purple',
+  accent: 'plasma',
   fontSize: 13,
   setMode: (mode) => set({ mode }),
   setAccent: (accent) => set({ accent }),

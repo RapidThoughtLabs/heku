@@ -149,7 +149,7 @@ export function McpPanel() {
             <Loader2 size={24} style={{ opacity: 0.3, animation: 'spin 1s linear infinite' }} />
             <span style={{ fontSize: '0.77rem', letterSpacing: '0.06em' }}>Connecting to heku...</span>
           </div>
-        ) : tools.length === 0 ? (
+        ) : groups.size === 0 ? (
           <div
             style={{
               display: 'flex',
@@ -376,7 +376,7 @@ export function McpPanel() {
           </div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.06em', flex: 1 }}>
+          <span style={{ fontSize: '0.77rem', color: 'var(--text-dim)', letterSpacing: '0.06em', flex: 1, whiteSpace: 'nowrap' }}>
             <strong style={{ color: 'var(--accent)' }}>{totalTools}</strong> tools ·{' '}
             <strong style={{ color: 'var(--accent)' }}>{groups.size}</strong> configs
           </span>

@@ -8,9 +8,9 @@
 /* ── Dark mode defaults ── */
 :root {
   font-size: 13px;
-  --accent-h: 270;
-  --accent-s: 70%;
-  --accent-l: 68%;
+  --accent-h: 255;
+  --accent-s: 100%;
+  --accent-l: 71%;
   --accent:     hsl(var(--accent-h), var(--accent-s), var(--accent-l));
   --accent-dim: hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.12);
   --accent-txt: #0a0a0a;
@@ -48,13 +48,13 @@
     0 0 24px 5px hsla(0, 75%, 55%, 0.12);
 }
 
-/* ── Accent presets ── */
-[data-accent="lime"]   { --accent-h: 86;  --accent-s: 84%; --accent-l: 62%; }
-[data-accent="purple"] { --accent-h: 270; --accent-s: 70%; --accent-l: 68%; }
-[data-accent="blue"]   { --accent-h: 210; --accent-s: 80%; --accent-l: 62%; }
-[data-accent="cyan"]   { --accent-h: 186; --accent-s: 80%; --accent-l: 52%; }
-[data-accent="pink"]   { --accent-h: 330; --accent-s: 80%; --accent-l: 68%; }
-[data-accent="yellow"] { --accent-h: 45;  --accent-s: 92%; --accent-l: 56%; }
+/* ── Accent presets (dark) ── */
+[data-accent="plasma"] { --accent-h: 255; --accent-s: 100%; --accent-l: 71%; }
+[data-accent="surge"]  { --accent-h: 165; --accent-s: 100%; --accent-l: 42%; }
+[data-accent="frost"]  { --accent-h: 193; --accent-s: 100%; --accent-l: 47%; }
+[data-accent="void"]   { --accent-h: 212; --accent-s: 100%; --accent-l: 50%; }
+[data-accent="dusk"]   { --accent-h: 31;  --accent-s: 100%; --accent-l: 58%; }
+[data-accent="ember"]  { --accent-h: 331; --accent-s: 93%;  --accent-l: 63%; }
 
 /* ── Light mode ── */
 [data-mode="light"] {
@@ -76,13 +76,13 @@
   --green-dim:  rgba(40, 200, 64, 0.10);
 }
 
-/* Dull accents for light backdrop: lower lightness + saturation */
-[data-mode="light"][data-accent="purple"] { --accent-s: 55%; --accent-l: 42%; }
-[data-mode="light"][data-accent="lime"]   { --accent-s: 65%; --accent-l: 34%; }
-[data-mode="light"][data-accent="blue"]   { --accent-s: 60%; --accent-l: 42%; }
-[data-mode="light"][data-accent="cyan"]   { --accent-s: 60%; --accent-l: 34%; }
-[data-mode="light"][data-accent="pink"]   { --accent-s: 58%; --accent-l: 46%; }
-[data-mode="light"][data-accent="yellow"] { --accent-s: 75%; --accent-l: 38%; }
+/* ── Accent presets (light) — deeper shades for light backdrop ── */
+[data-mode="light"][data-accent="plasma"] { --accent-h: 258; --accent-s: 57%;  --accent-l: 41%; }
+[data-mode="light"][data-accent="surge"]  { --accent-h: 161; --accent-s: 100%; --accent-l: 22%; }
+[data-mode="light"][data-accent="frost"]  { --accent-h: 199; --accent-s: 100%; --accent-l: 26%; }
+[data-mode="light"][data-accent="void"]   { --accent-h: 221; --accent-s: 100%; --accent-l: 35%; }
+[data-mode="light"][data-accent="dusk"]   { --accent-h: 32;  --accent-s: 100%; --accent-l: 31%; }
+[data-mode="light"][data-accent="ember"]  { --accent-h: 327; --accent-s: 82%;  --accent-l: 34%; }
 
 /* ══════════ RESET ══════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

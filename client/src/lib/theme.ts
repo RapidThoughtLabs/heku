@@ -4,9 +4,12 @@ const STORAGE_KEY_MODE = 'heku:theme-mode'
 const STORAGE_KEY_ACCENT = 'heku:accent'
 const STORAGE_KEY_FONT_SIZE = 'heku:font-size'
 
+const VALID_ACCENTS: AccentColor[] = ['plasma', 'surge', 'frost', 'void', 'dusk', 'ember']
+
 export function loadTheme(): { mode: ThemeMode; accent: AccentColor; fontSize: number } {
   const mode = (localStorage.getItem(STORAGE_KEY_MODE) as ThemeMode) || 'dark'
-  const accent = (localStorage.getItem(STORAGE_KEY_ACCENT) as AccentColor) || 'purple'
+  const stored = localStorage.getItem(STORAGE_KEY_ACCENT) as AccentColor
+  const accent = VALID_ACCENTS.includes(stored) ? stored : 'plasma'
   const fontSize = parseInt(localStorage.getItem(STORAGE_KEY_FONT_SIZE) || '13', 10)
   return { mode, accent, fontSize }
 }
