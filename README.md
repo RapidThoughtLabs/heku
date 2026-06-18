@@ -534,6 +534,13 @@ TypeScript · Node.js (ESM) · `@modelcontextprotocol/sdk` · Express · React 1
 
 ---
 
+## Contributors
+
+- [@ruchitnannavare](https://github.com/ruchitnannavare) — creator & maintainer
+- [@SayanSwaroopROy](https://github.com/SayanSwaroopROy)
+
+---
+
 ## License
 
 Apache License 2.0 — see [LICENSE](LICENSE).
