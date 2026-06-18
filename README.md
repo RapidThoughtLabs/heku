@@ -1,10 +1,14 @@
 # heku
 
+![heku — one brain, eight connectors](https://raw.githubusercontent.com/RapidThoughtLabs/heku/main/.github/assets/banner.png)
+
 > One server. Any API. Any LLM.
 
-**heku** is a single dynamic [Model Context Protocol](https://modelcontextprotocol.io) server that turns JSON config files into working API tools. No code to write — drop a config, and your LLM gets the tools instantly.
+**heku** is a single dynamic [Model Context Protocol](https://modelcontextprotocol.io) server that turns JSON config files into working API tools. Instead of running one MCP server per integration — each one fattening your tool manifest until the model runs out of context around ten of them — you describe a tool as a config and heku serves it on demand. Discovery is lazy: the manifest stays a few hundred tokens whether you've installed ten configs or two hundred, and the model pulls in only the tools it needs, when it needs them. Agents can even write their own configs live from API docs.
 
 Stop building one MCP server per API. Build one config.
+
+**[Website](https://www.rapidthoughtlabs.com/products/heku)** · **[Read the launch post →](https://www.rapidthoughtlabs.com/blog/heku-dynamic-tooling)** · **[Console](https://console.rapidthoughtlabs.space)** · **[heku hub](https://app.rapidthoughtlabs.space)**
 
 ---
 
