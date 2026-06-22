@@ -25,6 +25,7 @@ Stop building one MCP server per API. Build one config.
 - **8 connector types** — 4 standard (HTTP, GraphQL, gRPC, child-MCP) + 4 experimental (CLI, File, SQL, MongoDB)
 - **Hot-reload** — add or edit a config, tools update live without restart
 - **Auto-discovery** — gRPC reflection, GraphQL introspection, and child MCP tool listing fill in tools automatically
+- **Response stripping** — base64 blobs, null fields, oversized strings, and long arrays are trimmed before the model sees them, keeping context lean without losing data
 - **Built-in console UI** — React dashboard for chat, config editing, and registry browsing
 - **heku hub** — publish and install community configs from [app.rapidthoughtlabs.space](https://app.rapidthoughtlabs.space)
 - **Auth handled** — bearer, basic, API key, and OAuth2 with `.env`-based credential management
@@ -512,6 +513,9 @@ TypeScript · Node.js (ESM) · `@modelcontextprotocol/sdk` · Express · React 1
 ---
 
 ## Changelog
+
+### 0.3.2
+- **Response stripping** — every tool response is structurally trimmed before it reaches the model. Base64 blobs become size markers, null/empty fields are dropped, strings over 8 000 chars are head-truncated, and arrays over 100 items are capped. Structure-only — never decides which field matters.
 
 ### 0.3.1
 - Renamed meta-tool namespace from `mcp.one.*` to `heku.*` across all connectors, prompts, and client code
