@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-06-22
+
+### Added
+- **Response stripping** — every tool response is now structurally trimmed before it reaches the model. Removes base64 blobs, null/empty fields, oversized strings, and long arrays so the model receives a clean, compact payload instead of raw upstream noise. Fully transparent: stripping is idempotent and structure-only — it never decides which field matters.
+  - Base64 blobs / `data:` URIs → replaced with `{ _heku: "binary-omitted", bytes }` marker
+  - `null` / `undefined` / `[]` / `{}` → dropped silently
+  - Strings over 8 000 chars → first 512 chars kept, remainder replaced with `⟦heku: +N chars truncated⟧`
+  - Arrays over 100 items → first 100 kept, `{ _heku: "array-truncated", shown, total }` appended
+
+## [0.3.1] - 2026-06-15
+
+### Changed
+- Renamed internal tool namespace from `one.*` to `heku.*` everywhere — tool names, descriptions, and search hints now consistently use `heku.search`, `heku.invoke`, etc.
+- Console settings panel fixes and polish.
+- Dual manifest preview in the console (flat vs. namespaced mode).
+
 ## [0.3.0] - 2026-06-11
 
 ### Added
@@ -47,7 +63,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial public release on npm as `@rapidthoughtlabs/mcpone`.
 - Single dynamic MCP server that turns JSON configs into working API tools.
 
-[Unreleased]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/RapidThoughtLabs/heku/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/RapidThoughtLabs/heku/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/RapidThoughtLabs/heku/compare/v0.1.0...v0.1.2

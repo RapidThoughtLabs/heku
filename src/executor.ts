@@ -2,6 +2,7 @@ import { getRateLimiter } from "./rate-limiter.js";
 import { AuthNotConfiguredError } from "./auth/errors.js";
 import { connectorRegistry } from "./connectors/registry.js";
 import { validateArgs } from "./connectors/validation.js";
+import { stripResponse } from "./lib/strip-response.js";
 import { log } from "./lib/logger.js";
 import type { RegisteredTool, CallerContext } from "./types.js";
 import type { ConnectorResult } from "./connectors/base.js";
@@ -60,7 +61,7 @@ export async function execute(
       success: result.success,
     });
 
-    return result;
+    return { ...result, data: stripResponse(result.data) };
   } catch (err) {
     if (err instanceof AuthNotConfiguredError) {
       log.toolCallEnd({
