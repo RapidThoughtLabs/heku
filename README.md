@@ -4,11 +4,15 @@
 
 > One server. Any API. Any LLM.
 
-**heku** is a single dynamic [Model Context Protocol](https://modelcontextprotocol.io) server that turns JSON config files into working API tools. Instead of running one MCP server per integration — each one fattening your tool manifest until the model runs out of context around ten of them — you describe a tool as a config and heku serves it on demand. Discovery is lazy: the manifest stays a few hundred tokens whether you've installed ten configs or two hundred, and the model pulls in only the tools it needs, when it needs them. Agents can even write their own configs live from API docs.
+**Your agent's tool manifest breaks around ten MCP servers.** Every server you add fattens the manifest until the context fills up and the model starts forgetting which tools exist. heku is one [MCP](https://modelcontextprotocol.io) server that removes that ceiling: you describe each tool as a JSON config, and heku serves them *lazily* — the manifest stays a few hundred tokens whether you've loaded ten configs or two hundred, and the model pulls in only the tools it needs, when it needs them.
 
-Stop building one MCP server per API. Build one config.
+One server, any number of APIs, no context bloat. Agents can even write their own configs live from API docs.
 
-**[Website](https://www.rapidthoughtlabs.com/products/heku)** · **[Read the launch post →](https://www.rapidthoughtlabs.com/blog/heku-dynamic-tooling)** · **[Console](https://console.rapidthoughtlabs.space)** · **[heku hub](https://app.rapidthoughtlabs.space)**
+```bash
+npx @rapidthoughtlabs/heku start
+```
+
+**[Website](https://www.rapidthoughtlabs.com/products/heku)** · **[Launch post →](https://www.rapidthoughtlabs.com/blog/heku-dynamic-tooling)** · **[Console](https://console.rapidthoughtlabs.space)** · **[heku hub](https://app.rapidthoughtlabs.space)**
 
 ---
 
@@ -20,37 +24,14 @@ Stop building one MCP server per API. Build one config.
 
 ---
 
-## Features
+## Quick start
 
-- **8 connector types** — 4 standard (HTTP, GraphQL, gRPC, child-MCP) + 4 experimental (CLI, File, SQL, MongoDB)
-- **Hot-reload** — add or edit a config, tools update live without restart
-- **Auto-discovery** — gRPC reflection, GraphQL introspection, and child MCP tool listing fill in tools automatically
-- **Response stripping** — base64 blobs, null fields, oversized strings, and long arrays are trimmed before the model sees them, keeping context lean without losing data
-- **Built-in console UI** — React dashboard for chat, config editing, and registry browsing
-- **heku hub** — publish and install community configs from [app.rapidthoughtlabs.space](https://app.rapidthoughtlabs.space)
-- **Auth handled** — bearer, basic, API key, and OAuth2 with `.env`-based credential management
-- **Self-managing** — the server can create and edit its own configs via internal tools
-
----
-
-## Install
-
-Requires **Node.js ≥ 20**.
+Install (requires **Node.js ≥ 20**):
 
 ```bash
 npx @rapidthoughtlabs/heku start
+# or: npm install -g @rapidthoughtlabs/heku && heku start
 ```
-
-Or install globally:
-
-```bash
-npm install -g @rapidthoughtlabs/heku
-heku start
-```
-
----
-
-## Quick start
 
 Create `mcp-configs/mcp.github.json`:
 
@@ -83,308 +64,58 @@ heku auth setup github-http   # writes GITHUB_TOKEN to .env
 heku start
 ```
 
-Your LLM now has a `github-http.list_repos` tool.
+Your LLM now has a `github-http.list_repos` tool — and the manifest grew by only that one entry.
+
+---
+
+## How it works
+
+heku sits between your LLM and every API you've configured. Three ideas make it different from running a pile of separate MCP servers:
+
+- **Lazy discovery.** The manifest the model sees stays small no matter how many configs you load. Tools are surfaced on demand instead of dumped up front, so you never hit the ~ten-server context wall.
+- **Configs, not code.** A tool is a JSON file — an endpoint, its params, and how to authenticate. No per-integration server to build, ship, or maintain.
+- **Self-managing.** Point heku at API docs and it can author and edit its own configs through internal tools, then hot-reload them without a restart.
+
+Tool names follow the pattern `config_id.tool_name` — e.g. `github-http.list_repos`, `linear-graphql.create_issue`.
+
+---
+
+## Features
+
+- **8 connector types** — 4 standard (HTTP, GraphQL, gRPC, child-MCP) + 4 experimental (CLI, File, SQL, MongoDB)
+- **Lazy tool discovery** — manifest stays a few hundred tokens regardless of how many configs are loaded
+- **Hot-reload** — add or edit a config, tools update live without restart
+- **Auto-discovery** — gRPC reflection, GraphQL introspection, and child MCP tool listing fill in tools automatically
+- **Response stripping** — base64 blobs, null fields, oversized strings, and long arrays are trimmed before the model sees them, keeping context lean without losing data
+- **Built-in console UI** — React dashboard for chat, config editing, and registry browsing
+- **heku hub** — publish and install community configs from [app.rapidthoughtlabs.space](https://app.rapidthoughtlabs.space)
+- **Auth handled** — bearer, basic, API key, and OAuth2 with `.env`-based credential management
+- **Self-managing** — the server can create and edit its own configs via internal tools
 
 ---
 
 ## Connectors
 
-Tool names follow the pattern `config_id.tool_name` — e.g. `github-http.list_repos`, `linear-graphql.create_issue`.
+Each connector type wraps a different kind of backend as MCP tools. Full config schemas, field references, and examples live in **[docs/connectors.md](docs/connectors.md)**.
 
-### Standard
+| Connector | Status | What it wraps | Tool discovery |
+|-----------|--------|---------------|----------------|
+| [`http`](docs/connectors.md#http) | standard | REST APIs | manual (define each endpoint) |
+| [`graphql`](docs/connectors.md#graphql) | standard | GraphQL APIs | auto (introspection) |
+| [`grpc`](docs/connectors.md#grpc) | standard | gRPC services | auto (reflection / `.proto`) |
+| [`mcp`](docs/connectors.md#mcp) | standard | existing MCP servers | auto (proxied) |
+| [`cli`](docs/connectors.md#cli) | experimental | shell commands | manual |
+| [`file`](docs/connectors.md#file) | experimental | filesystem read/write | manual |
+| [`sql`](docs/connectors.md#sql) | experimental | Postgres / MySQL / SQLite | manual (named queries) |
+| [`mongodb`](docs/connectors.md#mongodb) | experimental | MongoDB | manual (document ops) |
 
-#### `http` — REST API
-
-Define each endpoint as a tool. Supports `path`, `query`, `body`, and `header` params.
-
-```json
-{
-  "id": "stripe-http",
-  "name": "Stripe",
-  "connector": {
-    "type": "http",
-    "base_url": "https://api.stripe.com/v1",
-    "auth": { "type": "bearer", "token_env": "STRIPE_API_KEY" }
-  },
-  "tools": [
-    {
-      "name": "list_customers",
-      "description": "List Stripe customers with optional filters",
-      "method": "GET",
-      "path": "/customers",
-      "params": [
-        { "name": "limit",  "type": "number", "required": false, "location": "query", "description": "Max results (1–100)" },
-        { "name": "email",  "type": "string", "required": false, "location": "query", "description": "Filter by email address" }
-      ]
-    },
-    {
-      "name": "create_customer",
-      "description": "Create a new Stripe customer",
-      "method": "POST",
-      "path": "/customers",
-      "params": [
-        { "name": "email", "type": "string", "required": true,  "location": "body", "description": "Customer email" },
-        { "name": "name",  "type": "string", "required": false, "location": "body", "description": "Full name" }
-      ]
-    }
-  ]
-}
-```
-
-**Tool fields:** `name`, `description`, `method` (`GET`/`POST`/`PUT`/`PATCH`/`DELETE`), `path` (supports `{{param}}` placeholders), `params[]`, `body_template?`, `response_map?`, `error_map?`
-
-**Param locations:** `path` · `query` · `body` · `header`
+> Experimental connectors are functional, but their config schema and behaviour may change in future releases.
 
 ---
 
-#### `graphql` — GraphQL API
+## Auth
 
-Tools are auto-discovered via introspection. Set `tools: []`.
-
-```json
-{
-  "id": "linear-graphql",
-  "name": "Linear",
-  "connector": {
-    "type": "graphql",
-    "endpoint": "https://api.linear.app/graphql",
-    "auth": { "type": "bearer", "token_env": "LINEAR_API_KEY" },
-    "include_mutations": true,
-    "include_queries": true
-  },
-  "tools": []
-}
-```
-
-**Connector fields:** `endpoint`, `auth?`, `introspect?` (default `true`), `include_mutations?` (default `true`), `include_queries?` (default `true`), `headers?`, `timeout_ms?`
-
----
-
-#### `grpc` — gRPC service
-
-Tools are auto-discovered via server reflection or a `.proto` file. Set `tools: []`.
-
-```json
-{
-  "id": "myservice-grpc",
-  "name": "My gRPC Service",
-  "connector": {
-    "type": "grpc",
-    "endpoint": "localhost:50051",
-    "reflection": true,
-    "tls": false
-  },
-  "tools": []
-}
-```
-
-Or with a proto file:
-
-```json
-{
-  "connector": {
-    "type": "grpc",
-    "endpoint": "grpc.example.com:443",
-    "proto_path": "./protos/service.proto",
-    "tls": true,
-    "auth": { "type": "bearer", "token_env": "GRPC_TOKEN" }
-  }
-}
-```
-
-**Connector fields:** `endpoint`, `reflection?` or `proto_path?` (one required), `tls?` (`true`/`false` or cert object), `auth?`, `metadata?`, `service_filter?`, `timeout_ms?`
-
----
-
-#### `mcp` — child MCP server
-
-Spawn any existing MCP server (stdio or SSE) and proxy its tools through heku. Tools are auto-discovered. Set `tools: []`.
-
-```json
-{
-  "id": "filesystem-mcp",
-  "name": "Filesystem MCP",
-  "connector": {
-    "type": "mcp",
-    "transport": "stdio",
-    "command": "npx",
-    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
-    "install_command": "npm",
-    "install_args": ["install", "-g", "@modelcontextprotocol/server-filesystem"]
-  },
-  "tools": []
-}
-```
-
-SSE transport:
-
-```json
-{
-  "connector": {
-    "type": "mcp",
-    "transport": "sse",
-    "url": "http://localhost:8080/sse"
-  }
-}
-```
-
-**Connector fields:** `transport` (`stdio`/`sse`), `command?` + `args?` + `env?` (stdio), `url?` (sse), `install_command?`, `install_args?`, `install_cwd?`, `install_env?`, `install_timeout_ms?`, `active?`
-
-> **Note:** `mcp` configs cannot be published to the registry — they reference local processes.
-
----
-
-### Experimental
-
-> These connector types are functional but their config schema and behaviour may change in future releases.
-
----
-
-#### `cli` — shell command
-
-Wrap any CLI tool as an MCP tool. Use `args_template` for positional args or `stdin_template` to pipe input.
-
-```json
-{
-  "id": "git-cli",
-  "name": "Git",
-  "connector": { "type": "cli" },
-  "tools": [
-    {
-      "name": "log",
-      "description": "Show recent git commits",
-      "args_template": ["git", "log", "--oneline", "-{{limit}}"],
-      "params": [
-        { "name": "limit", "type": "number", "required": false, "description": "Number of commits to show" }
-      ],
-      "output_as": "text"
-    },
-    {
-      "name": "diff",
-      "description": "Show unstaged changes",
-      "command": "git diff",
-      "params": [],
-      "output_as": "text"
-    }
-  ]
-}
-```
-
-**Tool fields:** `name`, `description`, `params[]`, `command?` (string) or `args_template?` (array), `stdin_template?`, `output_as?` (`"text"` | `"json"`)
-
----
-
-#### `file` — filesystem
-
-Read, write, append, delete, or list files. `path_template` supports `{{param}}` placeholders.
-
-```json
-{
-  "id": "notes-file",
-  "name": "Notes",
-  "connector": { "type": "file" },
-  "tools": [
-    {
-      "name": "read_note",
-      "description": "Read a note by name",
-      "operation": "read",
-      "path_template": "/home/user/notes/{{name}}.md",
-      "params": [
-        { "name": "name", "type": "string", "required": true, "description": "Note filename without extension" }
-      ]
-    },
-    {
-      "name": "save_note",
-      "description": "Save or overwrite a note",
-      "operation": "write",
-      "path_template": "/home/user/notes/{{name}}.md",
-      "content_template": "{{content}}",
-      "params": [
-        { "name": "name",    "type": "string", "required": true, "description": "Note filename without extension" },
-        { "name": "content", "type": "string", "required": true, "description": "Note content" }
-      ]
-    }
-  ]
-}
-```
-
-**Tool fields:** `name`, `description`, `params[]`, `operation` (`read`/`write`/`append`/`delete`/`list`), `path_template`, `content_template?` (required for `write`/`append`)
-
----
-
-#### `sql` — relational database
-
-Named SQL queries with `:param` placeholders. Supports PostgreSQL, MySQL, and SQLite.
-
-```json
-{
-  "id": "analytics-sql",
-  "name": "Analytics DB",
-  "connector": {
-    "type": "sql",
-    "dialect": "postgres",
-    "connection_string_env": "DATABASE_URL"
-  },
-  "tools": [
-    {
-      "name": "active_users",
-      "description": "Count active users in a date range",
-      "sql": "SELECT COUNT(*) as count FROM users WHERE created_at BETWEEN :from AND :to AND active = true",
-      "params": [
-        { "name": "from", "type": "string", "required": true, "description": "Start date (ISO 8601)" },
-        { "name": "to",   "type": "string", "required": true, "description": "End date (ISO 8601)" }
-      ],
-      "max_rows": 1
-    }
-  ]
-}
-```
-
-**Connector fields:** `dialect` (`postgres`/`mysql`/`sqlite`), `connection_string_env?` or field-based (`host`, `port`, `database`, `username_env`, `password_env`), `ssl?`, `pool_max?`
-
-**Tool fields:** `name`, `description`, `params[]`, `sql` (`:name` placeholders only — no `{{}}`, no `?`, no `$N`), `max_rows?` (1–10000), `timeout_ms?`
-
----
-
-#### `mongodb` — MongoDB
-
-Document operations with JSON templates. Placeholders use `{{param}}` in templates.
-
-```json
-{
-  "id": "catalog-mongo",
-  "name": "Product Catalog",
-  "connector": {
-    "type": "mongodb",
-    "database": "catalog",
-    "connection_string_env": "MONGO_URI"
-  },
-  "tools": [
-    {
-      "name": "find_products",
-      "description": "Search products by category and price range",
-      "collection": "products",
-      "operation": "find",
-      "filter_template": { "category": "{{category}}", "price": { "$lte": "{{max_price}}" } },
-      "params": [
-        { "name": "category",  "type": "string", "required": true,  "description": "Product category" },
-        { "name": "max_price", "type": "number", "required": false, "description": "Maximum price" }
-      ],
-      "max_rows": 50
-    }
-  ]
-}
-```
-
-**Connector fields:** `database`, `connection_string_env?` or `host?`+`port?`, `auth_source?`, `tls?`
-
-**Tool fields:** `name`, `description`, `params[]`, `collection`, `operation` (`find`/`findOne`/`aggregate`/`insertOne`/`insertMany`/`updateOne`/`updateMany`/`deleteOne`/`deleteMany`/`countDocuments`/`distinct`), plus operation-specific templates: `filter_template`, `update_template`, `document_template`, `documents_template`, `pipeline_template`, `projection?`, `sort?`, `max_rows?`, `limit?`, `timeout_ms?`
-
----
-
-## Auth types
-
-All credentials read from environment variables — `heku auth setup` writes them to `.env`:
+All credentials read from environment variables — `heku auth setup` writes them to `.env`, and nothing ever travels over the MCP protocol.
 
 | Type | Header |
 |---|---|
@@ -437,22 +168,6 @@ Then open **[console.rapidthoughtlabs.space](https://console.rapidthoughtlabs.sp
 
 ---
 
-## System config (optional)
-
-Drop `heku.config.json` in your config directory:
-
-```json
-{
-  "log_level": "info",
-  "rate_limits": {
-    "github-http": { "requests_per_minute": 60 }
-  },
-  "self_config": true
-}
-```
-
----
-
 ## Console UI
 
 The dashboard is a React + Vite app — available hosted at **[console.rapidthoughtlabs.space](https://console.rapidthoughtlabs.space)** or embedded when you run `heku start --http`.
@@ -476,6 +191,22 @@ heku publish mcp-configs/mcp.stripe-http.json
 ```
 
 Use `--registry <url>` to point at a self-hosted registry.
+
+---
+
+## System config (optional)
+
+Drop `heku.config.json` in your config directory:
+
+```json
+{
+  "log_level": "info",
+  "rate_limits": {
+    "github-http": { "requests_per_minute": 60 }
+  },
+  "self_config": true
+}
+```
 
 ---
 
@@ -504,9 +235,7 @@ scripts/         Registry seed scripts
 mcp-configs/     Local config files (gitignored)
 ```
 
----
-
-## Tech stack
+### Tech stack
 
 TypeScript · Node.js (ESM) · `@modelcontextprotocol/sdk` · Express · React 19 · Vite · Zustand · `@grpc/grpc-js` · GraphQL · tsup · Vitest
 
