@@ -96,18 +96,18 @@ Tool names follow the pattern `config_id.tool_name` — e.g. `github-http.list_r
 
 ## Connectors
 
-Each connector type wraps a different kind of backend as MCP tools. Full config schemas, field references, and examples live in **[docs/connectors.md](docs/connectors.md)**.
+Each connector type wraps a different kind of backend as MCP tools. Full config schemas, field references, and examples live in **[connectors.md](connectors.md)**.
 
 | Connector | Status | What it wraps | Tool discovery |
 |-----------|--------|---------------|----------------|
-| [`http`](docs/connectors.md#http) | standard | REST APIs | manual (define each endpoint) |
-| [`graphql`](docs/connectors.md#graphql) | standard | GraphQL APIs | auto (introspection) |
-| [`grpc`](docs/connectors.md#grpc) | standard | gRPC services | auto (reflection / `.proto`) |
-| [`mcp`](docs/connectors.md#mcp) | standard | existing MCP servers | auto (proxied) |
-| [`cli`](docs/connectors.md#cli) | experimental | shell commands | manual |
-| [`file`](docs/connectors.md#file) | experimental | filesystem read/write | manual |
-| [`sql`](docs/connectors.md#sql) | experimental | Postgres / MySQL / SQLite | manual (named queries) |
-| [`mongodb`](docs/connectors.md#mongodb) | experimental | MongoDB | manual (document ops) |
+| [`http`](connectors.md#http) | standard | REST APIs | manual (define each endpoint) |
+| [`graphql`](connectors.md#graphql) | standard | GraphQL APIs | auto (introspection) |
+| [`grpc`](connectors.md#grpc) | standard | gRPC services | auto (reflection / `.proto`) |
+| [`mcp`](connectors.md#mcp) | standard | existing MCP servers | auto (proxied) |
+| [`cli`](connectors.md#cli) | experimental | shell commands | manual |
+| [`file`](connectors.md#file) | experimental | filesystem read/write | manual |
+| [`sql`](connectors.md#sql) | experimental | Postgres / MySQL / SQLite | manual (named queries) |
+| [`mongodb`](connectors.md#mongodb) | experimental | MongoDB | manual (document ops) |
 
 > Experimental connectors are functional, but their config schema and behaviour may change in future releases.
 
