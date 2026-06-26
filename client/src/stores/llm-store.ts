@@ -9,10 +9,12 @@ interface LlmState {
   activeProvider: ProviderName
   customModels: Record<ProviderName, string[]>
   selectedModel: Record<ProviderName, string>
+  customBaseUrl: string
   setActiveProvider: (p: ProviderName) => void
   addCustomModel: (p: ProviderName, id: string) => void
   removeCustomModel: (p: ProviderName, id: string) => void
   setSelectedModel: (p: ProviderName, m: string) => void
+  setCustomBaseUrl: (url: string) => void
   getModels: (p: ProviderName) => string[]
 }
 
@@ -20,13 +22,17 @@ export const useLlmStore = create<LlmState>()(
   persist(
     (set, get) => ({
       activeProvider: 'openai',
-      customModels: { openai: [], togetherai: [] },
+      customModels: { openai: [], togetherai: [], custom: [] },
+      customBaseUrl: '',
       selectedModel: {
         openai: PROVIDER_DEFAULTS.openai.models[0],
         togetherai: PROVIDER_DEFAULTS.togetherai.models[0],
+        custom: '',
       },
 
       setActiveProvider: (p) => set({ activeProvider: p }),
+
+      setCustomBaseUrl: (url) => set({ customBaseUrl: url.trim().replace(/\/+$/, '') }),
 
       addCustomModel: (p, id) => {
         const trimmed = id.trim()
@@ -52,7 +58,7 @@ export const useLlmStore = create<LlmState>()(
           return {
             customModels: { ...s.customModels, [p]: updated },
             selectedModel: wasSelected
-              ? { ...s.selectedModel, [p]: PROVIDER_DEFAULTS[p].models[0] }
+              ? { ...s.selectedModel, [p]: PROVIDER_DEFAULTS[p].models[0] ?? '' }
               : s.selectedModel,
           }
         })
@@ -72,6 +78,7 @@ export const useLlmStore = create<LlmState>()(
         activeProvider: s.activeProvider,
         customModels: s.customModels,
         selectedModel: s.selectedModel,
+        customBaseUrl: s.customBaseUrl,
       }),
     },
   ),

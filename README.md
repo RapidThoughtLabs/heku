@@ -243,6 +243,8 @@ TypeScript · Node.js (ESM) · `@modelcontextprotocol/sdk` · Express · React 1
 
 ## Changelog
 
+> Console (UI) changes are tracked separately in [`client/CHANGELOG.md`](client/CHANGELOG.md).
+
 ### 0.3.2
 - **Response stripping** — every tool response is structurally trimmed before it reaches the model. Base64 blobs become size markers, null/empty fields are dropped, strings over 8 000 chars are head-truncated, and arrays over 100 items are capped. Structure-only — never decides which field matters.
 

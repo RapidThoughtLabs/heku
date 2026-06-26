@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Console: custom LLM provider** — add a custom OpenAI-spec inference endpoint (editable base URL + API token + deployment models) alongside the built-in OpenAI and Together AI providers.
+
+> Console (UI) changes are tracked separately in [`client/CHANGELOG.md`](client/CHANGELOG.md).
+
 ## [0.3.2] - 2026-06-22
 
 ### Added

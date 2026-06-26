@@ -381,10 +381,12 @@ function LlmTab() {
     activeProvider,
     customModels,
     selectedModel,
+    customBaseUrl,
     setActiveProvider,
     addCustomModel,
     removeCustomModel,
     setSelectedModel,
+    setCustomBaseUrl,
     getModels,
   } = useLlmStore()
 
@@ -424,7 +426,7 @@ function LlmTab() {
 
       <SettingRow label="Provider" sub="Switching will clear the current API key">
         <SegCtrl
-          options={[{ value: 'openai', label: 'OpenAI' }, { value: 'togetherai', label: 'Together AI' }] as { value: ProviderName; label: string }[]}
+          options={[{ value: 'openai', label: 'OpenAI' }, { value: 'togetherai', label: 'Together AI' }, { value: 'custom', label: 'Custom' }] as { value: ProviderName; label: string }[]}
           value={activeProvider}
           onChange={handleProviderSwitch}
         />
@@ -434,6 +436,7 @@ function LlmTab() {
         <select
           value={selectedModel[activeProvider]}
           onChange={(e) => handleDefaultModelChange(e.target.value)}
+          disabled={allModels.length === 0}
           style={{
             background: 'var(--bg)',
             border: '1px solid var(--border2)',
@@ -443,15 +446,21 @@ function LlmTab() {
             fontSize: '0.77rem',
             fontFamily: "'JetBrains Mono', monospace",
             outline: 'none',
-            cursor: 'pointer',
+            cursor: allModels.length === 0 ? 'not-allowed' : 'pointer',
+            opacity: allModels.length === 0 ? 0.5 : 1,
             maxWidth: 200,
           }}
         >
-          <optgroup label="Provided">
-            {builtInModels.map((m) => (
-              <option key={m} value={m} style={{ background: 'var(--surface)' }}>{m.split('/').pop()}</option>
-            ))}
-          </optgroup>
+          {allModels.length === 0 && (
+            <option value="">Add a model below</option>
+          )}
+          {builtInModels.length > 0 && (
+            <optgroup label="Provided">
+              {builtInModels.map((m) => (
+                <option key={m} value={m} style={{ background: 'var(--surface)' }}>{m.split('/').pop()}</option>
+              ))}
+            </optgroup>
+          )}
           {customList.length > 0 && (
             <optgroup label="Custom">
               {customList.map((m) => (
@@ -462,11 +471,35 @@ function LlmTab() {
         </select>
       </SettingRow>
 
-      <SettingRow label="Base URL" sub="Provider endpoint (read-only)">
-        <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
-          {PROVIDER_DEFAULTS[activeProvider].baseUrl}
-        </span>
-      </SettingRow>
+      {activeProvider === 'custom' ? (
+        <SettingRow label="Base URL" sub="OpenAI-spec endpoint — /chat/completions is appended">
+          <input
+            value={customBaseUrl}
+            onChange={(e) => setCustomBaseUrl(e.target.value)}
+            placeholder="https://my-endpoint.example.com/v1"
+            style={{
+              width: 220,
+              background: 'var(--bg)',
+              border: '1px solid var(--border2)',
+              borderRadius: 6,
+              padding: '5px 10px',
+              color: 'var(--text)',
+              fontSize: '0.77rem',
+              fontFamily: "'JetBrains Mono', monospace",
+              outline: 'none',
+              letterSpacing: '0.02em',
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = 'hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.5)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border2)' }}
+          />
+        </SettingRow>
+      ) : (
+        <SettingRow label="Base URL" sub="Provider endpoint (read-only)">
+          <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
+            {PROVIDER_DEFAULTS[activeProvider].baseUrl}
+          </span>
+        </SettingRow>
+      )}
 
       {/* Custom models section */}
       <div style={{ padding: '12px 0', borderBottom: '1px solid var(--border)' }}>

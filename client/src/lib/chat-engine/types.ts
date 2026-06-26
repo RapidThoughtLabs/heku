@@ -1,6 +1,6 @@
 // ── Provider ──────────────────────────────────────────────────────
 
-export type ProviderName = 'openai' | 'togetherai'
+export type ProviderName = 'openai' | 'togetherai' | 'custom'
 
 export interface ProviderConfig {
   provider: ProviderName
@@ -22,6 +22,12 @@ export const PROVIDER_DEFAULTS: Record<ProviderName, { baseUrl: string; models: 
       'zai-org/GLM-5.1',
       'moonshotai/Kimi-K2.6',
     ],
+  },
+  // Custom OpenAI-spec endpoint: baseUrl is user-supplied (see llm-store.customBaseUrl),
+  // models are added via the "Custom models" UI.
+  custom: {
+    baseUrl: '',
+    models: [],
   },
 }
 

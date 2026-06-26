@@ -13,7 +13,7 @@ interface ProviderPickerProps {
 }
 
 export function ProviderPicker({ open, onClose, onSave, current }: ProviderPickerProps) {
-  const { customModels, selectedModel, setSelectedModel } = useLlmStore()
+  const { customModels, selectedModel, setSelectedModel, customBaseUrl, setCustomBaseUrl } = useLlmStore()
 
   const initialProvider: ProviderName = current?.provider ?? 'openai'
   const [provider, setProvider] = useState<ProviderName>(initialProvider)
@@ -21,6 +21,9 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
     current?.model ?? selectedModel[initialProvider] ?? PROVIDER_DEFAULTS[initialProvider].models[0]
   )
   const [apiKey, setApiKey] = useState(current?.apiKey ?? '')
+  const [customUrl, setCustomUrl] = useState(
+    current?.provider === 'custom' ? current.baseUrl : customBaseUrl
+  )
   const [showKey, setShowKey] = useState(false)
 
   if (!open) return null
@@ -28,20 +31,25 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
   const defaults = PROVIDER_DEFAULTS[provider]
   const builtInModels = PROVIDER_DEFAULTS[provider].models
   const customList = customModels[provider]
+  const allModels = [...builtInModels, ...customList]
 
   const handleProviderChange = (p: ProviderName) => {
     setProvider(p)
-    setModel(selectedModel[p] ?? PROVIDER_DEFAULTS[p].models[0])
+    setModel(selectedModel[p] ?? PROVIDER_DEFAULTS[p].models[0] ?? '')
   }
 
+  const baseUrl = provider === 'custom' ? customUrl.trim().replace(/\/+$/, '') : defaults.baseUrl
+  const canSave = !!apiKey.trim() && !!model && (provider !== 'custom' || !!baseUrl)
+
   const handleSave = () => {
-    if (!apiKey.trim()) return
+    if (!canSave) return
     setSelectedModel(provider, model)
+    if (provider === 'custom') setCustomBaseUrl(baseUrl)
     onSave({
       provider,
       apiKey: apiKey.trim(),
       model,
-      baseUrl: defaults.baseUrl,
+      baseUrl,
     })
   }
 
@@ -128,11 +136,50 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
               options={[
                 { value: 'openai', label: 'OpenAI' },
                 { value: 'togetherai', label: 'Together AI' },
+                { value: 'custom', label: 'Custom' },
               ]}
               value={provider}
               onChange={(v) => handleProviderChange(v as ProviderName)}
             />
           </div>
+
+          {/* Base URL — custom provider only */}
+          {provider === 'custom' && (
+            <div style={{ marginBottom: 16 }}>
+              <label
+                style={{
+                  fontSize: '0.77rem',
+                  color: 'var(--text-dim)',
+                  letterSpacing: '0.1em',
+                  display: 'block',
+                  marginBottom: 6,
+                }}
+              >
+                BASE URL
+              </label>
+              <input
+                value={customUrl}
+                onChange={(e) => setCustomUrl(e.target.value)}
+                placeholder="https://my-endpoint.example.com/v1"
+                style={{
+                  width: '100%',
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border2)',
+                  borderRadius: 6,
+                  padding: '8px 12px',
+                  color: 'var(--text)',
+                  fontSize: '0.85rem',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  outline: 'none',
+                  letterSpacing: '0.02em',
+                  boxSizing: 'border-box',
+                  transition: 'border-color 0.15s',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.5)' }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border2)' }}
+              />
+            </div>
+          )}
 
           {/* Model selector */}
           <div style={{ marginBottom: 16 }}>
@@ -150,6 +197,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
             <select
               value={model}
               onChange={(e) => setModel(e.target.value)}
+              disabled={allModels.length === 0}
               style={{
                 width: '100%',
                 background: 'var(--bg)',
@@ -160,14 +208,20 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
                 fontSize: '0.85rem',
                 fontFamily: "'JetBrains Mono', monospace",
                 outline: 'none',
-                cursor: 'pointer',
+                cursor: allModels.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: allModels.length === 0 ? 0.5 : 1,
               }}
             >
-              <optgroup label="Provided">
-                {builtInModels.map((m) => (
-                  <option key={m} value={m} style={{ background: 'var(--surface)' }}>{m}</option>
-                ))}
-              </optgroup>
+              {allModels.length === 0 && (
+                <option value="">No models — add one in Settings → LLM</option>
+              )}
+              {builtInModels.length > 0 && (
+                <optgroup label="Provided">
+                  {builtInModels.map((m) => (
+                    <option key={m} value={m} style={{ background: 'var(--surface)' }}>{m}</option>
+                  ))}
+                </optgroup>
+              )}
               {customList.length > 0 && (
                 <optgroup label="Custom">
                   {customList.map((m) => (
@@ -198,7 +252,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
                 onChange={(e) => setApiKey(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
                 placeholder={
-                  provider === 'openai' ? 'sk-...' : 'your-together-api-key'
+                  provider === 'openai' ? 'sk-...' : provider === 'togetherai' ? 'your-together-api-key' : 'your-api-token'
                 }
                 autoFocus
                 style={{
@@ -262,7 +316,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
             <Button
               variant="primary"
               size="sm"
-              disabled={!apiKey.trim()}
+              disabled={!canSave}
               onClick={handleSave}
             >
               Connect
