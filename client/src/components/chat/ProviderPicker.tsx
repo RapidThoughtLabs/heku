@@ -194,42 +194,74 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
             >
               MODEL
             </label>
-            <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              disabled={allModels.length === 0}
-              style={{
-                width: '100%',
-                background: 'var(--bg)',
-                border: '1px solid var(--border2)',
-                borderRadius: 6,
-                padding: '8px 12px',
-                color: 'var(--text)',
-                fontSize: '0.85rem',
-                fontFamily: "'JetBrains Mono', monospace",
-                outline: 'none',
-                cursor: allModels.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: allModels.length === 0 ? 0.5 : 1,
-              }}
-            >
-              {allModels.length === 0 && (
-                <option value="">No models — add one in Settings → LLM</option>
-              )}
-              {builtInModels.length > 0 && (
-                <optgroup label="Provided">
-                  {builtInModels.map((m) => (
-                    <option key={m} value={m} style={{ background: 'var(--surface)' }}>{m}</option>
-                  ))}
-                </optgroup>
-              )}
-              {customList.length > 0 && (
-                <optgroup label="Custom">
-                  {customList.map((m) => (
-                    <option key={m} value={m} style={{ background: 'var(--surface)' }}>{m}</option>
-                  ))}
-                </optgroup>
-              )}
-            </select>
+            {provider === 'custom' ? (
+              <>
+                <input
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
+                  placeholder="deployment / model id"
+                  list="custom-model-suggestions"
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border2)',
+                    borderRadius: 6,
+                    padding: '8px 12px',
+                    color: 'var(--text)',
+                    fontSize: '0.85rem',
+                    fontFamily: "'JetBrains Mono', monospace",
+                    outline: 'none',
+                    letterSpacing: '0.02em',
+                    boxSizing: 'border-box',
+                    transition: 'border-color 0.15s',
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = 'hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.5)' }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border2)' }}
+                />
+                {customList.length > 0 && (
+                  <datalist id="custom-model-suggestions">
+                    {customList.map((m) => (
+                      <option key={m} value={m} />
+                    ))}
+                  </datalist>
+                )}
+              </>
+            ) : (
+              <select
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                disabled={allModels.length === 0}
+                style={{
+                  width: '100%',
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border2)',
+                  borderRadius: 6,
+                  padding: '8px 12px',
+                  color: 'var(--text)',
+                  fontSize: '0.85rem',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  outline: 'none',
+                  cursor: allModels.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: allModels.length === 0 ? 0.5 : 1,
+                }}
+              >
+                {builtInModels.length > 0 && (
+                  <optgroup label="Provided">
+                    {builtInModels.map((m) => (
+                      <option key={m} value={m} style={{ background: 'var(--surface)' }}>{m}</option>
+                    ))}
+                  </optgroup>
+                )}
+                {customList.length > 0 && (
+                  <optgroup label="Custom">
+                    {customList.map((m) => (
+                      <option key={m} value={m} style={{ background: 'var(--surface)' }}>{m}</option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+            )}
           </div>
 
           {/* API key */}
