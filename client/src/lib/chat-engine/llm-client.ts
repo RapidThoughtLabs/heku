@@ -32,22 +32,39 @@ export async function streamChatCompletion(
 ): Promise<void> {
   let response: Response
   const startTime = Date.now()
-  serverLog('info', `[LLM] Request started: ${config.model} via ${config.baseUrl}`)
+
+  // Azure OpenAI speaks a slightly different dialect than the OpenAI spec:
+  // the deployment goes in the URL path, auth is the `api-key` header (not
+  // Bearer), and an `?api-version=` query param is mandatory. We switch to it
+  // whenever the config carries an apiVersion.
+  const isAzure = !!config.apiVersion
+  const endpoint = config.baseUrl.replace(/\/+$/, '')
+  const url = isAzure
+    ? `${endpoint}/openai/deployments/${encodeURIComponent(config.model)}/chat/completions?api-version=${encodeURIComponent(config.apiVersion!)}`
+    : `${endpoint}/chat/completions`
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (isAzure) headers['api-key'] = config.apiKey
+  else headers['Authorization'] = `Bearer ${config.apiKey}`
+
+  // o-series reasoning models (o1, o3, o4…) reject `max_tokens` and require
+  // `max_completion_tokens` instead. Detect by model/deployment name.
+  const isReasoning = /(^|[/_-])o[1-9]/i.test(config.model)
+  const tokenLimit = isReasoning ? { max_completion_tokens: 8192 } : { max_tokens: 8192 }
+
+  serverLog('info', `[LLM] Request started: ${config.model} via ${url}`)
 
   try {
-    response = await fetch(`${config.baseUrl}/chat/completions`, {
+    response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-      },
+      headers,
       body: JSON.stringify({
         model: config.model,
         messages,
         ...(tools.length > 0 ? { tools, tool_choice: 'auto' } : {}),
         stream: true,
         stream_options: { include_usage: true },
-        max_tokens: 8192,
+        ...tokenLimit,
       }),
       signal,
     })

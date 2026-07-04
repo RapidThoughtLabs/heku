@@ -5,16 +5,26 @@ import { toast } from '@/components/ui/Toast'
 
 const MODEL_ID_RE = /^[A-Za-z0-9._/-]+$/
 
+// Azure OpenAI endpoints live under *.openai.azure.com (or *.azure.com proxies).
+// When the custom base URL points there, we surface an API-version field and
+// switch the client to Azure's wire format.
+export const isAzureUrl = (url: string) => /\.azure\.com/i.test(url)
+
+// Sensible default that supports o-series (o1/o3) streaming + tool calls.
+export const DEFAULT_AZURE_API_VERSION = '2024-12-01-preview'
+
 interface LlmState {
   activeProvider: ProviderName
   customModels: Record<ProviderName, string[]>
   selectedModel: Record<ProviderName, string>
   customBaseUrl: string
+  customApiVersion: string
   setActiveProvider: (p: ProviderName) => void
   addCustomModel: (p: ProviderName, id: string) => void
   removeCustomModel: (p: ProviderName, id: string) => void
   setSelectedModel: (p: ProviderName, m: string) => void
   setCustomBaseUrl: (url: string) => void
+  setCustomApiVersion: (v: string) => void
   getModels: (p: ProviderName) => string[]
 }
 
@@ -24,6 +34,7 @@ export const useLlmStore = create<LlmState>()(
       activeProvider: 'openai',
       customModels: { openai: [], togetherai: [], custom: [] },
       customBaseUrl: '',
+      customApiVersion: DEFAULT_AZURE_API_VERSION,
       selectedModel: {
         openai: PROVIDER_DEFAULTS.openai.models[0],
         togetherai: PROVIDER_DEFAULTS.togetherai.models[0],
@@ -33,6 +44,8 @@ export const useLlmStore = create<LlmState>()(
       setActiveProvider: (p) => set({ activeProvider: p }),
 
       setCustomBaseUrl: (url) => set({ customBaseUrl: url.trim().replace(/\/+$/, '') }),
+
+      setCustomApiVersion: (v) => set({ customApiVersion: v.trim() }),
 
       addCustomModel: (p, id) => {
         const trimmed = id.trim()
@@ -79,6 +92,7 @@ export const useLlmStore = create<LlmState>()(
         customModels: s.customModels,
         selectedModel: s.selectedModel,
         customBaseUrl: s.customBaseUrl,
+        customApiVersion: s.customApiVersion,
       }),
     },
   ),

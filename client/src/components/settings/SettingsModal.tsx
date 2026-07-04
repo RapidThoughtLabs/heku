@@ -6,7 +6,7 @@ import { SegCtrl } from '@/components/ui/SegCtrl'
 import { Button } from '@/components/ui/Button'
 import { useAppStore, type AccentColor, type ThemeMode, type LogLevel, type ManifestStyle } from '@/stores/app-store'
 import { useChatStore } from '@/stores/chat-store'
-import { useLlmStore } from '@/stores/llm-store'
+import { useLlmStore, isAzureUrl } from '@/stores/llm-store'
 import { PROVIDER_DEFAULTS, type ProviderName } from '@/lib/chat-engine'
 import { applyTheme, applyFontSize } from '@/lib/theme'
 import { toast } from '@/components/ui/Toast'
@@ -382,11 +382,13 @@ function LlmTab() {
     customModels,
     selectedModel,
     customBaseUrl,
+    customApiVersion,
     setActiveProvider,
     addCustomModel,
     removeCustomModel,
     setSelectedModel,
     setCustomBaseUrl,
+    setCustomApiVersion,
     getModels,
   } = useLlmStore()
 
@@ -498,6 +500,30 @@ function LlmTab() {
           <span style={{ fontSize: '0.69rem', color: 'var(--text-dim)', fontFamily: 'monospace' }}>
             {PROVIDER_DEFAULTS[activeProvider].baseUrl}
           </span>
+        </SettingRow>
+      )}
+
+      {activeProvider === 'custom' && isAzureUrl(customBaseUrl) && (
+        <SettingRow label="API version" sub="Azure OpenAI — required query parameter">
+          <input
+            value={customApiVersion}
+            onChange={(e) => setCustomApiVersion(e.target.value)}
+            placeholder="2024-12-01-preview"
+            style={{
+              width: 220,
+              background: 'var(--bg)',
+              border: '1px solid var(--border2)',
+              borderRadius: 6,
+              padding: '5px 10px',
+              color: 'var(--text)',
+              fontSize: '0.77rem',
+              fontFamily: "'JetBrains Mono', monospace",
+              outline: 'none',
+              letterSpacing: '0.02em',
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = 'hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.5)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border2)' }}
+          />
         </SettingRow>
       )}
 

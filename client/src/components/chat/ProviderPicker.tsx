@@ -3,7 +3,7 @@ import { Bot, Eye, EyeOff, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { SegCtrl } from '@/components/ui/SegCtrl'
 import { PROVIDER_DEFAULTS, type ProviderConfig, type ProviderName } from '@/lib/chat-engine'
-import { useLlmStore } from '@/stores/llm-store'
+import { useLlmStore, isAzureUrl } from '@/stores/llm-store'
 
 interface ProviderPickerProps {
   open: boolean
@@ -13,7 +13,7 @@ interface ProviderPickerProps {
 }
 
 export function ProviderPicker({ open, onClose, onSave, current }: ProviderPickerProps) {
-  const { customModels, selectedModel, setSelectedModel, customBaseUrl, setCustomBaseUrl } = useLlmStore()
+  const { customModels, selectedModel, setSelectedModel, customBaseUrl, setCustomBaseUrl, customApiVersion, setCustomApiVersion } = useLlmStore()
 
   const initialProvider: ProviderName = current?.provider ?? 'openai'
   const [provider, setProvider] = useState<ProviderName>(initialProvider)
@@ -24,6 +24,7 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
   const [customUrl, setCustomUrl] = useState(
     current?.provider === 'custom' ? current.baseUrl : customBaseUrl
   )
+  const [apiVersion, setApiVersion] = useState(current?.apiVersion ?? customApiVersion)
   const [showKey, setShowKey] = useState(false)
 
   if (!open) return null
@@ -39,17 +40,23 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
   }
 
   const baseUrl = provider === 'custom' ? customUrl.trim().replace(/\/+$/, '') : defaults.baseUrl
-  const canSave = !!apiKey.trim() && !!model && (provider !== 'custom' || !!baseUrl)
+  const isAzure = provider === 'custom' && isAzureUrl(baseUrl)
+  const canSave =
+    !!apiKey.trim() && !!model && (provider !== 'custom' || !!baseUrl) && (!isAzure || !!apiVersion.trim())
 
   const handleSave = () => {
     if (!canSave) return
     setSelectedModel(provider, model)
-    if (provider === 'custom') setCustomBaseUrl(baseUrl)
+    if (provider === 'custom') {
+      setCustomBaseUrl(baseUrl)
+      if (isAzure) setCustomApiVersion(apiVersion)
+    }
     onSave({
       provider,
       apiKey: apiKey.trim(),
       model,
       baseUrl,
+      ...(isAzure ? { apiVersion: apiVersion.trim() } : {}),
     })
   }
 
@@ -161,6 +168,50 @@ export function ProviderPicker({ open, onClose, onSave, current }: ProviderPicke
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
                 placeholder="https://my-endpoint.example.com/v1"
+                style={{
+                  width: '100%',
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border2)',
+                  borderRadius: 6,
+                  padding: '8px 12px',
+                  color: 'var(--text)',
+                  fontSize: '0.85rem',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  outline: 'none',
+                  letterSpacing: '0.02em',
+                  boxSizing: 'border-box',
+                  transition: 'border-color 0.15s',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'hsla(var(--accent-h), var(--accent-s), var(--accent-l), 0.5)' }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border2)' }}
+              />
+              {isAzure && (
+                <div style={{ fontSize: '0.69rem', color: 'var(--accent)', marginTop: 6, letterSpacing: '0.04em' }}>
+                  Azure OpenAI detected — model below is your deployment name
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* API version — Azure OpenAI only */}
+          {isAzure && (
+            <div style={{ marginBottom: 16 }}>
+              <label
+                style={{
+                  fontSize: '0.77rem',
+                  color: 'var(--text-dim)',
+                  letterSpacing: '0.1em',
+                  display: 'block',
+                  marginBottom: 6,
+                }}
+              >
+                API VERSION
+              </label>
+              <input
+                value={apiVersion}
+                onChange={(e) => setApiVersion(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSave() }}
+                placeholder="2024-12-01-preview"
                 style={{
                   width: '100%',
                   background: 'var(--bg)',

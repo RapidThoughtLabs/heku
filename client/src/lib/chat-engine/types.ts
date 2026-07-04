@@ -7,6 +7,9 @@ export interface ProviderConfig {
   apiKey: string
   model: string
   baseUrl: string
+  // Azure OpenAI only. When set, the client uses Azure's wire conventions:
+  // deployment-in-path URL, `api-key` header, and `?api-version=` query param.
+  apiVersion?: string
 }
 
 export const PROVIDER_DEFAULTS: Record<ProviderName, { baseUrl: string; models: string[] }> = {

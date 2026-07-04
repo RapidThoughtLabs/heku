@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Console: custom LLM provider** — add a custom OpenAI-spec inference endpoint (editable base URL + API token + deployment models) alongside the built-in OpenAI and Together AI providers.
+- **Console: custom LLM provider** — add a custom OpenAI-spec inference endpoint (editable base URL + API token + deployment models) alongside the built-in OpenAI and Together AI providers. Includes **Azure OpenAI** support (auto-detected from `*.openai.azure.com`: deployment-in-path URL, `api-key` header, and `api-version` query param).
 
 > Console (UI) changes are tracked separately in [`client/CHANGELOG.md`](client/CHANGELOG.md).
 
