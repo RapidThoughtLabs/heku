@@ -102,9 +102,9 @@ export function startWatcher(
   // ── add ────────────────────────────────────────────────────────
   watcher.on("add", (filePath) => {
     if (isMcpEnvFile(filePath)) {
-      debounce(filePath, () => {
+      debounce(filePath, async () => {
         const configId = configIdFromEnvFile(filePath);
-        const count = loadConfigEnv(configId, filePath);
+        const count = await loadConfigEnv(configId, filePath);
         console.error(`[watcher] + ${path.basename(filePath)} (${count} var(s))`);
       });
       return;
@@ -179,9 +179,9 @@ export function startWatcher(
   // ── change ─────────────────────────────────────────────────────
   watcher.on("change", (filePath) => {
     if (isMcpEnvFile(filePath)) {
-      debounce(filePath, () => {
+      debounce(filePath, async () => {
         const configId = configIdFromEnvFile(filePath);
-        const count = loadConfigEnv(configId, filePath);
+        const count = await loadConfigEnv(configId, filePath);
         console.error(`[watcher] ~ ${path.basename(filePath)} (${count} var(s))`);
       });
       return;

@@ -1,4 +1,3 @@
-import { fileURLToPath } from "node:url";
 import express from "express";
 import cors from "cors";
 import { createMcpClient } from "./mcp-client.js";
@@ -60,25 +59,4 @@ export async function startBridge(options: {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     },
   };
-}
-
-// ── Standalone entry (npm run dev:server) ──────────────────────────
-
-const isMain = process.argv[1] === fileURLToPath(import.meta.url);
-
-if (isMain) {
-  const port = Number(process.env["PORT"] ?? 3456);
-  const bridge = await startBridge({ port });
-
-  async function shutdown(signal: string): Promise<void> {
-    console.error(`\n[bridge] ${signal} received — shutting down`);
-    await bridge.shutdown();
-    process.exit(0);
-  }
-
-  process.once("SIGTERM", () => { void shutdown("SIGTERM"); });
-  process.once("SIGINT",  () => { void shutdown("SIGINT");  });
-  process.on("unhandledRejection", (err) => {
-    console.error("[bridge] Unhandled rejection (non-fatal):", err);
-  });
 }

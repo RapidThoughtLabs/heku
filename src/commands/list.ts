@@ -3,6 +3,7 @@ import { loadSystemConfig } from "../system-config.js";
 import { resolveConfigDir } from "../lib/resolve-config-dir.js";
 import { checkAuthEnvVars, getAuthVarStatuses, getConfigAuth, getConfigBaseUrl } from "../lib/check-auth.js";
 import { loadAllConfigEnvs } from "../lib/env-store.js";
+import { initMasterKey } from "../lib/secrets/master-key.js";
 import { loadManifest } from "../registry/auth.js";
 import { bold, green, red, cyan, dim, table } from "../lib/fmt.js";
 import type { McpConfig } from "../types.js";
@@ -115,7 +116,8 @@ function renderDetail(config: McpConfig): void {
 export async function run(args: string[]): Promise<void> {
   const systemConfig = loadSystemConfig(process.cwd());
   const configDir = resolveConfigDir(undefined, systemConfig);
-  loadAllConfigEnvs(configDir);
+  await initMasterKey();
+  await loadAllConfigEnvs(configDir);
   const configs = loadConfigs(configDir);
 
   if (configs.length === 0) {

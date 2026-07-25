@@ -315,3 +315,5 @@ All credentials read from environment variables — `heku auth setup` writes the
 { "type": "basic",        "username_env": "MY_USER", "token_env": "MY_PASS" }
 { "type": "oauth2_static","token_env": "MY_OAUTH_TOKEN" }
 ```
+
+Values written by `heku auth setup` are encrypted at rest (AES-256-GCM) under a per-machine master key the first time you set up a credential — the `.env` file on disk holds `enc:v1:...` ciphertext, never the raw token. The key itself lives outside the project tree: in the OS keychain (macOS Keychain, Windows DPAPI, `secret-tool` on Linux) when available, otherwise a `0600` key file or `HEKU_MASTER_KEY`. See `heku secrets status` and `heku secrets rotate`, or `heku help`.

@@ -1,6 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadConfigEnv } from "./env-store.js";
+import { acquireLock, atomicWriteFileSync } from "./file-lock.js";
+import { encryptValue } from "./secrets/crypto.js";
+import { getCachedKeyring } from "./secrets/master-key.js";
 
 const GITIGNORE_PATH = path.join(process.cwd(), ".gitignore");
 
@@ -32,13 +35,18 @@ function findKeyLine(lines: string[], key: string): number {
  * Write env vars to a per-config secrets file at {configDir}/mcp.{configId}.env.
  * Skips vars already present unless `overwrite` is true (replaces in-place).
  * After writing, immediately reloads the in-memory env store for this config.
+ *
+ * Encrypts under the current master key when one is loaded (`enc:v1:...`); writes
+ * plaintext + a one-line warning otherwise. This is a pure writer — it never
+ * generates a key itself (§3.1, §6.4); callers that want encryption-by-default
+ * (`auth setup`) are responsible for calling `ensureKeyring()` first.
  */
-export function writeConfigEnv(
+export async function writeConfigEnv(
   configDir: string,
   configId: string,
   entries: EnvEntry[],
   overwrite = false,
-): AppendResult {
+): Promise<AppendResult> {
   const written: string[] = [];
   const skipped: string[] = [];
 
@@ -46,50 +54,67 @@ export function writeConfigEnv(
   if (valid.length === 0) return { written, skipped };
 
   const filePath = path.join(configDir, `mcp.${configId}.env`);
-  const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf-8") : "";
-  const isNewFile = !existing;
-  const lines = existing ? parseLines(existing) : [];
+  const release = await acquireLock(filePath);
 
-  while (lines.length > 0 && lines[lines.length - 1].trim() === "") lines.pop();
+  try {
+    const keyring = getCachedKeyring();
+    const storedValue = (key: string, value: string): string =>
+      keyring ? encryptValue(keyring[0]!, value, `${configId}:${key}`) : value;
 
-  const toAppend: EnvEntry[] = [];
+    const existing = fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf-8") : "";
+    const isNewFile = !existing;
+    const lines = existing ? parseLines(existing) : [];
 
-  for (const entry of valid) {
-    const idx = findKeyLine(lines, entry.key);
-    if (idx !== -1 && !overwrite) {
-      skipped.push(entry.key);
-      continue;
+    while (lines.length > 0 && lines[lines.length - 1].trim() === "") lines.pop();
+
+    const toAppend: EnvEntry[] = [];
+
+    for (const entry of valid) {
+      const idx = findKeyLine(lines, entry.key);
+      if (idx !== -1 && !overwrite) {
+        skipped.push(entry.key);
+        continue;
+      }
+      if (idx !== -1 && overwrite) {
+        lines[idx] = `${entry.key}=${storedValue(entry.key, entry.value)}`;
+        written.push(entry.key);
+      } else {
+        toAppend.push({ key: entry.key, value: storedValue(entry.key, entry.value) });
+      }
     }
-    if (idx !== -1 && overwrite) {
-      lines[idx] = `${entry.key}=${entry.value}`;
-      written.push(entry.key);
-    } else {
-      toAppend.push(entry);
-    }
-  }
 
-  let result = lines.join("\n");
+    let result = lines.join("\n");
 
-  if (toAppend.length > 0) {
-    if (isNewFile) {
-      result = `# heku secrets for ${configId} — do not commit\n`;
-    } else {
+    if (toAppend.length > 0) {
+      if (isNewFile) {
+        result = keyring
+          ? `# heku secrets for ${configId} — encrypted, do not commit\n`
+          : `# heku secrets for ${configId} — do not commit\n`;
+      } else {
+        result += "\n";
+      }
+      for (const e of toAppend) {
+        result += `${e.key}=${e.value}\n`;
+        written.push(e.key);
+      }
+    } else if (written.length > 0) {
       result += "\n";
     }
-    for (const e of toAppend) {
-      result += `${e.key}=${e.value}\n`;
-      written.push(e.key);
+
+    if (written.length > 0) {
+      atomicWriteFileSync(filePath, result, 0o600);
+      if (!keyring) {
+        console.error(
+          `[heku] ⚠ wrote ${written.length} secret(s) to mcp.${configId}.env as plaintext — no master key loaded. Run 'heku secrets init' or 'heku auth setup' to encrypt.`,
+        );
+      }
+      await loadConfigEnv(configId, filePath);
     }
-  } else if (written.length > 0) {
-    result += "\n";
-  }
 
-  if (written.length > 0) {
-    fs.writeFileSync(filePath, result, { encoding: "utf-8", mode: 0o600 });
-    loadConfigEnv(configId, filePath);
+    return { written, skipped };
+  } finally {
+    release();
   }
-
-  return { written, skipped };
 }
 
 /**

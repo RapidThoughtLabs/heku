@@ -8,3 +8,8 @@ export function stateDir(): string {
 export function installSentinelDir(): string {
   return path.join(stateDir(), "installs");
 }
+
+/** Per-machine envelope-encryption master key file (mode 0600). Outside the project tree. */
+export function masterKeyFilePath(): string {
+  return path.join(stateDir(), "..", "master.key");
+}

@@ -10,7 +10,9 @@ import { resolveConfigDir } from "../lib/resolve-config-dir.js";
 import { VERSION } from "../lib/version.js";
 import { startBridge } from "../../server/index.js";
 import { log } from "../lib/logger.js";
-import { loadAllConfigEnvs } from "../lib/env-store.js";
+import { loadAllConfigEnvs, isVarPlaintext } from "../lib/env-store.js";
+import { initMasterKey, getCachedKeyring } from "../lib/secrets/master-key.js";
+import { getConfigAuth, getAuthVarNames } from "../lib/check-auth.js";
 import { INTERNAL_CONFIG } from "../internal-config.js";
 import { connectorRegistry } from "../connectors/registry.js";
 import { HttpConnector } from "../connectors/http.js";
@@ -79,8 +81,12 @@ export async function run(args: string[]): Promise<void> {
     log.info("server", `Created config dir: ${configDir}`);
   }
 
+  // Load the master keyring before any secrets are read (§6.2). `start` never
+  // prompts and never creates a key — it only reads whatever already exists.
+  await initMasterKey();
+
   // Load per-config secrets before any auth status checks or connector init
-  loadAllConfigEnvs(configDir);
+  await loadAllConfigEnvs(configDir);
 
   // ── Register connectors ──────────────────────────────────────────
 
@@ -274,6 +280,20 @@ export async function run(args: string[]): Promise<void> {
   if (unconfigured.length > 0) {
     log.raw(`  ⚠️  ${unconfigured.length} config(s) have missing auth. Affected tools will return a structured error when called.`);
     log.raw(`     Run: mcp auth setup`);
+    log.raw("");
+  }
+
+  // Warn if secrets are unencrypted — never blocks, never prompts, never creates
+  // a key (§6.2). Either no keyring is loaded at all, or an auth-referenced var
+  // is still stored as plaintext in its mcp.*.env file.
+  const hasUnencryptedSecrets = allConfigs.some((c) => {
+    const auth = getConfigAuth(c);
+    if (!auth) return false;
+    if (!getCachedKeyring()) return true;
+    return getAuthVarNames(auth).some((varName) => isVarPlaintext(configDir, c.id, varName) === true);
+  });
+  if (hasUnencryptedSecrets) {
+    log.raw(`  ⚠ secrets are unencrypted — run 'heku auth setup' (or 'heku secrets init') to protect them`);
     log.raw("");
   }
 

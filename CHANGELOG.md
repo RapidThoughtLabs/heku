@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+> Console (UI) changes are tracked separately in [`client/CHANGELOG.md`](client/CHANGELOG.md).
+
+## [0.4.0] - 2026-07-25
+
 ### Added
+- **Secrets encrypted at rest** — `mcp.*.env` files now hold AES-256-GCM ciphertext (`enc:v1:...`) instead of plaintext tokens. A per-machine master key is generated the first time you run `heku auth setup` or `heku secrets init`, and lives outside the project tree — the OS keychain when available (macOS Keychain, Windows DPAPI, Linux `secret-tool`), falling back to a `0600` key file or `HEKU_MASTER_KEY`. New `heku secrets` subcommands: `init`, `encrypt`, `rotate`, `status`, `decrypt`. `heku auth status` now shows the active provider.
 - **Console: custom LLM provider** — add a custom OpenAI-spec inference endpoint (editable base URL + API token + deployment models) alongside the built-in OpenAI and Together AI providers. Includes **Azure OpenAI** support (auto-detected from `*.openai.azure.com`: deployment-in-path URL, `api-key` header, and `api-version` query param).
 
-> Console (UI) changes are tracked separately in [`client/CHANGELOG.md`](client/CHANGELOG.md).
+### Fixed
+- Removed the bridge's auto-start-on-import side effect — importing the server module could previously start an HTTP listener on port 3456 on *any* `heku` invocation, not just `heku start --http`. Local dev (`npm run dev:server`) now runs from a dedicated standalone entrypoint instead.
 
 ## [0.3.2] - 2026-06-22
 
@@ -68,7 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial public release on npm as `@rapidthoughtlabs/mcpone`.
 - Single dynamic MCP server that turns JSON configs into working API tools.
 
-[Unreleased]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/RapidThoughtLabs/heku/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/RapidThoughtLabs/heku/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/RapidThoughtLabs/heku/compare/v0.2.0...v0.3.0

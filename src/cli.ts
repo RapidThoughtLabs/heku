@@ -4,6 +4,7 @@
 import { run as runStart } from "./commands/start.js";
 import { run as runList } from "./commands/list.js";
 import { run as runAuth } from "./commands/auth.js";
+import { run as runSecrets } from "./commands/secrets.js";
 import { run as runLogin } from "./commands/login.js";
 import { run as runPublish } from "./commands/publish.js";
 import { run as runFork } from "./commands/fork.js";
@@ -29,6 +30,10 @@ switch (command) {
 
   case "auth":
     await runAuth(args.slice(1));
+    break;
+
+  case "secrets":
+    await runSecrets(args.slice(1));
     break;
 
   case "login":
@@ -84,6 +89,11 @@ function printUsage(): void {
     heku list <service>               Show tools for a specific config
     heku auth status                  Show auth health for all configs
     heku auth setup [service]         Interactive credential setup wizard
+    heku secrets init                 Generate a master key (or adopt one that exists)
+    heku secrets encrypt [service]    Migrate plaintext secrets to enc:v1 in place
+    heku secrets rotate               Rotate the master key (grace window, resumable)
+    heku secrets status               Show master-key provider + per-config encryption state
+    heku secrets decrypt [service]    Escape hatch: rewrite secrets back to plaintext
     heku install <target>             Install a config from the registry
     heku uninstall <target>           Remove an installed registry config
     heku update                       Update all installed configs to latest versions

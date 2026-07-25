@@ -1,30 +1,73 @@
 import fs from "node:fs";
 import path from "node:path";
+import { isEncrypted, decryptWithKeyring } from "./secrets/crypto.js";
+import { getCachedKeyring, refreshKeyring } from "./secrets/master-key.js";
 
 const configEnv = new Map<string, Map<string, string>>();
 
-function parseEnvContent(content: string): Map<string, string> {
+interface ParseResult {
+  map: Map<string, string>;
+  /** Keys whose value was `enc:v1:` but failed to decrypt against every key in the keyring. */
+  failed: string[];
+}
+
+function parseEnvContent(content: string, configId: string): ParseResult {
   const map = new Map<string, string>();
+  const failed: string[] = [];
+  const keyring = getCachedKeyring();
+
   for (const line of content.split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
     const eq = trimmed.indexOf("=");
     if (eq === -1) continue;
     const key = trimmed.slice(0, eq).trim();
-    const val = trimmed.slice(eq + 1).replace(/^["']|["']$/g, "");
-    if (key) map.set(key, val);
+    const rawVal = trimmed.slice(eq + 1).replace(/^["']|["']$/g, "");
+    if (!key) continue;
+
+    if (isEncrypted(rawVal)) {
+      if (!keyring) {
+        failed.push(key);
+        continue;
+      }
+      try {
+        map.set(key, decryptWithKeyring(keyring, rawVal, `${configId}:${key}`));
+      } catch {
+        failed.push(key);
+      }
+    } else {
+      map.set(key, rawVal);
+    }
   }
-  return map;
+
+  return { map, failed };
 }
 
-/** Load a per-config env file into the in-memory store. Returns count of vars loaded. */
-export function loadConfigEnv(configId: string, filePath: string): number {
+/**
+ * Load a per-config env file into the in-memory store. Returns count of vars loaded.
+ * `enc:v1:` values are decrypted with the cached keyring; on a decrypt miss the
+ * keyring is refreshed once (another instance may have rotated it, §12.1) and the
+ * file is re-parsed before committing. Values that still fail are skipped, not
+ * fatal — the rest of the file loads normally.
+ */
+export async function loadConfigEnv(configId: string, filePath: string): Promise<number> {
   if (!fs.existsSync(filePath)) {
     configEnv.delete(configId);
     return 0;
   }
   const content = fs.readFileSync(filePath, "utf-8");
-  const map = parseEnvContent(content);
+  let { map, failed } = parseEnvContent(content, configId);
+
+  if (failed.length > 0) {
+    await refreshKeyring();
+    ({ map, failed } = parseEnvContent(content, configId));
+    if (failed.length > 0) {
+      console.error(
+        `[heku] secrets: could not decrypt ${failed.length} var(s) for "${configId}": ${failed.join(", ")} — check the master key`,
+      );
+    }
+  }
+
   configEnv.set(configId, map);
   return map.size;
 }
@@ -37,6 +80,8 @@ export function unloadConfigEnv(configId: string): void {
 /**
  * Resolve an env var for a specific config.
  * Checks the per-config store only — no cross-config bleed.
+ * Synchronous and unchanged by envelope encryption: values are already
+ * decrypted at load time (see loadConfigEnv).
  */
 export function resolveEnv(configId: string, varName: string): string | undefined {
   return configEnv.get(configId)?.get(varName);
@@ -64,7 +109,7 @@ export function buildChildEnv(
 }
 
 /** Load all mcp.*.env files from a config directory into the in-memory store. */
-export function loadAllConfigEnvs(configDir: string): void {
+export async function loadAllConfigEnvs(configDir: string): Promise<void> {
   if (!fs.existsSync(configDir)) return;
   let entries: string[];
   try {
@@ -72,9 +117,33 @@ export function loadAllConfigEnvs(configDir: string): void {
   } catch {
     return;
   }
-  for (const file of entries) {
-    if (!file.startsWith("mcp.") || !file.endsWith(".env")) continue;
-    const configId = file.slice(4, -4); // "mcp.github.env" → "github"
-    loadConfigEnv(configId, path.join(configDir, file));
+  const envFiles = entries.filter((file) => file.startsWith("mcp.") && file.endsWith(".env"));
+  await Promise.all(
+    envFiles.map((file) => {
+      const configId = file.slice(4, -4); // "mcp.github.env" → "github"
+      return loadConfigEnv(configId, path.join(configDir, file));
+    }),
+  );
+}
+
+/**
+ * True if `varName` is present in configId's env file and stored as plaintext
+ * (not `enc:v1:`). Undefined if the file or the var doesn't exist. Used by
+ * `start`'s non-blocking encryption warning (§6.2) — reads the raw file, not
+ * the decrypted in-memory store, since the store no longer distinguishes the two.
+ */
+export function isVarPlaintext(configDir: string, configId: string, varName: string): boolean | undefined {
+  const filePath = path.join(configDir, `mcp.${configId}.env`);
+  if (!fs.existsSync(filePath)) return undefined;
+  const content = fs.readFileSync(filePath, "utf-8");
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    if (trimmed.slice(0, eq).trim() !== varName) continue;
+    const rawVal = trimmed.slice(eq + 1).replace(/^["']|["']$/g, "");
+    return rawVal.length > 0 && !isEncrypted(rawVal);
   }
+  return undefined;
 }

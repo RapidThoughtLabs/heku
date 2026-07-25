@@ -70,7 +70,7 @@ export async function handleAuthSet(
     return { success: false, data: { error: "value is required" } };
   }
 
-  const result = writeConfigEnv(ctx.configDir, configId, [{ key, value: String(value) }], true);
+  const result = await writeConfigEnv(ctx.configDir, configId, [{ key, value: String(value) }], true);
 
   if (result.written.includes(key)) {
     return {

@@ -89,7 +89,7 @@ Tool names follow the pattern `config_id.tool_name` — e.g. `github-http.list_r
 - **Response stripping** — base64 blobs, null fields, oversized strings, and long arrays are trimmed before the model sees them, keeping context lean without losing data
 - **Built-in console UI** — React dashboard for chat, config editing, and registry browsing
 - **heku hub** — publish and install community configs from [app.rapidthoughtlabs.space](https://app.rapidthoughtlabs.space)
-- **Auth handled** — bearer, basic, API key, and OAuth2 with `.env`-based credential management
+- **Auth handled** — bearer, basic, API key, and OAuth2 with `.env`-based credential management, encrypted at rest by default
 - **Self-managing** — the server can create and edit its own configs via internal tools
 
 ---
@@ -131,6 +131,8 @@ All credentials read from environment variables — `heku auth setup` writes the
 { "type": "oauth2_static","token_env": "MY_OAUTH_TOKEN" }
 ```
 
+**Secrets are encrypted at rest.** The first time you save a credential, heku generates a per-machine master key and stores it outside the project tree — the OS keychain when available (macOS Keychain, Windows DPAPI, Linux `secret-tool`), or a `0600` key file when no keychain exists. In containers or CI, set `HEKU_MASTER_KEY` yourself to skip key generation entirely (read-only: rotation happens at the platform level instead). From then on, `mcp.*.env` files hold `enc:v1:...` ciphertext instead of plaintext tokens. `heku auth status` shows which provider is active, `heku secrets status` shows per-config encryption state, and `heku secrets rotate` rolls the key with a resumable grace window.
+
 ---
 
 ## CLI commands
@@ -143,6 +145,12 @@ heku list [service]          List loaded configs + auth status
 heku auth                    Check or set up credentials interactively
 heku auth status             Show per-service auth health
 heku auth setup [service]    Walk through env-var setup, write to .env
+
+heku secrets init               Generate (or adopt) the per-machine master key
+heku secrets encrypt [service]  Migrate plaintext secrets to enc:v1 in place
+heku secrets rotate             Rotate the master key (grace window, resumable)
+heku secrets status             Show master-key provider + per-config encryption state
+heku secrets decrypt [service]  Escape hatch: rewrite secrets back to plaintext
 
 heku login                   Authenticate with the registry
 heku logout                  Clear stored registry credentials
@@ -244,6 +252,10 @@ TypeScript · Node.js (ESM) · `@modelcontextprotocol/sdk` · Express · React 1
 ## Changelog
 
 > Console (UI) changes are tracked separately in [`client/CHANGELOG.md`](client/CHANGELOG.md).
+
+### 0.4.0
+- **Secrets encrypted at rest** — `mcp.*.env` files now hold AES-256-GCM ciphertext instead of plaintext tokens, protected by a per-machine master key (OS keychain / DPAPI / `secret-tool`, or a key file). New `heku secrets init | encrypt | rotate | status | decrypt` commands; `heku auth status` shows the active provider.
+- **Console: custom LLM provider** — bring your own OpenAI-spec inference endpoint (base URL, API token, deployment models), with built-in Azure OpenAI auto-detection.
 
 ### 0.3.2
 - **Response stripping** — every tool response is structurally trimmed before it reaches the model. Base64 blobs become size markers, null/empty fields are dropped, strings over 8 000 chars are head-truncated, and arrays over 100 items are capped. Structure-only — never decides which field matters.

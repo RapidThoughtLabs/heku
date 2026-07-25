@@ -8,6 +8,7 @@ import { bold, green, red, yellow, dim, cyan } from "../lib/fmt.js";
 import { ask, askMasked, confirm } from "../lib/prompt.js";
 import { writeConfigEnv, isEnvInGitignore } from "../lib/env-writer.js";
 import { resolveEnv, loadAllConfigEnvs } from "../lib/env-store.js";
+import { initMasterKey, ensureKeyring, getCachedKeyring, getActiveProviderId } from "../lib/secrets/master-key.js";
 import { isPlaceholderUrl } from "../lib/base-url.js";
 import type { McpConfig, AuthConfig } from "../types.js";
 
@@ -52,6 +53,14 @@ async function runStatus(configs: McpConfig[]): Promise<void> {
   const SEP = "─".repeat(44);
 
   console.log(`\n  Auth Status:`);
+  console.log(`  ${SEP}`);
+
+  const providerId = getActiveProviderId();
+  console.log(
+    providerId
+      ? `  secrets:     ${green("🔑")} encrypted at rest (provider: ${bold(providerId)})`
+      : `  secrets:     ${yellow("⚠ unencrypted")} — no master key loaded (run "heku secrets init")`,
+  );
   console.log(`  ${SEP}`);
 
   let totalMissing = 0;
@@ -233,10 +242,10 @@ async function setupConfig(config: McpConfig, configDir: string): Promise<void> 
     const newEntries       = entries.filter((e) => !overwriteKeys.has(e.key));
 
     if (newEntries.length > 0) {
-      writeConfigEnv(configDir, config.id, newEntries, false);
+      await writeConfigEnv(configDir, config.id, newEntries, false);
     }
     if (overwriteEntries.length > 0) {
-      writeConfigEnv(configDir, config.id, overwriteEntries, true);
+      await writeConfigEnv(configDir, config.id, overwriteEntries, true);
     }
 
     console.log(
@@ -288,6 +297,18 @@ async function runSetup(args: string[], configs: McpConfig[], configDir: string)
     return;
   }
 
+  // Key genesis, single-writer/human path (§3.1): the first `auth setup` that has
+  // something to write brings the master key into existence. Adopt-existing means
+  // this is silent (no banner) whenever a keyring already exists.
+  if (!getCachedKeyring()) {
+    const { provider, created } = await ensureKeyring();
+    if (created) {
+      console.log(
+        `\n  ${green("🔑 generated a master key")} (stored in "${bold(provider.id)}") — your secrets are now encrypted at rest.`,
+      );
+    }
+  }
+
   for (const config of targets) {
     await setupConfig(config, configDir);
   }
@@ -302,7 +323,8 @@ export async function run(args: string[]): Promise<void> {
 
   const systemConfig = loadSystemConfig(process.cwd());
   const configDir    = resolveConfigDir(undefined, systemConfig);
-  loadAllConfigEnvs(configDir);
+  await initMasterKey();
+  await loadAllConfigEnvs(configDir);
   const configs      = loadConfigs(configDir);
 
   if (configs.length === 0) {

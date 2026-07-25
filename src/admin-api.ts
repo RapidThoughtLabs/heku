@@ -406,7 +406,7 @@ export function createAdminRouter(ctx: AdminContext): Router {
 
   // POST /admin/credentials — write env vars to a config's .env file and reload.
   // Body: { configId: string, entries: { key: string, value: string }[], overwrite?: boolean }
-  router.post("/credentials", (req, res) => {
+  router.post("/credentials", async (req, res) => {
     const { configId, entries, overwrite = false } = req.body as {
       configId?: string;
       entries?: { key: string; value: string }[];
@@ -423,7 +423,7 @@ export function createAdminRouter(ctx: AdminContext): Router {
     }
 
     try {
-      const result = writeConfigEnv(ctx.configDir, configId, entries, overwrite);
+      const result = await writeConfigEnv(ctx.configDir, configId, entries, overwrite);
       res.json({ ok: true, written: result.written, skipped: result.skipped });
     } catch (err) {
       res.status(500).json({ error: (err as Error).message });
@@ -432,14 +432,14 @@ export function createAdminRouter(ctx: AdminContext): Router {
 
   // POST /admin/reload-env — reload a config's secrets file into the env store.
   // Called by the Express bridge after credentials are written to disk.
-  router.post("/reload-env", (req, res) => {
+  router.post("/reload-env", async (req, res) => {
     const { configId } = req.body as { configId?: string };
     if (!configId || typeof configId !== "string") {
       res.status(400).json({ error: "configId is required" });
       return;
     }
     const filePath = path.join(ctx.configDir, `mcp.${configId}.env`);
-    const count = loadConfigEnv(configId, filePath);
+    const count = await loadConfigEnv(configId, filePath);
     res.json({ ok: true, configId, updated: count });
   });
 

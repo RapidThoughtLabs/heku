@@ -1,6 +1,6 @@
 {
   "name": "@rapidthoughtlabs/heku",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "A single dynamic MCP server that turns JSON configs into working API tools",
   "type": "module",
   "main": "dist/cli.js",
@@ -17,7 +17,7 @@
     "build": "tsup",
     "dev": "concurrently --names \"client,server\" --prefix-colors \"cyan,yellow\" \"npm run dev:client\" \"npm run dev:server\"",
     "dev:client": "npm run dev --prefix client",
-    "dev:server": "tsx watch server/index.ts",
+    "dev:server": "tsx watch server/dev-server.ts",
     "dev:mcp": "tsx src/cli.ts start",
     "start": "node dist/cli.js start",
     "test": "vitest",
